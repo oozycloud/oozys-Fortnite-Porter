@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>oozy's Fortnite Porter | Download</title>
-    <!-- marked.js converts GitHub Markdown release notes into HTML -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            /* Exact theme colors from the app design */
             --bg-base: #0f0f11;
             --bg-panel: #151517;
             --bg-panel-light: #1c1c1e;
@@ -23,284 +21,149 @@
             --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* -----------------------------------------------------------
-           GLOBAL STYLES & LAYOUT
-           ----------------------------------------------------------- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 
         body {
-            background-color: var(--bg-base);
-            color: var(--text-main);
+            background-color: var(--bg-base); color: var(--text-main);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 40px 20px;
+            overflow-x: hidden; position: relative;
+        }
+
+        /* =========================================
+           NEW: THE ORBIT EFFECT (Matches Screenshot)
+           ========================================= */
+        .orbit-system {
+            position: fixed;
+            top: 50%;
+            right: 0;
+            transform: translate(30%, -50%); /* Centers the orbits on the right edge */
+            width: 1200px;
+            height: 1200px;
+            pointer-events: none; /* Stops it from blocking clicks */
+            z-index: -1; /* Keeps it behind the main panels */
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            padding: 40px 20px;
-            background-image: 
-                radial-gradient(circle at top right, rgba(254, 133, 73, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at center bottom, rgba(254, 133, 73, 0.02) 0%, transparent 30%);
-            overflow-x: hidden;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-            opacity: 0;
-            animation: fadeInPage 1s var(--ease-in-out) forwards;
-        }
-
-        /* -----------------------------------------------------------
-           HEADER MATCHING THE APP
-           ----------------------------------------------------------- */
-        .header {
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding-bottom: 25px;
-            border-bottom: 1px solid var(--border-color);
         }
 
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background-color: transparent;
-            border: 4px solid var(--accent-orange);
+        .orbit {
+            position: absolute;
             border-radius: 50%;
-            border-bottom-color: transparent; 
-            transform: rotate(45deg);
-            box-shadow: 0 0 10px var(--accent-glow);
-            animation: slowRotate 8s linear infinite;
+            border: 1px solid rgba(254, 133, 73, 0.05); /* Faint orange rings */
         }
 
+        /* Adding glowing nodes to mimic the screenshot */
+        .orbit::after {
+            content: ''; position: absolute;
+            top: 50%; left: -3px;
+            width: 6px; height: 6px;
+            background-color: var(--accent-orange);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-glow);
+            transform: translateY(-50%);
+        }
+
+        /* Specific orbit sizing, line styles, and spin speeds */
+        .orbit-1 { width: 300px; height: 300px; border-left: 1px dashed rgba(254, 133, 73, 0.15); animation: spinOrbit 40s linear infinite; }
+        .orbit-2 { width: 500px; height: 500px; border-right: 1px dashed rgba(254, 133, 73, 0.1); animation: spinOrbit 60s linear infinite reverse; }
+        .orbit-3 { width: 750px; height: 750px; border-bottom: 1px dashed rgba(254, 133, 73, 0.2); animation: spinOrbit 90s linear infinite; }
+        .orbit-4 { width: 1000px; height: 1000px; animation: spinOrbit 120s linear infinite reverse; }
+        .orbit-4::after { display: none; } /* Remove node from outermost ring */
+
+        @keyframes spinOrbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* =========================================
+           LAYOUT & PANELS
+           ========================================= */
+        .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 30px; opacity: 0; animation: fadeInPage 1s var(--ease-in-out) forwards; }
+
+        .header { display: flex; align-items: center; justify-content: space-between; width: 100%; padding-bottom: 25px; border-bottom: 1px solid var(--border-color); }
+        .logo-container { display: flex; align-items: center; gap: 15px; }
+        .logo-icon { width: 32px; height: 32px; border: 4px solid var(--accent-orange); border-radius: 50%; border-bottom-color: transparent; transform: rotate(45deg); box-shadow: 0 0 10px var(--accent-glow); animation: slowRotate 8s linear infinite; }
         .title h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
         .title p { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
-
-        .version-pill {
-            background-color: var(--pill-bg);
-            color: var(--pill-text);
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid rgba(254, 133, 73, 0.2);
-            transition: box-shadow 0.3s ease;
-        }
+        .version-pill { background-color: var(--pill-bg); color: var(--pill-text); padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; border: 1px solid rgba(254, 133, 73, 0.2); transition: box-shadow 0.3s ease; }
         
-        .version-pill:hover { box-shadow: 0 0 10px rgba(254, 133, 73, 0.3); }
-
-        /* -----------------------------------------------------------
-           MAIN RELEASE PANEL & DROPDOWN
-           ----------------------------------------------------------- */
-        .panel {
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideInUp 0.8s var(--ease-in-out) 0.3s forwards;
-        }
-
-        .panel-header {
-            padding: 20px 30px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--bg-panel-light);
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .panel-header h2 {
-            font-size: 16px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-        }
-
-        /* Styling the dropdown to match the "STYLE" dropdown from your app */
-        .version-selector-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .version-selector-container label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .custom-select {
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 8px 32px 8px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            outline: none;
-            appearance: none;
-            -webkit-appearance: none;
-            /* Custom dropdown arrow */
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a9a9d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 14px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .custom-select:hover, .custom-select:focus {
-            border-color: var(--accent-orange);
-            box-shadow: 0 0 5px rgba(254, 133, 73, 0.2);
-        }
-
-        .custom-select option {
-            background-color: var(--bg-panel);
-            color: var(--text-main);
-        }
-
-        .panel-content {
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* -----------------------------------------------------------
-           RELEASE NOTES (MARKDOWN STYLING)
-           ----------------------------------------------------------- */
-        .release-notes {
-            color: var(--text-main);
-            font-size: 14px;
-            line-height: 1.6;
-            background-color: var(--bg-base);
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            height: 350px;
-            overflow-y: auto;
-            position: relative;
-            transition: opacity 0.3s ease; /* Fade effect when switching versions */
-        }
+        .panel { background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; width: 100%; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.7); opacity: 0; transform: translateY(20px); animation: slideInUp 0.8s var(--ease-in-out) 0.3s forwards; }
         
-        .release-notes h1, .release-notes h2, .release-notes h3 {
-            color: var(--accent-orange);
-            margin-bottom: 10px;
-            margin-top: 15px;
-            font-size: 16px;
-            text-shadow: 0 0 5px var(--accent-glow);
-        }
+        .panel-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-panel-light); flex-wrap: wrap; gap: 15px; }
+        .panel-header h2 { font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
         
-        .release-notes h1:first-child, .release-notes h2:first-child { margin-top: 0; }
-        .release-notes ul { margin-left: 20px; margin-bottom: 15px; color: var(--text-muted); }
-        .release-notes li { margin-bottom: 5px; }
-        .release-notes a { color: var(--accent-orange); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s ease; }
-        .release-notes a:hover { border-color: var(--accent-orange); }
-        .release-notes code { background: #000; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .header-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .version-selector-container { display: flex; align-items: center; gap: 12px; }
+        .version-selector-container label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .custom-select { background-color: var(--bg-base); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 32px 8px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a9a9d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 10px center; background-size: 14px; transition: border-color 0.2s ease; }
+        .custom-select:hover { border-color: var(--accent-orange); }
+        .custom-select option { background-color: var(--bg-panel); }
 
+        .metadata { display: flex; gap: 15px; font-size: 12px; color: var(--text-muted); }
+        .metadata span { display: flex; align-items: center; gap: 5px; }
+        .metadata svg { width: 14px; height: 14px; stroke: var(--accent-orange); }
+
+        .tabs { display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-panel-light); }
+        .tab-btn { flex: 1; padding: 15px 0; background: none; border: none; color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+        .tab-btn:hover { color: var(--text-main); background-color: rgba(255,255,255,0.02); }
+        .tab-btn.active { color: var(--accent-orange); border-bottom-color: var(--accent-orange); }
+
+        .panel-content { padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .tab-content { display: none; color: var(--text-main); font-size: 14px; line-height: 1.6; background-color: var(--bg-base); padding: 20px; border: 1px solid var(--border-color); border-radius: 6px; height: 350px; overflow-y: auto; transition: opacity 0.3s ease; }
+        .tab-content.active { display: block; }
+        
+        .tab-content h1, .tab-content h2, .tab-content h3 { color: var(--accent-orange); margin: 15px 0 10px 0; font-size: 16px; }
+        .tab-content h1:first-child, .tab-content h2:first-child { margin-top: 0; }
+        .tab-content ul { margin-left: 20px; margin-bottom: 15px; color: var(--text-muted); }
+        .tab-content li { margin-bottom: 5px; }
+        .tab-content a { color: var(--accent-orange); text-decoration: none; border-bottom: 1px solid transparent; }
+        .tab-content a:hover { border-color: var(--accent-orange); }
+        .tab-content code { background: #000; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-base); }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; transition: background 0.3s ease; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #444; }
 
-        /* -----------------------------------------------------------
-           DOWNLOAD BUTTON
-           ----------------------------------------------------------- */
-        .download-btn {
-            background-color: var(--accent-orange);
-            color: #000000;
-            text-decoration: none;
-            padding: 16px 24px;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: 700;
-            text-align: center;
-            border: none;
-            cursor: pointer;
-            display: block;
-            width: 100%;
-            position: relative;
-            transition: background-color 0.2s ease, box-shadow 0.3s ease, transform 0.1s ease;
-            box-shadow: 0 4px 10px rgba(254, 133, 73, 0.2);
-            overflow: hidden;
-        }
-
-        .download-btn::after {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
-            transform: rotate(20deg);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .download-btn:not(.loading):hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--accent-glow);
-        }
-        
+        .action-group { display: flex; gap: 15px; }
+        .download-btn { flex: 1; background-color: var(--accent-orange); color: #000; text-decoration: none; padding: 16px 24px; border-radius: 6px; font-size: 15px; font-weight: 700; text-align: center; position: relative; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(254, 133, 73, 0.2); overflow: hidden; display: flex; justify-content: center; align-items: center; gap: 10px; border: none; cursor: pointer; }
+        .download-btn::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%); transform: rotate(20deg); opacity: 0; transition: opacity 0.3s ease; }
+        .download-btn:not(.loading):hover { background-color: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 8px 25px var(--accent-glow); }
         .download-btn:not(.loading):hover::after { animation: shine 1.5s infinite; opacity: 1; }
         .download-btn:not(.loading):active { transform: translateY(1px); box-shadow: 0 2px 5px var(--accent-glow); }
+        .download-btn.loading { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; box-shadow: none; animation: pulseBtnLoading 1.5s infinite; }
         
-        .download-btn.loading {
-            background-color: var(--border-color);
-            color: var(--text-muted);
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-        .download-btn.pulsing { animation: pulseBtnLoading 1.5s ease-in-out infinite; }
+        .share-btn { display: flex; align-items: center; justify-content: center; background-color: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; width: 54px; cursor: pointer; transition: all 0.2s ease; }
+        .share-btn:hover { border-color: var(--accent-orange); color: var(--accent-orange); }
+        .share-btn:active { background-color: var(--bg-panel-light); }
 
-        /* -----------------------------------------------------------
-           ANIMATIONS
-           ----------------------------------------------------------- */
+        .footer { text-align: center; padding-top: 20px; border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-muted); }
+        .footer a { color: var(--text-muted); text-decoration: none; margin: 0 10px; transition: color 0.2s; }
+        .footer a:hover { color: var(--accent-orange); }
+
         @keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slowRotate { from { transform: rotate(45deg); } to { transform: rotate(405deg); } }
-        @keyframes pulseNotesLoading { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
         @keyframes pulseBtnLoading { 0%, 100% { background-color: var(--border-color); } 50% { background-color: #3a3a3d; } }
         @keyframes shine { from { left: -150%; } to { left: 150%; } }
-
-        .loader-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: var(--text-muted);
-            animation: pulseNotesLoading 1.5s infinite ease-in-out;
-        }
+        .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); animation: pulseNotesLoading 1.5s infinite ease-in-out; }
+        @keyframes pulseNotesLoading { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
     </style>
 </head>
 <body>
 
+    <!-- NEW: The Orbit Background System -->
+    <div class="orbit-system">
+        <div class="orbit orbit-1"></div>
+        <div class="orbit orbit-2"></div>
+        <div class="orbit orbit-3"></div>
+        <div class="orbit orbit-4"></div>
+    </div>
+
     <div class="container">
-        <!-- Header -->
+        <!-- HEADER -->
         <div class="header">
             <div class="logo-container">
                 <div class="logo-icon"></div>
@@ -309,149 +172,210 @@
                     <p>FORTNITE ASSET TOOL</p>
                 </div>
             </div>
-            <!-- Global Version Badge -->
             <div class="version-pill" id="header-version">fetching...</div>
         </div>
 
-        <!-- Main Panel -->
+        <!-- MAIN PANEL -->
         <div class="panel">
             <div class="panel-header">
-                <h2>Release Notes</h2>
+                <h2>Overview & Download</h2>
                 
-                <!-- NEW: Version Dropdown Menu -->
-                <div class="version-selector-container">
-                    <label for="version-select">Select Version</label>
-                    <select id="version-select" class="custom-select" disabled>
-                        <option value="">Loading releases...</option>
-                    </select>
+                <div class="header-controls">
+                    <div class="version-selector-container">
+                        <label for="version-select">Select Version</label>
+                        <select id="version-select" class="custom-select" disabled>
+                            <option value="">Loading releases...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="metadata" id="release-metadata" style="opacity: 0; transition: opacity 0.3s;">
+                        <span title="Release Date">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <span id="meta-date">--</span>
+                        </span>
+                        <span title="File Size">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span id="meta-size">-- MB</span>
+                        </span>
+                        <span title="Total Downloads">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"></path></svg>
+                            <span id="meta-downloads">--</span>
+                        </span>
+                    </div>
                 </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="tab-notes">Release Notes</button>
+                <button class="tab-btn" data-tab="tab-guide">Installation</button>
+                <button class="tab-btn" data-tab="tab-about">About</button>
             </div>
             
             <div class="panel-content">
-                <!-- Release Notes Box -->
-                <div class="release-notes" id="release-notes">
-                    <div class="loader-container">
-                        <p>Scanning GitHub for releases...</p>
-                    </div>
+                <div class="tab-content active" id="tab-notes">
+                    <div class="loader-container"><p>Scanning GitHub for releases...</p></div>
                 </div>
 
-                <!-- Download Button -->
-                <a href="#" id="download-btn" class="download-btn loading pulsing">Please wait...</a>
+                <div class="tab-content" id="tab-guide">
+                    <h3>How to Install</h3>
+                    <ul>
+                        <li>Download the latest <code>.exe</code> installer using the orange button below.</li>
+                        <li>Run the downloaded executable file.</li>
+                        <li>If Windows SmartScreen appears, click <strong>More info</strong> and then <strong>Run anyway</strong>.</li>
+                        <li>Follow the on-screen setup instructions.</li>
+                    </ul>
+                    <h3>First Time Setup</h3>
+                    <ul>
+                        <li>Launch the application.</li>
+                        <li>Click "Scan Fortnite files" or manually browse to your <code>C:\Fortnite\FortniteGame\</code> folder.</li>
+                    </ul>
+                </div>
+
+                <div class="tab-content" id="tab-about">
+                    <h3>oozy's Fortnite Porter</h3>
+                    <p>A custom tool built to easily browse, preview, and export Fortnite assets directly into Blender/3D software.</p><br>
+                    <h3>System Requirements</h3>
+                    <ul>
+                        <li><strong>OS:</strong> Windows 10/11 (64-bit)</li>
+                        <li><strong>Storage:</strong> Adequate space for exported .blend models and textures</li>
+                        <li><strong>Game Files:</strong> An up-to-date installation of Fortnite</li>
+                    </ul>
+                </div>
+
+                <div class="action-group">
+                    <a href="#" id="download-btn" class="download-btn loading">Please wait...</a>
+                    <button class="share-btn" id="share-btn" title="Copy Download Link">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
             </div>
+        </div>
+
+        <div class="footer">
+            <a id="repo-link" href="#" target="_blank">GitHub Repository</a> • 
+            <a id="issues-link" href="#" target="_blank">Report an Issue</a>
         </div>
     </div>
 
-    <!-- -----------------------------------------------------------
-         JAVASCRIPT: API Fetcher & Version Manager
-         ----------------------------------------------------------- -->
     <script>
         const GITHUB_USERNAME = 'oozycloud'; 
         const GITHUB_REPO = 'oozys-Fortnite-Porter';
         
-        let allReleases = []; // Will store the array of all releases
+        let allReleases = []; 
+        let currentDownloadUrl = "";
 
-        // 1. Fetch all releases on load
+        document.getElementById('repo-link').href = `https://github.com/${GITHUB_USERNAME}/${GITHUB_REPO}`;
+        document.getElementById('issues-link').href = `https://github.com/${GITHUB_USERNAME}/${GITHUB_REPO}/issues`;
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        document.getElementById('share-btn').addEventListener('click', async (e) => {
+            if (!currentDownloadUrl) return;
+            try {
+                await navigator.clipboard.writeText(currentDownloadUrl);
+                const btn = e.currentTarget;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fe8549" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                setTimeout(() => btn.innerHTML = originalHtml, 2000);
+            } catch (err) {
+                console.error("Failed to copy", err);
+            }
+        });
+
         async function fetchAllReleases() {
             const selectMenu = document.getElementById('version-select');
-            const notes = document.getElementById('release-notes');
+            const notes = document.getElementById('tab-notes');
             const headerVer = document.getElementById('header-version');
             const btn = document.getElementById('download-btn');
 
             try {
-                // Fetch ALL releases instead of just the latest
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/releases`);
-                
                 if (!response.ok) throw new Error('Could not fetch releases. Check repository details.');
 
                 allReleases = await response.json();
+                if (allReleases.length === 0) throw new Error('No releases found in this repository.');
 
-                if (allReleases.length === 0) {
-                    throw new Error('No releases found in this repository.');
-                }
-
-                // 2. Populate the dropdown menu
-                selectMenu.innerHTML = ''; // clear loading text
+                selectMenu.innerHTML = ''; 
                 allReleases.forEach((release, index) => {
                     const option = document.createElement('option');
-                    option.value = index; // Store array index as the value
-                    
-                    // Format the name nicely (e.g. "Release v2.1.0" or just the tag)
+                    option.value = index;
                     let name = release.name || release.tag_name;
                     if (release.prerelease) name += " (Pre-release)";
-                    
                     option.textContent = name;
                     selectMenu.appendChild(option);
                 });
 
-                // Enable the dropdown and add an event listener for when the user changes it
                 selectMenu.disabled = false;
                 selectMenu.addEventListener('change', (e) => {
                     renderReleaseData(allReleases[e.target.value]);
                 });
 
-                // 3. Render the most recent release (index 0) by default
                 renderReleaseData(allReleases[0]);
 
             } catch (error) {
                 console.error("[GitHub API Error]:", error);
                 headerVer.textContent = "error";
                 selectMenu.innerHTML = '<option>Error loading</option>';
-                notes.innerHTML = `<div style="padding: 20px; text-align: center; color: #ff5555;">
-                    <p style="font-weight: bold;">Error loading releases.</p>
-                    <p style="color:var(--text-muted); margin-top: 5px;">${error.message}</p>
-                </div>`;
-                
+                notes.innerHTML = `<div style="padding: 20px; text-align: center; color: #ff5555;"><p style="font-weight: bold;">Error loading releases.</p><p style="color:var(--text-muted); margin-top: 5px;">${error.message}</p></div>`;
                 btn.textContent = "View Repository on GitHub";
                 btn.href = `https://github.com/${GITHUB_USERNAME}/${GITHUB_REPO}`;
-                btn.className = 'download-btn'; // remove loading classes
+                btn.className = 'download-btn';
             }
         }
 
-        // 4. Function to update the UI based on the selected release
         function renderReleaseData(release) {
-            const notes = document.getElementById('release-notes');
+            const notes = document.getElementById('tab-notes');
             const headerVer = document.getElementById('header-version');
             const btn = document.getElementById('download-btn');
+            const metadataBox = document.getElementById('release-metadata');
 
-            // Quick fade out effect for smooth transition
             notes.style.opacity = '0';
-            btn.className = 'download-btn loading pulsing';
-            btn.textContent = 'Updating...';
+            metadataBox.style.opacity = '0';
+            btn.className = 'download-btn loading';
+            btn.innerHTML = 'Updating...';
 
             setTimeout(() => {
-                // Update Badge
                 headerVer.textContent = release.tag_name;
 
-                // Update Markdown Notes
                 if (release.body) {
                     notes.innerHTML = marked.parse(release.body);
                 } else {
                     notes.innerHTML = '<p style="padding:20px; color:var(--text-muted);">No release notes provided for this version.</p>';
                 }
                 
-                // Fade notes back in
                 notes.style.opacity = '1';
 
-                // Find the correct .exe download asset
                 if (release.assets && release.assets.length > 0) {
-                    // Force find the .exe file first (handles your .Installer.v2.1.0.exe logic)
                     const exeAsset = release.assets.find(asset => asset.name.endsWith('.exe'));
                     const targetAsset = exeAsset || release.assets[0]; 
 
-                    btn.href = targetAsset.browser_download_url;
-                    btn.textContent = `Download ${targetAsset.name}`;
-                    btn.className = 'download-btn'; // Removes loading states, unlocks button
+                    document.getElementById('meta-date').textContent = new Date(release.published_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                    document.getElementById('meta-size').textContent = (targetAsset.size / (1024 * 1024)).toFixed(1) + ' MB';
+                    document.getElementById('meta-downloads').textContent = targetAsset.download_count.toLocaleString();
+                    metadataBox.style.opacity = '1';
+
+                    currentDownloadUrl = targetAsset.browser_download_url;
+                    btn.href = currentDownloadUrl;
+                    
+                    btn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download ${targetAsset.name}`;
+                    btn.className = 'download-btn'; 
                 } else {
-                    // Fallback if the specific tag doesn't have files uploaded yet
-                    btn.href = release.html_url;
+                    currentDownloadUrl = release.html_url;
+                    btn.href = currentDownloadUrl;
                     btn.textContent = "View Release on GitHub (No attached files)";
-                    btn.className = 'download-btn loading'; // keeps it grayed out
+                    btn.className = 'download-btn loading'; 
                     btn.style.backgroundColor = "#333";
                 }
-            }, 300); // 300ms delay matches the CSS transition time
+            }, 300);
         }
 
-        // Initialize when the page loads
         document.addEventListener('DOMContentLoaded', fetchAllReleases);
     </script>
 </body>
