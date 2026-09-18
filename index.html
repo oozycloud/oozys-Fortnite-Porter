@@ -30,50 +30,104 @@
             overflow-x: hidden; position: relative;
         }
 
+        /* =========================================
+           NEW: STARTUP OVERLAY
+           ========================================= */
+        .overlay-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-color: rgba(15, 15, 17, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        .overlay-container.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .overlay-box {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-top: 3px solid var(--accent-orange);
+            border-radius: 8px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8), 0 0 30px rgba(254, 133, 73, 0.1);
+            transform: scale(1);
+            transition: transform 0.4s ease;
+        }
+        .overlay-container.hidden .overlay-box {
+            transform: scale(0.95);
+        }
+        .overlay-box h2 {
+            color: var(--text-main);
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        .overlay-box p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .understand-btn {
+            background-color: var(--accent-orange);
+            color: #000;
+            border: none;
+            padding: 14px 35px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(254, 133, 73, 0.2);
+            width: 100%;
+        }
+        .understand-btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--accent-glow);
+        }
+
         /* ORBIT EFFECT */
         .orbit-system {
             position: fixed;
-            top: 50%;
-            right: 0;
-            transform: translate(30%, -50%); 
-            width: 1200px;
-            height: 1200px;
-            pointer-events: none; 
-            z-index: -1; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            top: 50%; right: 0; transform: translate(30%, -50%); 
+            width: 1200px; height: 1200px;
+            pointer-events: none; z-index: -1; 
+            display: flex; justify-content: center; align-items: center;
         }
-
-        .orbit {
-            position: absolute;
-            border-radius: 50%;
-            border: 1px solid rgba(254, 133, 73, 0.05); 
-        }
-
+        .orbit { position: absolute; border-radius: 50%; border: 1px solid rgba(254, 133, 73, 0.05); }
         .orbit::after {
-            content: ''; position: absolute;
-            top: 50%; left: -3px;
-            width: 6px; height: 6px;
-            background-color: var(--accent-orange);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent-glow);
-            transform: translateY(-50%);
+            content: ''; position: absolute; top: 50%; left: -3px; width: 6px; height: 6px;
+            background-color: var(--accent-orange); border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-glow); transform: translateY(-50%);
         }
-
         .orbit-1 { width: 300px; height: 300px; border-left: 1px dashed rgba(254, 133, 73, 0.15); animation: spinOrbit 40s linear infinite; }
         .orbit-2 { width: 500px; height: 500px; border-right: 1px dashed rgba(254, 133, 73, 0.1); animation: spinOrbit 60s linear infinite reverse; }
         .orbit-3 { width: 750px; height: 750px; border-bottom: 1px dashed rgba(254, 133, 73, 0.2); animation: spinOrbit 90s linear infinite; }
         .orbit-4 { width: 1000px; height: 1000px; animation: spinOrbit 120s linear infinite reverse; }
         .orbit-4::after { display: none; } 
-
-        @keyframes spinOrbit {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spinOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         /* LAYOUT & PANELS */
-        .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 30px; opacity: 0; animation: fadeInPage 1s var(--ease-in-out) forwards; }
+        .container { 
+            width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 30px; 
+            opacity: 0; /* Hidden until overlay is closed */
+        }
+        
+        /* This class is added via JS when "I understand" is clicked */
+        .container.loaded { 
+            animation: fadeInPage 1s var(--ease-in-out) forwards; 
+        }
 
         .header { display: flex; align-items: center; justify-content: space-between; width: 100%; padding-bottom: 25px; border-bottom: 1px solid var(--border-color); }
         .logo-container { display: flex; align-items: center; gap: 15px; }
@@ -82,7 +136,12 @@
         .title p { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
         .version-pill { background-color: var(--pill-bg); color: var(--pill-text); padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; border: 1px solid rgba(254, 133, 73, 0.2); transition: box-shadow 0.3s ease; }
         
-        .panel { background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; width: 100%; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.7); opacity: 0; transform: translateY(20px); animation: slideInUp 0.8s var(--ease-in-out) 0.3s forwards; }
+        /* The main panel animation is now delayed and dependent on .container.loaded */
+        .container.loaded .panel { 
+            background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; width: 100%; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.7); 
+            opacity: 0; transform: translateY(20px); 
+            animation: slideInUp 0.8s var(--ease-in-out) 0.3s forwards; 
+        }
         
         .panel-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-panel-light); flex-wrap: wrap; gap: 15px; }
         .panel-header h2 { font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
@@ -149,6 +208,19 @@
 </head>
 <body>
 
+    <!-- NEW: The blocking overlay -->
+    <div id="welcome-overlay" class="overlay-container">
+        <div class="overlay-box">
+            <!-- YOU CAN CHANGE THIS TEXT HERE -->
+            <h2>ATTENTION!</h2>
+            <p>Welcome to my fortnite porter, there's a few things that you need to understand before installing this beautiful specimin of an app!
+            
+            There may be a defender issue, but this is a complete false positive, I have no way of doing anything to your system as this can be used offline, but this app is fully made with love and for helping the community,
+            Please understand that I mean no harm, thank you very much, love!</p>
+            <button id="understand-btn" class="understand-btn">I understand</button>
+        </div>
+    </div>
+
     <div class="orbit-system">
         <div class="orbit orbit-1"></div>
         <div class="orbit orbit-2"></div>
@@ -156,7 +228,8 @@
         <div class="orbit orbit-4"></div>
     </div>
 
-    <div class="container">
+    <!-- The container that holds the main site -->
+    <div class="container" id="main-container">
         <!-- HEADER -->
         <div class="header">
             <div class="logo-container">
@@ -225,7 +298,6 @@
                     </ul>
                 </div>
 
-                <!-- NEW: Dynamic About / Info Tab for README -->
                 <div class="tab-content" id="tab-about">
                     <div class="loader-container"><p>Loading README.md from GitHub...</p></div>
                 </div>
@@ -246,6 +318,19 @@
     </div>
 
     <script>
+        // =====================================
+        // NEW: OVERLAY DISMISS LOGIC
+        // =====================================
+        document.getElementById('understand-btn').addEventListener('click', () => {
+            // Hide the overlay
+            document.getElementById('welcome-overlay').classList.add('hidden');
+            // Trigger the entrance animations for the main site
+            document.getElementById('main-container').classList.add('loaded');
+        });
+
+        // =====================================
+        // EXISTING GITHUB LOGIC
+        // =====================================
         const GITHUB_USERNAME = 'oozycloud'; 
         const GITHUB_REPO = 'oozys-Fortnite-Porter';
         
@@ -277,11 +362,9 @@
             }
         });
 
-        // NEW: Fetch README function
         async function fetchReadme() {
             const aboutTab = document.getElementById('tab-about');
             try {
-                // Fetch raw markdown content of the README
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/readme`, {
                     headers: { 'Accept': 'application/vnd.github.v3.raw' }
                 });
@@ -289,7 +372,6 @@
                 if (!response.ok) throw new Error('Could not fetch README');
                 
                 const markdown = await response.text();
-                // Parse markdown to HTML
                 aboutTab.innerHTML = marked.parse(markdown);
             } catch (error) {
                 console.error("[GitHub API Error - README]:", error);
@@ -384,7 +466,6 @@
             }, 300);
         }
 
-        // Initialize both fetches when the page loads
         document.addEventListener('DOMContentLoaded', () => {
             fetchAllReleases();
             fetchReadme();
