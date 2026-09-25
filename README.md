@@ -8,7 +8,7 @@ Bring Fortnite characters, animations and props into Blender, with packed textur
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Build status:** the latest locally packaged version is **beta 0.0.1**. This checkout contains further changes under development. Features marked **Unreleased** below are not in that installer. A GitHub release must be published before it appears in the app's update checker.
+> **Current build: beta 0.1.1.** Installer and complete application files are packaged locally. GitHub availability depends on publication; see [release notes](docs/releases/beta-0.1.1.md) for changes and known limitations.
 
 ## What it does
 
@@ -35,15 +35,15 @@ This is a Blender reconstruction of Fortnite assets. Support varies by asset; th
 ## Install or update
 
 1. Download the installer from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases).
-2. Run `oozys-Fortnite-Porter-Installer (beta 0.0.1).exe`.
+2. Run `oozys-Fortnite-Porter-Installer (beta 0.1.1).exe`.
 3. Choose an installation folder. If the installer detects an existing installation there, it offers **Update**.
 4. Close the running porter before updating, then install.
-5. Open `oozys-Fortnite-Porter (beta 0.0.1).exe` from that folder.
+5. Open `oozys-Fortnite-Porter (beta 0.1.1).exe` from that folder.
 
 The installed layout is:
 
 ```text
-oozys-Fortnite-Porter (beta 0.0.1).exe
+oozys-Fortnite-Porter (beta 0.1.1).exe
 app/
     Porter.exe
     Porter.dll
@@ -77,7 +77,7 @@ An OBJ does not store an armature or animation. Keep its `.mtl` and textures bes
 
 ### Styles and colours
 
-The packaged beta has a style selector. **Unreleased:** the current source adds separate tabs for independent customization channels, such as Omega's armour stage and light colour, or Tricksy's mask, pattern, base colour, pattern colour and accent colour. Those choices are combined during export.
+The style panel provides separate tabs for independent customization channels, such as Omega's armour stage and light colour, or Tricksy's mask, pattern, base colour, pattern colour and accent colour. Those choices are combined during export.
 
 Not every option shown in Fortnite maps to an equivalent Blender feature. For example, gameplay reactions and alternate LEGO forms require more than a colour or mesh swap. Combined-style PNG previews currently use the base source icon and report that limitation.
 
@@ -106,7 +106,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-**Unreleased:** Terrain is removed from the current source. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are also being added. See [Unreleased notes](docs/releases/unreleased.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.1.1.md) for tested examples and outstanding work.
 
 ## Update checks
 
@@ -120,11 +120,11 @@ Beta release tags use `beta-0.0.1`, `beta-0.0.2`, and so on, and may be marked a
 | --- | --- |
 | Installer or app does not open | Extract the full download, check that the root launcher sits beside `app`, and reinstall the complete package if files are missing. |
 | A .NET prompt appears | Use the supplied root launcher and complete self-contained package. An isolated internal EXE or incomplete installation may not find the bundled runtime. |
-| Export takes a long time | Check the current stage and session log. New high-resolution assets may need downloading. The streamed-index timeout fix is currently **Unreleased**. |
+| Export takes a long time | Check the current stage and session log. New high-resolution assets may need downloading. This build streams archive indexes and reports downloaded bytes. |
 | The model is white or has incorrect materials | Use Material Preview/Rendered mode, review texture warnings and re-export with the latest tested build. Do not assume an export is visually correct just because it finished. |
 | Emote does not move the skin | Use Skin + emote export or the Porter importer above; confirm that an action is selected and that you are inside its frame range. |
 | Cloth clips or bunches | Play from frame 1, clear stale caches and review pins/collisions. Marge's dress still clips in raised-knee Business Hips poses. |
-| Catalogue images are blank | Check the connection. The replacement thumbnail source is currently **Unreleased**; older builds can receive HTTP 403 from the previous image host. |
+| Catalogue images are blank | Check the connection. This build uses a replacement thumbnail source for known BR items; missing images can still occur for other assets. |
 | No update is found | Check GitHub Releases. The update checker cannot offer a build that has not been published there. |
 
 For a bug report, include the app version, Blender version, exact asset and style choices, export format, what happened, and the relevant session/export log. Add a screenshot when the problem is visual. Export folders may contain `blender.log`, `export-report.json` and `INCOMPLETE.txt`; keep these when reporting a failed export.
@@ -133,9 +133,8 @@ For a bug report, include the app version, Blender version, exact asset and styl
 
 - Marge's dress can clip or bunch during raised-knee animation. A recent looser-pin experiment made the result worse and was not adopted.
 - Cloth, some animated shaders, particles and reactive appearances are approximations. Gameplay-triggered behaviour is not universally supported.
-- The full cosmetic-type audit is unfinished. Wraps, contrails, music packs and other omitted types are not all exportable in the current app.
+- The full cosmetic-type audit is unfinished. Contrails, music packs and other omitted types are not all exportable in the current app.
 - A successful automated check covers the tested asset and scenario, not every cosmetic in Fortnite.
-- The new style tabs, progress bar, download fix and additional categories still need final packaging and installer regression checks before distribution.
 
 ## Development and release history
 

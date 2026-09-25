@@ -1,10 +1,14 @@
-Changelog
+# Changelog
 
 Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
 
 ## Unreleased
 
-Independent style channels, masked customization colours, download/progress fixes, additional skyboxes, kicks and image cosmetics are being tested. See [Unreleased notes](docs/releases/unreleased.md).
+Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
+
+## beta 0.1.1
+
+Independent style channels, masked customization colours, streaming download fixes, bottom progress, five skyboxes and additional cosmetic categories. [Full notes](docs/releases/beta-0.1.1.md).
 
 ## beta 0.0.1
 
