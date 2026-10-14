@@ -6,6 +6,10 @@ Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entr
 
 Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
 
+## beta 0.2.1
+
+Weapons, authored building edits, vehicles, five exchange formats and export controls. [Full notes](docs/releases/beta-0.2.1.md).
+
 ## beta 0.1.1
 
 Independent style channels, masked customization colours, streaming download fixes, bottom progress, five skyboxes and additional cosmetic categories. [Full notes](docs/releases/beta-0.1.1.md).

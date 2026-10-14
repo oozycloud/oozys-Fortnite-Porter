@@ -1,61 +1,35 @@
-# Development and releases
+# Build and recovery notes
 
-This public repository currently contains distribution documentation; the application source tree described below is maintained separately. The build commands require that full source checkout.
+The original source was deleted. This checkout was reconstructed from the installed beta 0.1.1 managed assemblies and embedded resources, then extended and tested. It is not a verbatim recovery of comments or the original file layout.
 
-## Source layout
+The public repository contains distribution documentation. The following paths and commands refer to the separately supplied source backup, not to this documentation-only checkout.
 
-| Path | Purpose |
-| --- | --- |
-| `work/FortniteObj` | .NET 10 WPF app, asset conversion and embedded Blender scripts |
-| `work/Shared/ProductInfo.cs` | Product identity, displayed version, tag, launcher name and update compatibility |
-| `work/Launcher` | Native Windows launcher; MSVC and Windows SDK build |
-| `work/Installer` | WPF installer and embedded payload |
-| `work/BackendCheck` | Tests against locally installed game assets |
-| `work/ReleaseChecks` | Installer transaction and update-checker tests |
-| `docs/releases` | Individual release notes and the Unreleased entry |
+## Layout
 
-Commands below run from the source checkout root on Windows. Build requirements are the .NET 10 SDK, MSVC/Windows SDK for the launcher, and Blender for conversion tests. The installed app bundles its runtime and does not require the SDK.
+- `work/FortniteObj/Porter.csproj`: recovered WPF application, exporter code and Blender scripts.
+- `work/Installer/Installer.csproj`: recovered installer; its payload is generated during packaging.
+- `work/AssetChecks`: live game-asset test harness.
+- `work/FormatChecks`: exchange-format conversion checks.
+- `recovery/dependencies`: preserved third-party dependencies needed by the recovered projects.
+- `recovery/licenses`: preserved third-party notices.
+- `recovery/original/launcher.exe`: preserved native launcher. The package script updates its version resource.
+- `recovery/package-current.py`: beta 0.2.1 packaging script.
+
+## Build
+
+On Windows x64, install the .NET 10 SDK and Python. Blender is needed for conversion tests. Run from the extracted source root:
 
 ```powershell
-dotnet build work/FortniteObj -c Release
-dotnet build work/BackendCheck -c Release
-dotnet run --project work/ReleaseChecks -c Release
+dotnet build work/FortniteObj/Porter.csproj -c Release
+dotnet publish work/FortniteObj/Porter.csproj -c Release -r win-x64 --self-contained true -o work/publish-beta0.2.1/app
+python -X utf8 recovery/package-current.py
+dotnet publish work/Installer/Installer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o work/installer-beta0.2.1
 ```
 
-Native UI checks can be run with `work/FortniteObj/bin/Release/net10.0-windows/Porter.exe --ui-check <output-folder>`. Asset tests require a configured local Fortnite installation; they may download missing streamed data. Source changes do not update the Desktop installation automatically.
+The source backup excludes game data, export caches, generated installers, installer payloads and intermediate build folders. The package script regenerates the installer payload. Keep the dependency DLLs and their notices with this recovered checkout.
 
-## Release procedure
+## Future releases
 
-1. Finish the intended changes and review remaining limitations. Record specific tested assets and failures.
-2. Choose the next version: +0.0.1 for patches, +0.1.0 for medium updates, +1.0.0 for major updates. Preserve the beta prefix during beta development.
-3. Update shared metadata, application/installer project versions, launcher resources and packaging filenames together.
-4. Create `docs/releases/<tag>.md` with changes, validation, limitations and installation/migration notes. Add it to `docs/releases/README.md` and `CHANGELOG.md`; update the main README's build status and filenames. Leave unfinished work under Unreleased.
-5. Build the app self-contained for `win-x64` under `app/`, compile the native launcher and bundle the Blender tools. Include README.md, CHANGELOG.md and the complete docs tree in `app/` before creating the installation manifest or payload hashes.
-6. Generate the installer's `payload.zip` from the launcher-plus-app layout, then publish the self-contained installer. Historical `package-beta.py` and `finalize-beta.py` are version-specific scripts, not safe general release commands; adapt their version and validation data before using them.
-7. Test a clean installation, existing-install update, same-version repair, rollback/locked-file failure, settings preservation, future-version rejection, runtime-independent launch and the actual packaged UI. Verify the delivered files against the payload hashes.
-8. Deliver the installer and complete application folder. Keep the root folder tidy; documentation and support files belong under `app/`.
-9. When publishing is authorized, create the matching GitHub Release and attach the installer. Beta tags use `beta-<number>` and may be prereleases. Uploading a repository file alone does not trigger the update checker.
+Increment patches by 0.0.1, medium updates by 0.1.0 and major updates by 1.0.0. Because constants were inlined in the compiled build, the recovery contains version strings in multiple files: update ProductInfo, UpdateChecker, assembly metadata, XAML labels and packaging scripts together. Preserve historical release notes. Test the actual self-contained installer and animation exports before delivery.
 
-## Release-note template
-
-```markdown
-# beta X.Y.Z — Brief change summary
-
-## Changes
-
-- Describe the user-visible change and the problem it addresses.
-
-## Validation
-
-- List the tests actually run against this build and the assets checked.
-
-## Known limitations
-
-- Record remaining issues that affect the documented features.
-
-## Install or update
-
-State the installer filename, supported migration and any required re-export.
-```
-
-Public release notes should not include private machine paths, speculative fixes, fabricated test counts or promises of universal asset compatibility. Retain bundled third-party notices with distribution files.
+A GitHub Release is separate from updating repository documentation. No binary release is published by these build commands.

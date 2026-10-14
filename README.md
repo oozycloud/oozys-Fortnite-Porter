@@ -8,11 +8,11 @@ Bring Fortnite characters, animations and props into Blender, with packed textur
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current build: beta 0.1.1.** Installer and complete application files are packaged locally. GitHub availability depends on publication; see [release notes](docs/releases/beta-0.1.1.md) for changes and known limitations.
+> **Current build: beta 0.2.1.** Installer and complete application files are packaged locally. GitHub availability depends on publication; see [release notes](docs/releases/beta-0.2.1.md) for changes and known limitations.
 
 ## What it does
 
-- Exports skins, pickaxes, back blings, gliders, emotes, emoticons, sidekicks and prefabs from a local Fortnite installation.
+- Exports skins, pickaxes, back blings, gliders, emotes, emoticons, sidekicks, prefabs, weapons, building pieces and edits, vehicles, and kicks from a local Fortnite installation.
 - Creates a `.blend` with the model, rig, materials and texture images packed together.
 - Combines a skin and emote, or applies a separately exported emote to an existing skin using the Blender tools.
 - Supports multiple selections, authored cosmetic styles, animation resampling and selected animated material effects.
@@ -35,15 +35,15 @@ This is a Blender reconstruction of Fortnite assets. Support varies by asset; th
 ## Install or update
 
 1. Download the installer from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases).
-2. Run `oozys-Fortnite-Porter-Installer (beta 0.1.1).exe`.
+2. Run `oozys-Fortnite-Porter-Installer (beta 0.2.1).exe`.
 3. Choose an installation folder. If the installer detects an existing installation there, it offers **Update**.
 4. Close the running porter before updating, then install.
-5. Open `oozys-Fortnite-Porter (beta 0.1.1).exe` from that folder.
+5. Open `oozys-Fortnite-Porter (beta 0.2.1).exe` from that folder.
 
 The installed layout is:
 
 ```text
-oozys-Fortnite-Porter (beta 0.1.1).exe
+oozys-Fortnite-Porter (beta 0.2.1).exe
 app/
     Porter.exe
     Porter.dll
@@ -106,7 +106,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.1.1.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.2.1.md) for tested examples and outstanding work.
 
 ## Update checks
 
@@ -141,3 +141,11 @@ For a bug report, include the app version, Blender version, exact asset and styl
 See [development and release instructions](docs/DEVELOPMENT.md), the [changelog](CHANGELOG.md), and [notes for each version](docs/releases/README.md).
 
 Version increments follow the project's convention: fixes add **0.0.1**, medium updates add **0.1.0**, and major updates add **1.0.0**. The beta reset deliberately follows the older 2.2.0 development build; it is not an accidental downgrade. New releases must include their own notes and validation results.
+
+## Exchange formats and new categories
+
+Choose **Weapons**, **Builds**, **Vehicles** or **Kicks** in the category dropdown. Building pieces and edits are separate entries; search by material or piece name, then use Ctrl/Shift to select several. Weapons include rarity in their names. Vehicle exports contain models and rigs, not driving logic.
+
+Under Settings → File format, choose packed Blender, source files, GLB, glTF, FBX, OBJ or STL. The Blender scene is always retained. GLB embeds standard materials and textures; glTF keeps separate files; FBX supports embedded textures; OBJ and STL are static. STL uses millimetres and has no materials.
+
+Exchange controls let you include animation, triangulate meshes and limit texture dimensions. The original Blender file keeps full-resolution textures. Custom shaders, effects and cloth may simplify in exchange files.

@@ -3,6 +3,7 @@
 Notes cover every version identified in the preserved build records. Legacy entries are development history, not a claim that each version was publicly released.
 
 - [Unreleased](unreleased.md) — current source changes and remaining checks
+- [beta 0.2.1 — Weapons, builds, vehicles and exchange formats](beta-0.2.1.md)
 - [beta 0.1.1 — Customization, progress and export fixes](beta-0.1.1.md)
 - [beta 0.0.1 — Combined animation export and beta reset](beta-0.0.1.md)
 - [2.2.0 — oozy's Fortnite Porter branding and updates](2.2.0.md)
