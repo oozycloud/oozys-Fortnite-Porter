@@ -6,6 +6,10 @@ Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entr
 
 Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
 
+## beta 0.3.1
+
+Left game tabs, early PC Building Simulator 2 mesh/image exports, automatic Fortnite compatibility refresh at every launch, and long-path exchange fixes. [Full notes](docs/releases/beta-0.3.1.md).
+
 ## beta 0.2.1
 
 Weapons, authored building edits, vehicles, five exchange formats and export controls. [Full notes](docs/releases/beta-0.2.1.md).

@@ -2,18 +2,18 @@
 
 The original source was deleted. This checkout was reconstructed from the installed beta 0.1.1 managed assemblies and embedded resources, then extended and tested. It is not a verbatim recovery of comments or the original file layout.
 
-The public repository contains distribution documentation. The following paths and commands refer to the separately supplied source backup, not to this documentation-only checkout.
-
 ## Layout
 
 - `work/FortniteObj/Porter.csproj`: recovered WPF application, exporter code and Blender scripts.
 - `work/Installer/Installer.csproj`: recovered installer; its payload is generated during packaging.
 - `work/AssetChecks`: live game-asset test harness.
+- `work/GameChecks`: compatibility cache fixtures, public-service check and Unity export checks.
+- `recovery/unity-runtime`: bundled Python 3.12.10 with UnityPy 1.25.2 and pinned dependencies, including their licenses.
 - `work/FormatChecks`: exchange-format conversion checks.
 - `recovery/dependencies`: preserved third-party dependencies needed by the recovered projects.
 - `recovery/licenses`: preserved third-party notices.
 - `recovery/original/launcher.exe`: preserved native launcher. The package script updates its version resource.
-- `recovery/package-current.py`: beta 0.2.1 packaging script.
+- `recovery/package-current.py`: beta 0.3.1 packaging script.
 
 ## Build
 
@@ -21,9 +21,9 @@ On Windows x64, install the .NET 10 SDK and Python. Blender is needed for conver
 
 ```powershell
 dotnet build work/FortniteObj/Porter.csproj -c Release
-dotnet publish work/FortniteObj/Porter.csproj -c Release -r win-x64 --self-contained true -o work/publish-beta0.2.1/app
+dotnet publish work/FortniteObj/Porter.csproj -c Release -r win-x64 --self-contained true -o work/publish-beta0.3.1/app
 python -X utf8 recovery/package-current.py
-dotnet publish work/Installer/Installer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o work/installer-beta0.2.1
+dotnet publish work/Installer/Installer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o work/installer-beta0.3.1
 ```
 
 The source backup excludes game data, export caches, generated installers, installer payloads and intermediate build folders. The package script regenerates the installer payload. Keep the dependency DLLs and their notices with this recovered checkout.

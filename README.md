@@ -2,13 +2,13 @@
 
 # oozy's Fortnite Porter
 
-Bring Fortnite characters, animations and props into Blender, with packed textures and editable rigs.
+Bring Fortnite characters, animations and props into Blender, with packed textures and editable rigs. Also browse static meshes and images from PC Building Simulator 2.
 
 **Windows x64 · Blender workflow · Beta**
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current build: beta 0.2.1.** Installer and complete application files are packaged locally. GitHub availability depends on publication; see [release notes](docs/releases/beta-0.2.1.md) for changes and known limitations.
+> **Current build: beta 0.3.1.** Installer and complete application files are packaged locally. GitHub availability depends on publication; see [release notes](docs/releases/beta-0.3.1.md) for changes and known limitations.
 
 ## What it does
 
@@ -26,7 +26,7 @@ This is a Blender reconstruction of Fortnite assets. Support varies by asset; th
 | Requirement | Details |
 | --- | --- |
 | Operating system | Windows x64 |
-| Game files | A local Fortnite installation |
+| Game files | A local Fortnite or PC Building Simulator 2 installation |
 | Blender | Required for `.blend` conversion; tested with Blender **5.1.1**. The emote importer requires Blender **4.4 or newer**. |
 | Internet | Used for compatibility data, catalogue images, streamed asset data and optional update checks |
 | .NET | Included in the installer; no separate runtime installation is required |
@@ -35,15 +35,15 @@ This is a Blender reconstruction of Fortnite assets. Support varies by asset; th
 ## Install or update
 
 1. Download the installer from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases).
-2. Run `oozys-Fortnite-Porter-Installer (beta 0.2.1).exe`.
+2. Run `oozys-Fortnite-Porter-Installer (beta 0.3.1).exe`.
 3. Choose an installation folder. If the installer detects an existing installation there, it offers **Update**.
 4. Close the running porter before updating, then install.
-5. Open `oozys-Fortnite-Porter (beta 0.2.1).exe` from that folder.
+5. Open `oozys-Fortnite-Porter (beta 0.3.1).exe` from that folder.
 
 The installed layout is:
 
 ```text
-oozys-Fortnite-Porter (beta 0.2.1).exe
+oozys-Fortnite-Porter (beta 0.3.1).exe
 app/
     Porter.exe
     Porter.dll
@@ -57,7 +57,7 @@ Settings and cache are stored under `%LOCALAPPDATA%\FortniteObj`. Updates preser
 
 ## Your first export
 
-1. Open **Settings**, choose your Fortnite installation and choose an output folder.
+1. Choose **Fortnite** on the left. In **Library**, select its installation folder. In **Settings**, choose an output folder.
 2. Scan the installation, then search by name or use the category filter.
 3. Select an asset and choose its style. Use **Ctrl-click** or **Shift-click** to select several assets.
 4. Choose **Blender file (packed)** for a portable Blender project, then export.
@@ -74,6 +74,16 @@ For **Skin + emote**, use the separate skin and emote selection lists. Multiple 
 | Preview PNG | The cosmetic's source icon; this is not a rendered portrait of every possible custom combination |
 
 An OBJ does not store an armature or animation. Keep its `.mtl` and textures beside it. The packed `.blend` is the recommended format for animated characters.
+
+### PC Building Simulator 2
+
+Choose **PC Building Simulator 2** in the left game tabs. Use **Auto-detect** for an Epic installation or browse to the game's folder, then scan. The library has **Meshes**, **Textures** and **Sprites**; Ctrl/Shift selection works here too. Each game remembers its own folder, and switching clears the previous game’s selections.
+
+This is early Unity support. Meshes export as **static geometry** to Blender and the selected exchange format. Textures and sprites export as PNG, regardless of the mesh format setting. Materials are not automatically assigned; assembled PCs, rigs and animation are not included. This mode does not use Fortnite AES keys or mappings. The Unity reader and Python runtime are bundled, so no separate Python installation is required.
+
+### Startup compatibility refresh
+
+Every normal launch checks UEDB for current public Fortnite AES keys and matching mappings in the background. Settings shows the result. If the service fails or returns mismatched/invalid data, the app retains the last valid pair and clearly reports that it is using saved data. Without a usable saved pair, automatic scanning requires a connection. Custom keys and mapping settings are preserved; disabling automatic compatibility makes Fortnite scans use your custom values.
 
 ### Styles and colours
 
@@ -106,7 +116,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.2.1.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.3.1.md) for tested examples and outstanding work.
 
 ## Update checks
 
@@ -134,6 +144,7 @@ For a bug report, include the app version, Blender version, exact asset and styl
 - Marge's dress can clip or bunch during raised-knee animation. A recent looser-pin experiment made the result worse and was not adopted.
 - Cloth, some animated shaders, particles and reactive appearances are approximations. Gameplay-triggered behaviour is not universally supported.
 - The full cosmetic-type audit is unfinished. Contrails, music packs and other omitted types are not all exportable in the current app.
+- PC Building Simulator 2 support is limited to static mesh geometry and separate PNG images.
 - A successful automated check covers the tested asset and scenario, not every cosmetic in Fortnite.
 
 ## Development and release history
@@ -149,3 +160,7 @@ Choose **Weapons**, **Builds**, **Vehicles** or **Kicks** in the category dropdo
 Under Settings → File format, choose packed Blender, source files, GLB, glTF, FBX, OBJ or STL. The Blender scene is always retained. GLB embeds standard materials and textures; glTF keeps separate files; FBX supports embedded textures; OBJ and STL are static. STL uses millimetres and has no materials.
 
 Exchange controls let you include animation, triangulate meshes and limit texture dimensions. The original Blender file keeps full-resolution textures. Custom shaders, effects and cloth may simplify in exchange files.
+
+## Credits
+
+PC Building Simulator 2 asset reading uses [UnityPy](https://github.com/K0lb3/UnityPy) 1.25.2 with a bundled Python 3.12.10 runtime. Their license files and dependency notices are included under `app/unity-runtime`.
