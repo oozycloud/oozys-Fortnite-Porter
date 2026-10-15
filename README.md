@@ -8,7 +8,7 @@ Bring Fortnite characters, animations and props into Blender, with packed textur
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current build: beta 0.4.3.** Installer and complete application files are packaged locally. GitHub availability depends on publication; see [release notes](docs/releases/beta-0.4.3.md) for changes and known limitations.
+> **Current build: beta 0.4.4.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.4.4.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
 ## What it does
 
@@ -36,15 +36,15 @@ This is a Blender reconstruction of Fortnite assets. Support varies by asset; th
 ## Install or update
 
 1. Download the installer from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases).
-2. Run `oozys-Fortnite-Porter-Installer (beta 0.4.3).exe`.
+2. Run `oozys-Fortnite-Porter-Installer (beta 0.4.4).exe`.
 3. Choose an installation folder. If the installer detects an existing installation there, it offers **Update**.
 4. Close the running porter before updating, then install.
-5. Open `oozys-Fortnite-Porter (beta 0.4.3).exe` from that folder.
+5. Open `oozys-Fortnite-Porter (beta 0.4.4).exe` from that folder.
 
 The installed layout is:
 
 ```text
-oozys-Fortnite-Porter (beta 0.4.3).exe
+oozys-Fortnite-Porter (beta 0.4.4).exe
 app/
     Porter.exe
     Porter.dll
@@ -63,6 +63,8 @@ Settings and cache are stored under `%LOCALAPPDATA%\FortniteObj`. Updates preser
 3. Select an asset and choose its style. Use **Ctrl-click** or **Shift-click** to select several assets.
 4. Choose **Blender file (packed)** for a portable Blender project, then export.
 5. Wait for the operation to finish and review any warnings before opening the resulting `.blend`.
+
+While a scan runs, you can use settings, search an existing catalogue and switch games. Each game keeps its own results. The active scan uses the settings it started with; exports and another scan become available when it finishes or is cancelled.
 
 For **Skin + emote**, use the separate skin and emote selection lists. Multiple selections export the selected combinations, so large selections can create many scenes. Leave a list empty when you do not want that asset type included, and use the individual-asset mode when exporting it on its own.
 
@@ -119,7 +121,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.4.3.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.4.4.md) for tested examples and outstanding work.
 
 ## Update checks
 

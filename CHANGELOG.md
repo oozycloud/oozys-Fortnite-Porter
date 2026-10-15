@@ -6,6 +6,10 @@ Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entr
 
 Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
 
+## beta 0.4.4
+
+Keep browsing, settings and game navigation available during scans; retain separate catalogues; fix the white game-sidebar background. Preserved builds are published to GitHub Releases. [Full notes](docs/releases/beta-0.4.4.md).
+
 ## beta 0.4.3
 
 Fixed mapping format 5 support and validated mapping contents during compatibility refresh. [Full notes](docs/releases/beta-0.4.3.md).

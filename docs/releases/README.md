@@ -2,7 +2,9 @@
 
 Notes cover every version identified in the preserved build records. Legacy entries are development history, not a claim that each version was publicly released.
 
+- [Available builds](AVAILABLE-BUILDS.md) — downloadable binaries and gaps in the preserved history
 - [Unreleased](unreleased.md) — current source changes and remaining checks
+- [beta 0.4.4 — Background scans and sidebar fix](beta-0.4.4.md)
 - [beta 0.4.3 — Mapping version 5 support](beta-0.4.3.md)
 - [beta 0.4.2 — PC part texture fixes](beta-0.4.2.md)
 - [beta 0.4.1 — PC part models and custom title bar](beta-0.4.1.md)
