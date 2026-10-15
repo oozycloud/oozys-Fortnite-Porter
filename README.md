@@ -12,6 +12,8 @@ Bring Fortnite characters, animations and props into Blender, with packed textur
 
 ## What it does
 
+The [website source](website/README.md) includes a dark 3D entrance, a temporary textured GameRock RTX 4090 preview, and a download button that checks the newest published beta installer. Run it locally with `python -m http.server 8080 --directory website`, then open `http://localhost:8080`. The homepage is intentionally blank for now.
+
 - Exports skins, pickaxes, back blings, gliders, emotes, emoticons, sidekicks, prefabs, weapons, building pieces and edits, vehicles, and kicks from a local Fortnite installation.
 - Creates a `.blend` with the model, rig, materials and texture images packed together.
 - Combines a skin and emote, or applies a separately exported emote to an existing skin using the Blender tools.

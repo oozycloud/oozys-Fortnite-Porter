@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#121212">
+  <meta name="description" content="A new perspective on the models you love. Explore with oozy's Fortnite Porter.">
+  <title>oozy — begin your modeling journey</title>
+  <link rel="stylesheet" href="./assets/site.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%23dedbd5' stroke-width='8'/%3E%3C/svg%3E">
+  <script type="importmap">{"imports":{"three":"./assets/vendor/three.module.js"}}</script>
+  <script src="./assets/site.js" defer></script>
+  <script type="module" src="./assets/viewer.js"></script>
+</head>
+<body>
+  <section id="entrance" class="entrance" aria-labelledby="welcome-title">
+    <header class="entrance-header"><a class="wordmark" href="./" aria-label="oozy entrance">oozy<span aria-hidden="true">.</span></a><span class="header-note">a different perspective</span></header>
+    <div class="studio" id="studio" role="img" aria-label="Interactive textured Palit GameRock RTX 4090 graphics card">
+      <div class="studio-halo" aria-hidden="true"></div>
+      <div class="model-status" id="model-status" role="status"><span class="loading-mark" aria-hidden="true"></span>preparing your preview</div>
+      <canvas id="model-canvas" aria-hidden="true"></canvas>
+    </div>
+    <main class="invitation">
+      <h1 id="welcome-title">get ready to begin<br class="desktop-break"> your modeling journey</h1>
+      <button id="begin" class="begin">I would like to begin <span aria-hidden="true">↗</span></button>
+    </main>
+    <footer class="entrance-footer"><span>palit gamerock · rtx 4090</span><span class="motion-hint">move a little. see a little more.</span></footer>
+  </section>
+  <section id="home" class="home" hidden aria-label="Homepage">
+    <header class="home-header">
+      <a href="#entrance" class="wordmark" id="back-wordmark" aria-label="oozy — return to entrance">oozy<span aria-hidden="true">.</span></a>
+      <nav aria-label="Main"><button class="quiet-button" id="back">back to entrance</button><div class="download-wrap"><button id="download" class="download">download porter <span aria-hidden="true">↗</span></button><span id="release-status" class="release-status" role="status">checking releases</span></div></nav>
+    </header>
+    <main class="blank-home" aria-label="Homepage content"></main>
+  </section>
+  <noscript><style>.begin{display:none}.model-status{display:none}</style><p class="noscript">Enable JavaScript to enter and view the model. <a href="https://github.com/oozycloud/oozys-Fortnite-Porter/releases">Download the porter on GitHub</a>.</p></noscript>
+</body>
+</html>
