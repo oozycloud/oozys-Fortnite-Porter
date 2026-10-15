@@ -6,6 +6,10 @@ Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entr
 
 Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
 
+## beta 0.4.3
+
+Fixed mapping format 5 support and validated mapping contents during compatibility refresh. [Full notes](docs/releases/beta-0.4.3.md).
+
 ## beta 0.4.2
 
 Fixed skipped PC part material textures, added normal/detail maps, masks and authored transparency, and packed referenced shader images. [Full notes](docs/releases/beta-0.4.2.md).
