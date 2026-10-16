@@ -10,6 +10,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%23dedbd5' stroke-width='8'/%3E%3C/svg%3E">
   <script type="importmap">{"imports":{"three":"./assets/vendor/three.module.js"}}</script>
   <script src="./assets/site.js" defer></script>
+  <script src="./assets/catalog.js" defer></script>
   <script type="module" src="./assets/viewer.js"></script>
 </head>
 <body>
@@ -20,18 +21,37 @@
       <div class="model-status" id="model-status" role="status"><span class="loading-mark" aria-hidden="true"></span>preparing your preview</div>
       <canvas id="model-canvas" aria-hidden="true"></canvas>
     </div>
+    <div class="model-picker" role="group" aria-label="Choose a model preview">
+      <button type="button" data-model="gamerock" aria-pressed="true">gamerock 4090</button>
+      <button type="button" data-model="ghoul" aria-pressed="false">pink ghoul trooper</button>
+      <button type="button" data-model="axe" aria-pressed="false">leviathan axe</button>
+      <button type="button" data-model="taichi" aria-pressed="false">x870e taichi</button>
+    </div>
     <main class="invitation">
       <h1 id="welcome-title">get ready to begin<br class="desktop-break"> your modeling journey</h1>
       <button id="begin" class="begin">I would like to begin <span aria-hidden="true">↗</span></button>
     </main>
-    <footer class="entrance-footer"><span>palit gamerock · rtx 4090</span><span class="motion-hint">move a little. see a little more.</span></footer>
+    <footer class="entrance-footer"><span id="model-credit">palit gamerock · rtx 4090</span><span class="motion-hint">move a little. see a little more.</span></footer>
   </section>
   <section id="home" class="home" hidden aria-label="Homepage">
     <header class="home-header">
       <a href="#entrance" class="wordmark" id="back-wordmark" aria-label="oozy — return to entrance">oozy<span aria-hidden="true">.</span></a>
       <nav aria-label="Main"><button class="quiet-button" id="back">back to entrance</button><div class="download-wrap"><button id="download" class="download">download porter <span aria-hidden="true">↗</span></button><span id="release-status" class="release-status" role="status">checking releases</span></div></nav>
     </header>
-    <main class="blank-home" aria-label="Homepage content"></main>
+    <main class="catalog" aria-labelledby="catalog-title">
+      <div class="catalog-heading"><div><p class="eyebrow">the collection</p><h1 id="catalog-title">find your next model.</h1></div><p>copy an id into the porter’s “Website asset ID”.<br>“Find ID” to choose styles. “Export ID” to export.</p></div>
+      <form class="catalog-filters" role="search" onsubmit="return false">
+        <label class="catalog-search"><span>search the collection</span><input id="catalog-search" type="search" placeholder="a name or asset id" autocomplete="off"></label>
+        <label><span>game</span><select id="catalog-game"><option value="">all games</option><option value="Fortnite">Fortnite</option><option value="PC Building Simulator 2">PC Building Simulator 2</option></select></label>
+        <label><span>category</span><select id="catalog-category"><option value="">all categories</option></select></label>
+      </form>
+      <div class="catalog-meta"><p id="catalog-count" role="status">loading the collection</p><p>models export through the desktop app</p></div>
+      <div id="catalog-error" class="catalog-empty" hidden><p>The collection could not load.</p><button id="catalog-retry" class="quiet-button">try again</button></div>
+      <div id="catalog-empty" class="catalog-empty" hidden>No models match your search.</div>
+      <ul id="catalog-grid" class="catalog-grid" aria-label="Models"></ul>
+      <nav class="catalog-pagination" aria-label="Catalogue pages"><button id="catalog-previous" disabled>← previous</button><span id="catalog-page">page 1</span><button id="catalog-next" disabled>next →</button></nav>
+      <p id="copy-status" class="copy-status" role="status" aria-live="polite"></p>
+    </main>
   </section>
   <noscript><style>.begin{display:none}.model-status{display:none}</style><p class="noscript">Enable JavaScript to enter and view the model. <a href="https://github.com/oozycloud/oozys-Fortnite-Porter/releases">Download the porter on GitHub</a>.</p></noscript>
 </body>

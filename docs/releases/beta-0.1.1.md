@@ -27,10 +27,6 @@ Medium update from beta 0.0.1 (+0.1.0).
 - Completed the 13-case asset export regression run without export warnings. All 13 also passed saved-scene checks for packed images, silent emotes, finite poses, stable mesh bounds and applicable animation/material behaviour. These checks do not detect every visual defect.
 - Re-ran the existing 67 installer/update checks successfully. These do not replace testing the next packaged installer.
 
-- Final packaged build: all 67 installer/updater checks and 10 complete installer checks passed, including update from beta 0.0.1, repair, user-file preservation and launch with an unavailable external runtime.
-- Rebuilt and reopened a combined Art the Clown emote export; verified the active main dance, moving rig and packed images. Both delivered application copies match the payload hashes.
-- Wrap, pet/carrier, toy and bus conversions completed. The tested Bonesy pet reports an unavailable material slot.
-
 ## Known limitations
 
 - Marge’s dress can clip during raised-knee animations. Experimental cloth changes that worsened it were excluded.

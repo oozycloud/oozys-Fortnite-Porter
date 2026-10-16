@@ -4,6 +4,7 @@ Notes cover every version identified in the preserved build records. Legacy entr
 
 - [Available builds](AVAILABLE-BUILDS.md) — downloadable binaries and gaps in the preserved history
 - [Unreleased](unreleased.md) — current source changes and remaining checks
+- [beta 0.5.0 — catalogue IDs and current mesh support](beta-0.5.0.md)
 - [beta 0.4.4 — Background scans and sidebar fix](beta-0.4.4.md)
 - [beta 0.4.3 — Mapping version 5 support](beta-0.4.3.md)
 - [beta 0.4.2 — PC part texture fixes](beta-0.4.2.md)
@@ -28,3 +29,4 @@ Notes cover every version identified in the preserved build records. Legacy entr
 - [1.0.0 — Rig, texture and physics groundwork](1.0.0.md)
 
 For older 1.x builds, only version-resource summaries are preserved. Those entries state that limitation rather than assigning unverified fixes or test results.
+

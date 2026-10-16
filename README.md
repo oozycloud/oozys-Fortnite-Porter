@@ -8,11 +8,11 @@ Bring Fortnite characters, animations and props into Blender, with packed textur
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current build: beta 0.4.4.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.4.4.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
+> **Current build: beta 0.5.0.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.5.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
 ## What it does
 
-The [website source](website/README.md) includes a dark 3D entrance, a temporary textured GameRock RTX 4090 preview, and a download button that checks the newest published beta installer. Run it locally with `python -m http.server 8080 --directory website`, then open `http://localhost:8080`. The homepage is intentionally blank for now.
+The [website source](website/README.md) includes a dark 3D entrance, a temporary textured GameRock RTX 4090 preview, and a download button that checks the newest published beta installer. Run it locally with `python -m http.server 8080 --directory website`, then open `http://localhost:8080`. The catalogue has searchable cards with stable IDs, complete style combinations and source thumbnails. Paste an ID into the app to select and export that asset from your installed game files.
 
 - Exports skins, pickaxes, back blings, gliders, emotes, emoticons, sidekicks, prefabs, weapons, building pieces and edits, vehicles, and kicks from a local Fortnite installation.
 - Creates a `.blend` with the model, rig, materials and texture images packed together.
@@ -38,15 +38,15 @@ This is a Blender reconstruction of Fortnite assets. Support varies by asset; th
 ## Install or update
 
 1. Download the installer from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases).
-2. Run `oozys-Fortnite-Porter-Installer (beta 0.4.4).exe`.
+2. Run `oozys-Fortnite-Porter-Installer (beta 0.5.0).exe`.
 3. Choose an installation folder. If the installer detects an existing installation there, it offers **Update**.
 4. Close the running porter before updating, then install.
-5. Open `oozys-Fortnite-Porter (beta 0.4.4).exe` from that folder.
+5. Open `oozys-Fortnite-Porter (beta 0.5.0).exe` from that folder.
 
 The installed layout is:
 
 ```text
-oozys-Fortnite-Porter (beta 0.4.4).exe
+oozys-Fortnite-Porter (beta 0.5.0).exe
 app/
     Porter.exe
     Porter.dll
@@ -69,6 +69,12 @@ Settings and cache are stored under `%LOCALAPPDATA%\FortniteObj`. Updates preser
 While a scan runs, you can use settings, search an existing catalogue and switch games. Each game keeps its own results. The active scan uses the settings it started with; exports and another scan become available when it finishes or is cancelled.
 
 For **Skin + emote**, use the separate skin and emote selection lists. Multiple selections export the selected combinations, so large selections can create many scenes. Leave a list empty when you do not want that asset type included, and use the individual-asset mode when exporting it on its own.
+
+### Website IDs
+
+Browse the [model catalogue](https://oozycloud.github.io/oozys-Fortnite-Porter/), copy a card's ID, then paste it into **Website asset ID** in the Library. **Find ID** selects the exact asset and any encoded styles; **Export ID** starts export using your current output settings. The game must be installed and scanned. IDs select local assets; website cards do not download model files.
+
+A base ID such as `G167` identifies one asset. An `S` suffix identifies a complete combination of independent style channels. Choose all the desired options on the card before copying. IDs stay fixed when the catalogue is sorted or filtered. Unknown or changed styles are rejected instead of silently exporting a different appearance. New catalogue entries may require an app update.
 
 ### File formats
 
@@ -123,7 +129,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.4.4.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.5.0.md) for tested examples and outstanding work.
 
 ## Update checks
 
@@ -151,7 +157,7 @@ For a bug report, include the app version, Blender version, exact asset and styl
 - Marge's dress can clip or bunch during raised-knee animation. A recent looser-pin experiment made the result worse and was not adopted.
 - Cloth, some animated shaders, particles and reactive appearances are approximations. Gameplay-triggered behaviour is not universally supported.
 - The full cosmetic-type audit is unfinished. Contrails, music packs and other omitted types are not all exportable in the current app.
-- PC Building Simulator 2 support is limited to static mesh geometry and separate PNG images.
+- PC Building Simulator 2 support covers static part models with packed referenced textures; game scripts and runtime component changes are not reproduced.
 - A successful automated check covers the tested asset and scenario, not every cosmetic in Fortnite.
 
 ## Development and release history
