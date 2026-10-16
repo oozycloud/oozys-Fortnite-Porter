@@ -29,4 +29,3 @@ Notes cover every version identified in the preserved build records. Legacy entr
 - [1.0.0 — Rig, texture and physics groundwork](1.0.0.md)
 
 For older 1.x builds, only version-resource summaries are preserved. Those entries state that limitation rather than assigning unverified fixes or test results.
-
