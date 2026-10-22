@@ -79,7 +79,7 @@ public partial class MainWindow
 
     private void RefreshRocketStyles(Cosmetic? asset)
     {
-        if(asset != null && _styleAsset?.Id == asset.Id) return;
+        if(asset != null && _styleAsset?.Id == asset.Id) {RocketAppearancePanel.Visibility=Visibility.Visible;return;}
         _updatingStyles=true;
         try {
             _styleAsset=asset; StyleChannelsTab.Items.Clear(); StyleChannelsTab.Visibility=Visibility.Collapsed;
@@ -87,9 +87,13 @@ public partial class MainWindow
             var choices=new List<RocketLeagueSession.Decal>{new("Default","No decal","")};
             if(asset?.Category=="Cars") choices.AddRange(_rocketSession.GetDecals(asset));
             StyleSelector.Visibility=Visibility.Visible; StyleSelector.ItemsSource=choices;
-            StyleSelector.SelectedItem=choices.FirstOrDefault(d=>d.Id==_selectedStyles.GetValueOrDefault(asset?.Id??"","Default"))??choices[0];
+            if(asset!=null && !_rocketAppearances.ContainsKey(asset.Id))_rocketAppearances[asset.Id]=new();
+            string remembered=asset==null?"Default":_selectedStyles.GetValueOrDefault(asset.Id,_rocketAppearances[asset.Id].DecalId);
+            StyleSelector.SelectedItem=choices.FirstOrDefault(d=>d.Id==remembered)??choices[0];
+            if(asset!=null){string selected=((RocketLeagueSession.Decal)StyleSelector.SelectedItem).Id;_selectedStyles[asset.Id]=selected;_rocketAppearances[asset.Id].DecalId=selected;}
             StyleSelector.IsEnabled=asset?.Category=="Cars";
             StyleCount.Text=asset?.Category=="Cars"?$"{choices.Count-1} known compatible decals":"";
+            BuildRocketAppearance(asset);
             StyleHint.Text=asset?.Category=="Cars"?"Choose a decal compatible with this car. Paint and animated shader effects are simplified; original extracted textures and parameters are retained.":"Maps export a mesh library. Goal explosions and other runtime effects export their available resources; Unreal simulation is not reproduced.";
         } finally {_updatingStyles=false;}
     }
@@ -122,6 +126,7 @@ public partial class MainWindow
     {
         var assets = CosmeticsGrid.SelectedItems.OfType<Cosmetic>().ToArray();
         bool rocket = IsRocketLeague;
+        var styles = assets.ToDictionary(a=>a.Id,a=>_selectedStyles.GetValueOrDefault(a.Id,"Default"));
         if (assets.Length == 0) return;
         await Run(async (settings, progress, ct) =>
         {
@@ -129,7 +134,7 @@ public partial class MainWindow
             foreach (Cosmetic asset in assets)
             {
                 ct.ThrowIfCancellationRequested();
-                var result = rocket ? await _rocketSession.Export(asset, _selectedStyles.GetValueOrDefault(asset.Id,"Default"), settings, progress, ct) : await _unitySession.Export(asset, settings, progress, ct);
+                var result = rocket ? await _rocketSession.Export(asset, styles[asset.Id], settings, progress, ct, _rocketAppearances.GetValueOrDefault(asset.Id)) : await _unitySession.Export(asset, settings, progress, ct);
                 results.Add(result);
                 _lastExport = result.Folder;
                 foreach (string warning in result.Warnings) File.AppendAllText(_logFile, "WARNING: " + warning + "\n");

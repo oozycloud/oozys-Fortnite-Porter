@@ -803,6 +803,7 @@
                 </ItemsControl.ItemsPanel>
               </TabControl>
               <TextBlock Name="StyleHint" Text="Choose an asset to load its styles." Foreground="#AAA19A" FontSize="12" LineHeight="19" Margin="0,9,0,0" />
+              <StackPanel Name="RocketAppearancePanel" Visibility="Collapsed" Margin="0,14,0,0" />
               <StackPanel Name="EmoteStylePanel" Visibility="Collapsed" Margin="0,16,0,6">
                 <TextBlock Text="EMOTE STYLE" Style="{StaticResource Eyebrow}" />
                 <ComboBox Name="EmoteStyleSelector" ToolTip="Traversal uses the moving clip. Static traversal uses the stationary clip. This choice belongs to the selected emote." SelectionChanged="EmoteStyle_Changed" />

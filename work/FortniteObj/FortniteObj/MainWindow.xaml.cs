@@ -137,6 +137,7 @@ public partial class MainWindow : Window, IComponentConnector
         _fortniteFolder = GamePath.Text;
         _pcBuildingFolder = appSettings.PcBuildingFolder;
         _rocketLeagueFolder = appSettings.RocketLeagueFolder;
+        _rocketAppearances = appSettings.RocketAppearances ?? new();
         GameSelector.SelectedIndex = appSettings.SelectedGame == "RocketLeague" ? 2 : appSettings.SelectedGame == "PCBS2" ? 1 : 0;
         _loaded = true;
         ApplyGameSelection();
@@ -152,6 +153,7 @@ public partial class MainWindow : Window, IComponentConnector
 			GameFolder = IsFortnite ? GamePath.Text : _fortniteFolder,
             PcBuildingFolder = _activeGame == 1 ? GamePath.Text : _pcBuildingFolder,
             RocketLeagueFolder = IsRocketLeague ? GamePath.Text : _rocketLeagueFolder,
+            RocketAppearances = _rocketAppearances,
             SelectedGame = IsFortnite ? "Fortnite" : IsRocketLeague ? "RocketLeague" : "PCBS2",
 			ExportFolder = ExportPath.Text,
 			EngineVersion = ((EngineVersion.SelectedItem as string) ?? "GAME_UE5_8"),
@@ -881,6 +883,7 @@ public partial class MainWindow : Window, IComponentConnector
 
 	private void RefreshStyles(Cosmetic? asset)
 	{
+        RocketAppearancePanel.Visibility = Visibility.Collapsed;
         if (IsRocketLeague) { RefreshRocketStyles(asset); return; }
         if (!IsFortnite)
         {
@@ -963,7 +966,7 @@ public partial class MainWindow : Window, IComponentConnector
 
 	private void Style_Changed(object sender, SelectionChangedEventArgs e)
 	{
-		if(IsRocketLeague) { if(!_updatingStyles && _styleAsset != null && StyleSelector.SelectedItem is RocketLeagueSession.Decal decal) _selectedStyles[_styleAsset.Id]=decal.Id; return; }
+		if(IsRocketLeague) { if(_rocketPreviewImage!=null)_rocketPreviewImage.Source=null; if(_rocketPreviewStatus!=null)_rocketPreviewStatus.Text="Decal changed. Generate an updated preview."; if(!_updatingStyles && _styleAsset != null && StyleSelector.SelectedItem is RocketLeagueSession.Decal decal) {_selectedStyles[_styleAsset.Id]=decal.Id;if(_rocketAppearances.TryGetValue(_styleAsset.Id,out var appearance))appearance.DecalId=decal.Id;SaveAppearanceSettings();} return; }
         if (!_updatingStyles && (object)_styleAsset != null && StyleSelector.SelectedItem is StyleChoice styleChoice)
 		{
 			_selectedStyles[_styleAsset.Id] = styleChoice.Name;

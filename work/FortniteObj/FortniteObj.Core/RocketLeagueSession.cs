@@ -13,6 +13,8 @@ public sealed class RocketLeagueSession
     public sealed record Decal(string Id, string Name, string Package) { public override string ToString() => Name; }
     private sealed record Catalog(List<Cosmetic> Assets, Dictionary<string,List<Decal>> Styles, string[] Warnings);
     private Dictionary<string,List<Decal>> _styles = new();
+    private List<Cosmetic> _assets = new();
+    public IReadOnlyList<Cosmetic> Wheels => _assets.Where(a=>a.Category=="Wheels").ToArray();
     public string[] Warnings { get; private set; } = Array.Empty<string>();
     private static string Script(string name) => Path.Combine(AppContext.BaseDirectory,name);
     private static string Cache => Path.Combine(AppSettings.DataFolder,"rocketleague");
@@ -33,6 +35,19 @@ public sealed class RocketLeagueSession
         try { await File.WriteAllTextAsync(request,JsonSerializer.Serialize(new {Action="keys",Cache}),ct); await Run(Script(Path.Combine("unity-runtime","python.exe")),new[]{"-X","utf8",Script("rocketleague_assets.py"),request},new Progress<string>(),ct); }
         finally {File.Delete(request);}
     }
+    private readonly Dictionary<string,bool> _paintSupport=new();
+    public async Task<bool> SupportsPaint(Cosmetic asset,CancellationToken ct)
+    {
+        if(_paintSupport.TryGetValue(asset.Id,out bool supported))return supported;
+        if(!File.Exists(asset.ObjectPath.Split('|')[0]))return false;
+        string stage=Path.Combine(Cache,"details-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(stage);
+        try {
+            string request=Path.Combine(stage,"request.json"),result=Path.Combine(stage,"result.json");
+            await File.WriteAllTextAsync(request,JsonSerializer.Serialize(new {Action="capabilities",Asset=asset,Cache,Result=result}),ct);
+            await Run(Script(Path.Combine("unity-runtime","python.exe")),new[]{"-X","utf8",Script("rocketleague_assets.py"),request},new Progress<string>(),ct);
+            using var json=JsonDocument.Parse(await File.ReadAllTextAsync(result,ct));return _paintSupport[asset.Id]=json.RootElement.GetProperty("Paint").GetBoolean();
+        } finally {Directory.Delete(stage,true);}
+    }
     public async Task<List<Cosmetic>> Scan(string root,IProgress<string> progress,CancellationToken ct)
     {
         string stage=Path.Combine(AppSettings.DataFolder,"rl-scan-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(stage);
@@ -41,11 +56,16 @@ public sealed class RocketLeagueSession
             await File.WriteAllTextAsync(request,JsonSerializer.Serialize(new {Action="scan",Root=root,Cache,Result=result}),ct);
             await Run(Script(Path.Combine("unity-runtime","python.exe")),new[]{"-X","utf8","-u",Script("rocketleague_assets.py"),request},progress,ct);
             var catalog=JsonSerializer.Deserialize<Catalog>(await File.ReadAllTextAsync(result,ct))??throw new IOException("Rocket League scan returned no catalogue.");
-            _styles=catalog.Styles;Warnings=catalog.Warnings;progress.Report($"Loaded {catalog.Assets.Count:N0} Rocket League assets.");return catalog.Assets;
+            _assets=catalog.Assets;_styles=catalog.Styles;Warnings=catalog.Warnings;progress.Report($"Loaded {catalog.Assets.Count:N0} Rocket League assets.");return catalog.Assets;
         } finally { Directory.Delete(stage,true); }
     }
-    public async Task<ExportResult> Export(Cosmetic asset,string style,AppSettings settings,IProgress<string> progress,CancellationToken ct)
+    public async Task<ExportResult> Export(Cosmetic asset,string style,AppSettings settings,IProgress<string> progress,CancellationToken ct, RocketAppearance? appearance=null, bool preview=false)
     {
+        appearance ??= new RocketAppearance();appearance.Validate();
+        Cosmetic? wheel=string.IsNullOrEmpty(appearance.WheelId)?null:_assets.SingleOrDefault(a=>a.Category=="Wheels" && a.Id==appearance.WheelId);
+        if(!string.IsNullOrEmpty(appearance.WheelId)&&wheel==null)throw new IOException("The selected wheel is missing from this scan.");
+        if(appearance.BodyPaint!="Default" && !await SupportsPaint(asset,ct))throw new IOException("This asset does not expose a supported paint-colour parameter.");
+        if(wheel!=null && appearance.WheelPaint!="Default" && !await SupportsPaint(wheel,ct))throw new IOException("This wheel does not expose a supported paint-colour parameter.");
         var decal=string.IsNullOrEmpty(style)||style=="Default"?null:GetDecals(asset).FirstOrDefault(d=>d.Id==style);
         if(!string.IsNullOrEmpty(style)&&style!="Default"&&decal==null)throw new IOException("That decal is not compatible with this car in the scanned catalogue.");
         string root=Path.Combine(settings.ExportFolder,"Rocket League");Directory.CreateDirectory(root);
@@ -55,7 +75,7 @@ public sealed class RocketLeagueSession
         string destination=Path.Combine(root,name+"_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+"_"+Guid.NewGuid().ToString("N")[..6]);
         try {
             string resultPath=Path.Combine(stage,"export-report.json"),request=Path.Combine(stage,"request.json");
-            await File.WriteAllTextAsync(request,JsonSerializer.Serialize(new {Action="export",Asset=asset,Decal=decal,Output=stage,Name=name,Cache,Result=resultPath}),ct);
+            await File.WriteAllTextAsync(request,JsonSerializer.Serialize(new {Action="export",Asset=asset,Decal=decal,Appearance=appearance,Wheel=wheel,Preview=preview,Output=stage,Name=name,Cache,Result=resultPath}),ct);
             progress.Report("Reading Rocket League: "+asset.Name);
             await Run(Script(Path.Combine("unity-runtime","python.exe")),new[]{"-X","utf8","-u",Script("rocketleague_assets.py"),request},progress,ct);
             using(var report=JsonDocument.Parse(await File.ReadAllTextAsync(resultPath,ct))) if(report.RootElement.GetProperty("Meshes").GetInt32()>0) {

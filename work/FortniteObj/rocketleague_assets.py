@@ -15,9 +15,9 @@ def run(args,root,out,log):
  text=p.stdout.decode('utf-8',errors='replace');log.write_text(text,encoding='utf-8')
  if p.returncode or '*** ERROR:' in text:raise RuntimeError('Rocket League reader failed. '+text[-1800:])
  return text
-def refresh_keys(cache,warnings):
+def refresh_keys(cache,warnings,force=False):
  cache.mkdir(parents=True,exist_ok=True);target=cache/'aes.txt'
- if not target.exists() or time.time()-target.stat().st_mtime>3600:
+ if force or not target.exists() or time.time()-target.stat().st_mtime>3600:
   try:
    req=urllib.request.Request('https://raw.githubusercontent.com/ShinyEmii/Toga-Files/master/aes.txt',headers={'User-Agent':'oozys-Fortnite-Porter'})
    raw=urllib.request.urlopen(req,timeout=15).read(1000000).decode('ascii')
@@ -77,6 +77,8 @@ def export(q):
  (out/'aes.txt').write_bytes(key.read_bytes())
  parts=a['ObjectPath'].split('|');f=Path(parts[0]).resolve()
  if f.parent!=root or f.suffix.lower()!='.upk' or not f.is_file():raise ValueError('Asset package is not in this Rocket League installation.')
+ # Octane's standard body is cooked into Startup; its product package contains the premium-UV alternate.
+ if a['Id']=='RL23':parts=[str(root/'Startup.upk'),'Body_Octane_SK','SkeletalMesh'];f=root/'Startup.upk'
  args=['-export','-gltf','-png','-noanim',f.stem,*parts[1:]]
  text=run(args,root,out/'resources',out/'reader.log')
  if len(parts)>1:
@@ -86,6 +88,11 @@ def export(q):
   for i,(pkg,objects) in enumerate(dependencies.items()):
    if (root/(pkg+'.upk')).exists():
     text+=run(['-export','-png','-noanim',*['-obj='+obj for obj in sorted(objects)],pkg],root,out/'resources',out/('dependency-'+str(i)+'.log'))
+ if q.get('Wheel'):
+  wheel=Path(q['Wheel']['ObjectPath']).resolve()
+  if wheel.parent!=root or not wheel.is_file():raise ValueError('Wheel package is missing.')
+  text+=run(['-export','-gltf','-png','-noanim',wheel.stem],root,out/'wheels',out/'wheel-reader.log')
+  run(['-dump','-all',wheel.stem],root,out/'wheels',out/'wheel-properties.txt')
  if q.get('Decal'):
   decal=Path(q['Decal']['Package']).resolve()
   if decal.parent!=root or not decal.is_file():raise ValueError('Decal package is missing.')
@@ -97,13 +104,25 @@ def export(q):
   warnings.append('Unreal level placement and particle/gameplay simulation are not reconstructed. This export contains available meshes, textures and material resources.')
  if 'WARNING:' in text:warnings.append('The package reader reported unresolved dependencies. See reader.log for details.')
  meshes=list((out/'resources').rglob('*.gltf'));textures=list(out.rglob('*.png'))
+ if q.get('Preview') and not meshes:
+  thumbnail=root/(re.sub('_SF$','',f.stem,flags=re.I)+'_T_SF.upk')
+  if thumbnail.exists():
+   try:
+    run(['-export','-png','-nomesh','-nostat',thumbnail.stem],root,out/'thumbnail',out/'thumbnail-reader.log')
+    candidates=list((out/'thumbnail').rglob('*.png'))
+    if candidates:shutil.copy2(max(candidates,key=lambda p:p.stat().st_size),out/'preview.png')
+   except Exception as ex:warnings.append('Thumbnail unavailable: '+str(ex))
  if not meshes:warnings.append('This package has no directly exportable mesh. Texture/material resources are retained; no Blender scene is fabricated.')
  (out/'aes.txt').unlink(missing_ok=True)
  save(q['Result'],{'Meshes':len(meshes),'Textures':len(textures),'Warnings':warnings,'ResourceOnly':not meshes})
 if __name__=='__main__':
  try:
   q=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8-sig'))
-  if q['Action']=='keys':
-   warnings=[];refresh_keys(Path(q['Cache']),warnings);print('Rocket League compatibility refreshed.' if not warnings else warnings[0],flush=True)
+  if q['Action']=='capabilities':
+   asset=q['Asset'];root=cooked(asset['PackagePath']);stage=Path(q['Cache']);warnings=[];refresh_keys(stage,warnings)
+   text=run(['-dump','-all',Path(asset['ObjectPath'].split('|')[0]).stem],root,stage,stage/('details-'+asset['Id']+'.log'))
+   save(q['Result'],{'Paint':bool(re.search(r'ParameterName = PaintColor\b',text)),'PaintFinish':asset['Category']=='Cars'})
+  elif q['Action']=='keys':
+   warnings=[];refresh_keys(Path(q['Cache']),warnings,True);print('Rocket League compatibility refreshed.' if not warnings else warnings[0],flush=True)
   else:(scan if q['Action']=='scan' else export)(q)
  except Exception as ex:print(str(ex),file=sys.stderr);sys.exit(1)

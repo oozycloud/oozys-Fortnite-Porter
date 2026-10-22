@@ -314,6 +314,15 @@ internal static class UiDiagnostics
             rocketStyles.SelectedIndex=1;
             var storedStyles=(Dictionary<string,string>)typeof(MainWindow).GetField("_selectedStyles",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
             if(storedStyles.GetValueOrDefault("RL-test")!="decal-compatible")throw new Exception("Selected Rocket League decal was not saved for export.");
+            var appearances=(Dictionary<string,RocketAppearance>)typeof(MainWindow).GetField("_rocketAppearances",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+            var appearancePanel=(StackPanel)window.FindName("RocketAppearancePanel");
+            var colourCombos=appearancePanel.Children.OfType<ComboBox>().Where(c=>c.Items.OfType<CosmeticStyleOption>().Any()).ToArray();
+            if(colourCombos.Length!=2)throw new Exception("Independent car/decal colour controls missing.");
+            colourCombos[0].SelectedItem=colourCombos[0].Items.OfType<CosmeticStyleOption>().Single(o=>o.Name=="Cobalt");
+            colourCombos[1].SelectedItem=colourCombos[1].Items.OfType<CosmeticStyleOption>().Single(o=>o.Name=="Crimson");
+            if(appearances["RL-test"].Primary!="#264DD9" || appearances["RL-test"].Secondary!="#B7162D" || appearances["RL-test"].DecalId!="decal-compatible")throw new Exception("Car colour, decal colour or decal style overwrote another channel.");
+            if(!appearancePanel.Children.OfType<Button>().Any(b=>b.Content?.ToString()=="Generate preview"))throw new Exception("Appearance preview control missing.");
+            if(AppSettings.Load().RocketAppearances["RL-test"].Primary!="#264DD9")throw new Exception("Rocket League appearance was not saved.");
             Save(window,Path.Combine(folder,"rocketleague-categories.png"));
             games.SelectedIndex = 0;
             var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(window);

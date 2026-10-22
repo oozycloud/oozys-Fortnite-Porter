@@ -8,7 +8,10 @@ if(args.Contains("--rocket-check")) {
  var car=catalog.Single(x=>x.Id=="RL23");var decal=rl.GetDecals(car).Single(x=>x.Name=="Octane: Stripes");
  var settings=new AppSettings{ExportFolder=folder,ExportFormat="GLB"};
  try {await rl.Export(car,"not-compatible",settings,log,CancellationToken.None);throw new Exception("Invalid decal accepted");} catch(IOException ex) when(ex.Message.Contains("not compatible")){}
- var result=await rl.Export(car,decal.Id,settings,log,CancellationToken.None);
+ var appearance=new RocketAppearance{Primary="#86253E",Secondary="#F5CF25",PrimaryFinish="Metallic",SecondaryFinish="Matte",WheelId=rl.Wheels.First(x=>x.Name=="'Za Cruisers").Id,WheelPaint="Crimson",BodyPaint="Cobalt"};
+ if(!await rl.SupportsPaint(car,CancellationToken.None)||!await rl.SupportsPaint(rl.Wheels.First(x=>x.Id==appearance.WheelId),CancellationToken.None))throw new Exception("Known paintable materials were not detected");
+ var result=await rl.Export(car,decal.Id,settings,log,CancellationToken.None,appearance,true);
+ if(!File.Exists(Path.Combine(result.Folder,"preview.png")))throw new Exception("Configured preview missing");
  if(result.Meshes==0||result.Textures==0||!Directory.EnumerateFiles(result.Folder,"*.blend").Any()||!Directory.EnumerateFiles(Path.Combine(result.Folder,"GLB"),"*.glb").Any())throw new Exception("Rocket League packed export incomplete");
  File.WriteAllText(Path.Combine(folder,"validation.json"),System.Text.Json.JsonSerializer.Serialize(new {Count=catalog.Count,CompatibleDecals=rl.GetDecals(car).Count,Result=result},new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));Console.WriteLine("PASS Rocket League real scan, compatible decal, invalid decal rejection, packed Blender and GLB.");return;
 }

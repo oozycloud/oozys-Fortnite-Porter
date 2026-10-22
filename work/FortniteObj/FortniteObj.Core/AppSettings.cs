@@ -8,6 +8,8 @@ public sealed class AppSettings
 {
 	public string SelectedGame { get; set; } = "Fortnite";
 
+    public System.Collections.Generic.Dictionary<string,RocketAppearance> RocketAppearances {get;set;} = new();
+
     public string RocketLeagueFolder { get; set; } = "";
 
     public string PcBuildingFolder { get; set; } = "";
