@@ -92,6 +92,11 @@ for mat in list(bpy.data.materials):
   if 'Pearl' in first or first=='Pearlescent':shader.inputs['Iridescence Weight'].default_value=.6;shader.inputs['Iridescence Thickness'].default_value=400
   if first in ['Carbon Fiber','Brushed Metal']:
    coords=nodes.new('ShaderNodeTexCoord');noise=nodes.new('ShaderNodeTexNoise');noise.inputs['Scale'].default_value=150 if first=='Carbon Fiber' else 350;links.new(coords.outputs['Generated'],noise.inputs['Vector']);bump=nodes.new('ShaderNodeBump');bump.inputs['Strength'].default_value=.08;bump.inputs['Distance'].default_value=.001;links.new(noise.outputs['Fac'],bump.inputs['Height']);links.new(bump.outputs[0],shader.inputs['Normal'])
+  if appearance.get('BodyPaint') in paints:
+   blankname=values.get('Diffuse','').removesuffix('_D')+'_BlankSkin'
+   if blankname.casefold() in images:
+    blank=tex(blankname,True);regions=nodes.new('ShaderNodeSeparateColor');links.new(blank.outputs['Color'],regions.inputs[0]);used=nodes.new('ShaderNodeMath');used.operation='ADD';links.new(regions.outputs['Red'],used.inputs[0]);links.new(regions.outputs['Blue'],used.inputs[1]);trim=nodes.new('ShaderNodeMath');trim.operation='SUBTRACT';trim.use_clamp=True;trim.inputs[0].default_value=1;links.new(used.outputs[0],trim.inputs[1]);tint=nodes.new('ShaderNodeMixRGB');links.new(trim.outputs[0],tint.inputs[0]);links.new(shader.inputs['Base Color'].links[0].from_socket,tint.inputs[1]);tint.inputs[2].default_value=colour(paints[appearance['BodyPaint']]);links.new(tint.outputs[0],shader.inputs['Base Color']);mat['PaintVariant']=appearance['BodyPaint'];mat['PaintRegionMask']=blankname
+   else:warnings.append('This car does not expose a supported body trim mask. Its body paint tint is not reconstructed.')
   mat['PrimaryColour']=appearance.get('Primary','#195CB8');mat['DecalColour']=appearance.get('Secondary','#EF8124');mat['PrimaryFinish']=first;mat['DecalFinish']=second
  # Standard wheel shaders use separate UV tiles for tyre and rim.
  wheelvalues=list(values.values());rimname=next((v for v in wheelvalues if re.search(r'Rim_D$',v,re.I)),None);tirename=next((v for v in wheelvalues if re.search(r'Tire_D$',v,re.I)),None)

@@ -10,6 +10,7 @@ Released 22 October 2026. Medium feature update from beta 0.5.0.
 - Independent car/decal colour presets and custom hex colours, Cobalt/Crimson and other paint tints where the source shader exposes a paint parameter, wheel selection and paint, and eight common reconstructed finish options.
 - On-demand previews use the same selected appearance as export, with cached renders. Texture-only packages use an available source thumbnail. Unreal particle playback is not shown.
 - Selected wheels mount to four authored car rig positions when supported. Octane now uses its standard body from Startup for regular decals, not the premium-UV alternate.
+- Separated standard body, decal and glass regions when painting supported car trim, so a Cobalt trim selection does not tint the windows.
 - Corrected decal mask alpha and removed inherited tiled detail normals from the base car surface.
 - Packed Blender exports and the existing GLB, glTF, FBX, OBJ and STL conversion pipeline for mesh assets. Source resources and reports remain alongside the converted scene.
 - Recovered diffuse and normal references, editable decal-mask paint reconstruction and embedded images.
