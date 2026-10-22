@@ -1,0 +1,12 @@
+diff --git a/CUE4Parse/UE4/Versions/VersionContainer.cs b/CUE4Parse/UE4/Versions/VersionContainer.cs
+index c7ebfd4..ec83238 100644
+--- a/CUE4Parse/UE4/Versions/VersionContainer.cs
++++ b/CUE4Parse/UE4/Versions/VersionContainer.cs
+@@ -138,6 +138,6 @@ public bool this[string optionKey]
+             set => Options[optionKey] = value;
+         }
+ 
+-        public object Clone() => new VersionContainer(Game, Platform, Ver, CustomVersions, _optionOverrides, _mapStructTypesOverrides) { bExplicitVer = bExplicitVer };
++        public object Clone() => new VersionContainer(Game, Platform, Ver, CustomVersions, new Dictionary<string, bool>(Options), new Dictionary<string, KeyValuePair<string, string>>(MapStructTypes)) { bExplicitVer = bExplicitVer };
+     }
+ }

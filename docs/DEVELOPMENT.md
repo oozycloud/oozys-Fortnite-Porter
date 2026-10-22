@@ -13,7 +13,7 @@ The original source was deleted. This checkout was reconstructed from the instal
 - `recovery/dependencies`: preserved third-party dependencies needed by the recovered projects.
 - `recovery/licenses`: preserved third-party notices.
 - `recovery/original/launcher.exe`: preserved native launcher. The package script updates its version resource.
-- `recovery/package-current.py`: beta 0.5.0 packaging script.
+- `recovery/package-current.py`: beta 0.6.0 packaging script.
 
 ## Build
 
@@ -21,9 +21,9 @@ On Windows x64, install the .NET 10 SDK and Python. Blender is needed for conver
 
 ```powershell
 dotnet build work/FortniteObj/Porter.csproj -c Release
-dotnet publish work/FortniteObj/Porter.csproj -c Release -r win-x64 --self-contained true -o work/publish-beta0.5.0/app
+dotnet publish work/FortniteObj/Porter.csproj -c Release -r win-x64 --self-contained true -o work/publish-beta0.6.0/app
 python -X utf8 recovery/package-current.py
-dotnet publish work/Installer/Installer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o work/installer-beta0.5.0
+dotnet publish work/Installer/Installer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o work/installer-beta0.6.0
 ```
 
 The source backup excludes game data, export caches, generated installers, installer payloads and intermediate build folders. The package script regenerates the installer payload. Keep the dependency DLLs and their notices with this recovered checkout.
@@ -41,3 +41,11 @@ The app embeds `work/FortniteObj/website-id-registry.json`. The website uses the
 Managed CUE4Parse dependencies were rebuilt from revision `605672df7a993a90094bad92d30c388d87ae6c1a`; see `recovery/licenses/PROVENANCE.txt`. The source archive includes the small version-option cloning patch under `recovery/parser-patches`. Runtime libraries, including System.Numerics.Tensors, are explicit project references. The native ACL decoder is the preserved version documented in provenance.
 
 Run `dotnet run --project work/AssetChecks -c Release -- --website-id-checks` for the full ID/style contract and parser-option regression check. `Porter.exe --ui-check <output-folder>` tests the WPF interaction and archive-reader UI context. Live export checks require local game files and Blender.
+
+## Rocket League reader
+
+`work/FortniteObj/rocketleague_assets.py` builds the local catalogue and drives the bundled UEViewer reader. `rocketleague_blend.py` imports extracted glTF meshes, reconstructs supported material references and packs images. `RocketLeagueSession.cs` handles cancellation, formats and export reports.
+
+Reader source: https://github.com/ShinyEmii/UEViewer, revision `1b6977ec1c8414acec4cbc183b50d88823adc212`. Binary: the project's `EncryptedTFC` release (downloaded 22 October 2026). MIT notice is included in `work/FortniteObj/rocketleague/LICENSE.txt`. Public product/map metadata and compatibility keys: https://github.com/ShinyEmii/Toga-Files. The bundled metadata removes key columns; the reader's key list refreshes from that public source. These resources do not include game models or textures.
+
+`dotnet run --project work/AssetChecks -c Release -- <output> --rocket-check` checks a real scan, invalid decal rejection and Octane/Stripes packed Blender + GLB. Blender and the local game must be installed. Run `recovery/test-package.ps1` with PowerShell 7 after packaging.

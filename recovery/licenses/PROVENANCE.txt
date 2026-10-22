@@ -1,0 +1,14 @@
+CUE4Parse-Natives.dll: ACL animation decompression library distributed with
+FModel's official aug-2026 release, https://github.com/4sval/FModel/releases/tag/aug-2026
+Extracted from its .NET single-file bundle without running FModel.
+Source: https://github.com/FabianFG/CUE4Parse/tree/1.2.2.202609/CUE4Parse-Natives
+ACL: https://github.com/nfrechette/acl
+
+Managed CUE4Parse and CUE4Parse-Conversion updated for beta 0.5.0.
+Source: https://github.com/FabianFG/CUE4Parse
+Revision: 605672df7a993a90094bad92d30c388d87ae6c1a
+Local change: preserve the current version option and struct-map dictionaries when cloning VersionContainer. This retains game configuration during package loading.
+Patch: recovery/parser-patches/version-options.patch in the source archive.
+Built with CUE4PARSE_SKIP_NATIVE=true; the previously documented ACL native library is retained.
+
+Rocket League UEViewer fork: https://github.com/ShinyEmii/UEViewer @ 1b6977ec1c8414acec4cbc183b50d88823adc212; EncryptedTFC release binary, MIT license bundled at app/rocketleague/LICENSE.txt. Metadata/keys from ShinyEmii/Toga-Files, retrieved 2026-10-22.

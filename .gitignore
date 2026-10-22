@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/__pycache__/
+work/Installer/FortniteInstaller.payload.zip
+work/publish-*/
+work/installer-*/
+outputs/
+recovery/rocketleague/
+*.blend
+*.upk
+*.tfc

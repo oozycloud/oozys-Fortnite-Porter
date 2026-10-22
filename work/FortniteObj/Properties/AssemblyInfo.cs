@@ -1,0 +1,43 @@
+using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
+using System.Windows;
+using System.Windows.Resources;
+
+[assembly: ThemeInfo(ResourceDictionaryLocation.None, ResourceDictionaryLocation.SourceAssembly)]
+[assembly: AssemblyAssociatedContentFile("readme.md")]
+[assembly: AssemblyAssociatedContentFile("changelog.md")]
+[assembly: AssemblyAssociatedContentFile("porter.png")]
+[assembly: AssemblyAssociatedContentFile("development.md")]
+[assembly: AssemblyAssociatedContentFile("1.0.0.md")]
+[assembly: AssemblyAssociatedContentFile("1.1.0.md")]
+[assembly: AssemblyAssociatedContentFile("1.1.1.md")]
+[assembly: AssemblyAssociatedContentFile("1.2.0.md")]
+[assembly: AssemblyAssociatedContentFile("1.2.1.md")]
+[assembly: AssemblyAssociatedContentFile("1.3.0.md")]
+[assembly: AssemblyAssociatedContentFile("1.4.0.md")]
+[assembly: AssemblyAssociatedContentFile("1.5.0.md")]
+[assembly: AssemblyAssociatedContentFile("1.6.0.md")]
+[assembly: AssemblyAssociatedContentFile("1.7.0.md")]
+[assembly: AssemblyAssociatedContentFile("2.0.0.md")]
+[assembly: AssemblyAssociatedContentFile("2.0.1.md")]
+[assembly: AssemblyAssociatedContentFile("2.1.0.md")]
+[assembly: AssemblyAssociatedContentFile("2.2.0.md")]
+[assembly: AssemblyAssociatedContentFile("beta-0.0.1.md")]
+[assembly: AssemblyAssociatedContentFile("beta-0.6.0.md")]
+[assembly: AssemblyAssociatedContentFile("unreleased.md")]
+[assembly: AssemblyAssociatedContentFile("native/cue4parse-natives.dll")]
+[assembly: AssemblyAssociatedContentFile("native/acl-license.txt")]
+[assembly: AssemblyAssociatedContentFile("native/cue4parse-license.txt")]
+[assembly: AssemblyAssociatedContentFile("native/cue4parse-notice.txt")]
+[assembly: AssemblyAssociatedContentFile("native/provenance.txt")]
+[assembly: AssemblyCompany("Porter")]
+[assembly: AssemblyConfiguration("Release")]
+[assembly: AssemblyFileVersion("0.6.0.0")]
+[assembly: AssemblyInformationalVersion("0.6.0-beta")]
+[assembly: AssemblyProduct("oozy's Fortnite Porter")]
+[assembly: AssemblyTitle("Porter")]
+[assembly: TargetPlatform("Windows7.0")]
+[assembly: SupportedOSPlatform("Windows7.0")]
+[assembly: AssemblyVersion("0.6.0.0")]

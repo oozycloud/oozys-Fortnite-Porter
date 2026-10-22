@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>oozys-Fortnite-Porter-Installer (beta 0.6.0)</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>True</UseWPF>
+    <UseWindowsForms>True</UseWindowsForms>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Nullable>annotations</Nullable><LangVersion>14.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="FortniteInstaller.legacy-files.json" />
+    <None Remove="FortniteInstaller.payload.zip" />
+    <EmbeddedResource Include="FortniteInstaller.legacy-files.json" LogicalName="FortniteInstaller.legacy-files.json" />
+    <EmbeddedResource Include="FortniteInstaller.payload.zip" LogicalName="FortniteInstaller.payload.zip" />
+    <ApplicationDefinition Remove="FortniteInstaller\App.xaml" />
+    <ApplicationDefinition Include="FortniteInstaller\App.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="app.xaml" />
+    <Page Remove="FortniteInstaller\MainWindow.xaml" />
+    <Page Include="FortniteInstaller\MainWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="mainwindow.xaml" />
+    <Resource Remove="assets\porter.ico" />
+    <Resource Remove="assets\porter.png" />
+    <Resource Include="assets\porter.ico" LogicalName="assets/porter.ico" />
+    <Resource Include="assets\porter.png" LogicalName="assets/porter.png" />
+  </ItemGroup>
+  <ItemGroup />
+</Project>

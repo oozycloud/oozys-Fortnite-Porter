@@ -2,19 +2,20 @@
 
 # oozy's Fortnite Porter
 
-Bring Fortnite characters, animations and props into Blender, with packed textures and editable rigs. Also export PC part models from PC Building Simulator 2.
+Bring Fortnite characters, animations and props into Blender, with packed textures and editable rigs. Also export PC part models from PC Building Simulator 2 and installed Rocket League asset resources.
 
 **Windows x64 · Blender workflow · Beta**
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current build: beta 0.5.0.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.5.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
+> **Current build: beta 0.6.0.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.6.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
 ## What it does
 
 The [website source](website/README.md) includes a dark 3D entrance, a temporary textured GameRock RTX 4090 preview, and a download button that checks the newest published beta installer. Run it locally with `python -m http.server 8080 --directory website`, then open `http://localhost:8080`. The catalogue has searchable cards with stable IDs, complete style combinations and source thumbnails. Paste an ID into the app to select and export that asset from your installed game files.
 
 - Exports skins, pickaxes, back blings, gliders, emotes, emoticons, sidekicks, prefabs, weapons, building pieces and edits, vehicles, and kicks from a local Fortnite installation.
+- Browses Rocket League cars, known compatible decals, wheels, goal explosions, maps, balls, boosts, trails and other installed cosmetic resources. Mesh assets convert to packed Blender and exchange formats.
 - Creates a `.blend` with the model, rig, materials and texture images packed together.
 - Combines a skin and emote, or applies a separately exported emote to an existing skin using the Blender tools.
 - Supports multiple selections, authored cosmetic styles, animation resampling and selected animated material effects.
@@ -24,12 +25,20 @@ The [website source](website/README.md) includes a dark 3D entrance, a temporary
 
 This is a Blender reconstruction of Fortnite assets. Support varies by asset; the exporter does not reproduce the entire Unreal material, physics or gameplay runtime.
 
+## Rocket League
+
+Select **Rocket League** in the games sidebar, choose its installation folder and scan. Select a car, then choose a known compatible decal under **Decal style**. Multiple assets can be exported together. The scan lists locally installed packages; unavailable products are not invented. Unknown new packages remain searchable with an unverified label.
+
+Car meshes retain their rig and available textures. Decal masks use a simplified editable paint material; custom animated shaders are not fully reproduced. **Maps export a mesh library, not an assembled stadium. Goal explosions, boosts and trails export available meshes, textures and original package resources, not a working Unreal particle simulation.** Texture-only assets are retained as resources without fabricating a model. Read each export report and reader log for missing dependencies.
+
+Rocket League keys refresh in the background at launch and before scans/exports, with a saved fallback when offline. The public website catalogue currently covers Fortnite and PCBS2; Rocket League browsing is in the desktop app.
+
 ## Requirements
 
 | Requirement | Details |
 | --- | --- |
 | Operating system | Windows x64 |
-| Game files | A local Fortnite or PC Building Simulator 2 installation |
+| Game files | A local Fortnite, PC Building Simulator 2 or Rocket League installation |
 | Blender | Required for `.blend` conversion; tested with Blender **5.1.1**. The emote importer requires Blender **4.4 or newer**. |
 | Internet | Used for compatibility data, catalogue images, streamed asset data and optional update checks |
 | .NET | Included in the installer; no separate runtime installation is required |
@@ -38,15 +47,15 @@ This is a Blender reconstruction of Fortnite assets. Support varies by asset; th
 ## Install or update
 
 1. Download the installer from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases).
-2. Run `oozys-Fortnite-Porter-Installer (beta 0.5.0).exe`.
+2. Run `oozys-Fortnite-Porter-Installer (beta 0.6.0).exe`.
 3. Choose an installation folder. If the installer detects an existing installation there, it offers **Update**.
 4. Close the running porter before updating, then install.
-5. Open `oozys-Fortnite-Porter (beta 0.5.0).exe` from that folder.
+5. Open `oozys-Fortnite-Porter (beta 0.6.0).exe` from that folder.
 
 The installed layout is:
 
 ```text
-oozys-Fortnite-Porter (beta 0.5.0).exe
+oozys-Fortnite-Porter (beta 0.6.0).exe
 app/
     Porter.exe
     Porter.dll
@@ -129,7 +138,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.5.0.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.6.0.md) for tested examples and outstanding work.
 
 ## Update checks
 

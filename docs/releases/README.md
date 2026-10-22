@@ -4,6 +4,7 @@ Notes cover every version identified in the preserved build records. Legacy entr
 
 - [Available builds](AVAILABLE-BUILDS.md) — downloadable binaries and gaps in the preserved history
 - [Unreleased](unreleased.md) — current source changes and remaining checks
+- [beta 0.6.0 — Rocket League resources](beta-0.6.0.md)
 - [beta 0.5.0 — catalogue IDs and current mesh support](beta-0.5.0.md)
 - [beta 0.4.4 — Background scans and sidebar fix](beta-0.4.4.md)
 - [beta 0.4.3 — Mapping version 5 support](beta-0.4.3.md)

@@ -6,6 +6,10 @@ Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entr
 
 Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
 
+## beta 0.6.0
+
+Rocket League game tab, installed asset catalogue, compatible decal styles, mesh/resource exports and publication fixes. Map placement and Unreal particle simulation remain unsupported. [Full notes](docs/releases/beta-0.6.0.md).
+
 ## beta 0.5.0
 
 Website catalogue and exact asset/style IDs, textured model showcases, current Fortnite mesh profile, material parameter priority fixes, and archive-download deadlock correction. [Full notes](docs/releases/beta-0.5.0.md).

@@ -1,0 +1,106 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Porter</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>True</UseWPF>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Nullable>annotations</Nullable>
+    <LangVersion>14.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="website-id-registry.json" LogicalName="website-id-registry.json" />
+    <None Remove="FortniteObj.blender_materials.py" />
+    <None Remove="FortniteObj.blender_rig.py" />
+    <None Remove="FortniteObj.blender_animation.py" />
+    <None Remove="FortniteObj.blender_physics.py" />
+    <None Remove="FortniteObj.blender_fx.py" />
+    <None Remove="FortniteObj.blender_surface_fx.py" />
+    <None Remove="FortniteObj.blender_emote_tools.py" />
+    <None Remove="FortniteObj.blender_matte_copy.py" />
+    <EmbeddedResource Include="FortniteObj.blender_materials.py" LogicalName="FortniteObj.blender_materials.py" />
+    <EmbeddedResource Include="FortniteObj.blender_rig.py" LogicalName="FortniteObj.blender_rig.py" />
+    <EmbeddedResource Include="FortniteObj.blender_animation.py" LogicalName="FortniteObj.blender_animation.py" />
+    <EmbeddedResource Include="FortniteObj.blender_physics.py" LogicalName="FortniteObj.blender_physics.py" />
+    <EmbeddedResource Include="FortniteObj.blender_fx.py" LogicalName="FortniteObj.blender_fx.py" />
+    <EmbeddedResource Include="FortniteObj.blender_surface_fx.py" LogicalName="FortniteObj.blender_surface_fx.py" />
+    <EmbeddedResource Include="FortniteObj.blender_emote_tools.py" LogicalName="FortniteObj.blender_emote_tools.py" />
+    <EmbeddedResource Include="FortniteObj.blender_matte_copy.py" LogicalName="FortniteObj.blender_matte_copy.py" />
+    <Page Remove="FortniteObj\MainWindow.xaml" />
+    <Page Include="FortniteObj\MainWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="mainwindow.xaml" />
+    <Resource Remove="assets\porter.ico" />
+    <Resource Remove="assets\porter.png" />
+    <Resource Include="assets\porter.ico" LogicalName="assets/porter.ico" />
+    <Resource Include="assets\porter.png" LogicalName="assets/porter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="CUE4Parse">
+      <HintPath>../../recovery/dependencies/CUE4Parse.dll</HintPath>
+    </Reference>
+    <Reference Include="CUE4Parse-Conversion">
+      <HintPath>../../recovery/dependencies/CUE4Parse-Conversion.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp">
+      <HintPath>../../recovery/dependencies/SkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>../../recovery/dependencies/Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Oodle.NET">
+      <HintPath>../../recovery/dependencies/Oodle.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="OffiUtils">
+      <HintPath>../../recovery/dependencies/OffiUtils.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+<ItemGroup><Content Include="../../recovery/dependencies/CUE4Parse-Natives.dll" Link="CUE4Parse-Natives.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/><Content Include="../../recovery/dependencies/libSkiaSharp.dll" Link="libSkiaSharp.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/></ItemGroup><ItemGroup><EmbeddedResource Include="FortniteObj.blender_exchange.py" LogicalName="FortniteObj.blender_exchange.py" /></ItemGroup><ItemGroup><Content Include="../../README.md" Link="README.md" CopyToPublishDirectory="PreserveNewest"/><Content Include="../../CHANGELOG.md" Link="CHANGELOG.md" CopyToPublishDirectory="PreserveNewest"/><Content Include="../../docs/**/*" Link="docs/%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest"/></ItemGroup><ItemGroup>
+<Content Include="../../recovery/unity-runtime/**/*" Exclude="../../recovery/unity-runtime/**/__pycache__/**" Link="unity-runtime/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+<Content Include="unity_assets.py;unity_blend.py;pc_parts.py;pc_part_filters.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+</ItemGroup>
+<ItemGroup>
+<Reference Include="AssetRipper.TextureDecoder"><HintPath>../../recovery/dependencies/AssetRipper.TextureDecoder.dll</HintPath></Reference>
+<Reference Include="Berrysoft.XXTea"><HintPath>../../recovery/dependencies/Berrysoft.XXTea.dll</HintPath></Reference>
+<Reference Include="Blake3"><HintPath>../../recovery/dependencies/Blake3.dll</HintPath></Reference>
+<Reference Include="BouncyCastle.Cryptography"><HintPath>../../recovery/dependencies/BouncyCastle.Cryptography.dll</HintPath></Reference>
+<Reference Include="CommunityToolkit.HighPerformance"><HintPath>../../recovery/dependencies/CommunityToolkit.HighPerformance.dll</HintPath></Reference>
+<Reference Include="FixedMathSharp"><HintPath>../../recovery/dependencies/FixedMathSharp.dll</HintPath></Reference>
+<Reference Include="Fmod5Sharp"><HintPath>../../recovery/dependencies/Fmod5Sharp.dll</HintPath></Reference>
+<Reference Include="GenericReader"><HintPath>../../recovery/dependencies/GenericReader.dll</HintPath></Reference>
+<Reference Include="IndexRange"><HintPath>../../recovery/dependencies/IndexRange.dll</HintPath></Reference>
+<Reference Include="K4os.Compression.LZ4"><HintPath>../../recovery/dependencies/K4os.Compression.LZ4.dll</HintPath></Reference>
+<Reference Include="K4os.Compression.LZ4.Streams"><HintPath>../../recovery/dependencies/K4os.Compression.LZ4.Streams.dll</HintPath></Reference>
+<Reference Include="K4os.Hash.xxHash"><HintPath>../../recovery/dependencies/K4os.Hash.xxHash.dll</HintPath></Reference>
+<Reference Include="MemoryPack.Core"><HintPath>../../recovery/dependencies/MemoryPack.Core.dll</HintPath></Reference>
+<Reference Include="Microsoft.Bcl.Memory"><HintPath>../../recovery/dependencies/Microsoft.Bcl.Memory.dll</HintPath></Reference>
+<Reference Include="NAudio.Core"><HintPath>../../recovery/dependencies/NAudio.Core.dll</HintPath></Reference>
+<Reference Include="OggVorbisEncoder"><HintPath>../../recovery/dependencies/OggVorbisEncoder.dll</HintPath></Reference>
+<Reference Include="OodleSharp"><HintPath>../../recovery/dependencies/OodleSharp.dll</HintPath></Reference>
+<Reference Include="Serilog"><HintPath>../../recovery/dependencies/Serilog.dll</HintPath></Reference>
+<Reference Include="Serilog.Sinks.Console"><HintPath>../../recovery/dependencies/Serilog.Sinks.Console.dll</HintPath></Reference>
+<Reference Include="SevenZip"><HintPath>../../recovery/dependencies/SevenZip.dll</HintPath></Reference>
+<Reference Include="SharpGLTF.Core"><HintPath>../../recovery/dependencies/SharpGLTF.Core.dll</HintPath></Reference>
+<Reference Include="SharpGLTF.Runtime"><HintPath>../../recovery/dependencies/SharpGLTF.Runtime.dll</HintPath></Reference>
+<Reference Include="SharpGLTF.Toolkit"><HintPath>../../recovery/dependencies/SharpGLTF.Toolkit.dll</HintPath></Reference>
+<Reference Include="SixLabors.ImageSharp"><HintPath>../../recovery/dependencies/SixLabors.ImageSharp.dll</HintPath></Reference>
+<Reference Include="SubstreamSharp"><HintPath>../../recovery/dependencies/SubstreamSharp.dll</HintPath></Reference>
+<Reference Include="System.IO.Hashing"><HintPath>../../recovery/dependencies/System.IO.Hashing.dll</HintPath></Reference>
+<Reference Include="System.Numerics.Tensors"><HintPath>../../recovery/dependencies/System.Numerics.Tensors.dll</HintPath></Reference>
+<Reference Include="UE4Config"><HintPath>../../recovery/dependencies/UE4Config.dll</HintPath></Reference>
+<Reference Include="VGAudio"><HintPath>../../recovery/dependencies/VGAudio.dll</HintPath></Reference>
+<Reference Include="Zlib-ng.NET"><HintPath>../../recovery/dependencies/Zlib-ng.NET.dll</HintPath></Reference>
+<Reference Include="ZstdSharp"><HintPath>../../recovery/dependencies/ZstdSharp.dll</HintPath></Reference>
+</ItemGroup>
+<ItemGroup>
+<Content Include="rocketleague_assets.py" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
+<Content Include="rocketleague_blend.py" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
+<Content Include="rocketleague/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
+</ItemGroup></Project>
