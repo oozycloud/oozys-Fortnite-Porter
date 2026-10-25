@@ -1,6 +1,7 @@
 """Build an editable packed Blender scene from extracted UE3 glTF meshes and material references."""
 import bpy,json,re,sys,math
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parent))
 from mathutils import Matrix,Vector
 q=json.loads(Path(sys.argv[sys.argv.index('--')+1]).read_text(encoding='utf-8-sig'));folder=Path(q['Output']);asset=q['Asset'];warnings=[]
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -23,9 +24,34 @@ if asset['Category']=='Cars':
  skeletal=[p for p in models if 'SkeletalMesh' in p.parts[-2]]
  if skeletal:models=skeletal
 models.sort()
-for p in models:
- try:bpy.ops.import_scene.gltf(filepath=str(p))
- except Exception as ex:warnings.append(p.name+': '+str(ex))
+levelpath=folder/'level-scene.json'
+effectpath=folder/'effect-scene.json'
+if levelpath.exists():
+ from rocketleague_scene_blend import assemble
+ assemble(json.loads(levelpath.read_text(encoding='utf-8')),folder,bpy,warnings)
+elif effectpath.exists() and json.loads(effectpath.read_text(encoding='utf-8'))['Attachments']:
+ from rocketleague_scene_blend import unreal_matrix
+ effect=json.loads(effectpath.read_text(encoding='utf-8'))
+ scene=bpy.context.scene;scene.render.fps=30
+ for entry in effect['Attachments']:
+  before=set(bpy.data.objects);bpy.ops.import_scene.gltf(filepath=str(folder/entry['Model']))
+  objects=list(set(bpy.data.objects)-before);roots=[o for o in objects if o.parent not in objects]
+  anchor=bpy.data.objects.new(entry['Name'],None);scene.collection.objects.link(anchor);anchor.matrix_world=unreal_matrix(entry['Properties'])
+  for obj in roots:obj.parent=anchor
+  for obj in objects:
+   obj['RocketEffectAttachment']=entry['Name']
+   if obj.type=='MESH':
+    for i,name in enumerate(entry['Materials']):
+     if name and i<len(obj.material_slots):
+      mat=bpy.data.materials.get(name) or bpy.data.materials.new(name);mat.use_nodes=True;obj.material_slots[i].link='OBJECT';obj.material_slots[i].material=mat
+   obj.hide_render=True;obj.keyframe_insert('hide_render',frame=0)
+   obj.hide_render=False;obj.keyframe_insert('hide_render',frame=1+entry['Delay']*30)
+  if entry['Animation']:scene.frame_end=max(scene.frame_end,math.ceil(entry['Animation']['Duration']*30)+1)
+ scene.frame_set(1)
+else:
+ for p in models:
+  try:bpy.ops.import_scene.gltf(filepath=str(p))
+  except Exception as ex:warnings.append(p.name+': '+str(ex))
 wheelobjects=[]
 if q.get('Wheel'):
  before=set(bpy.data.objects)
@@ -52,8 +78,16 @@ if q.get('Wheel'):
      flat=original['RocketWheelSourceMatrix'];local=Matrix([flat[k:k+4] for k in range(0,16,4)])
     clone.parent=copies.get(original.parent,anchor);clone.matrix_parent_inverse=Matrix.Identity(4);clone.matrix_basis=local
  else:warnings.append('Wheel mounting bones were not found. The selected wheel remains a separate mesh at its source origin.')
+particlecount=0
+if effectpath.exists():
+ from rocketleague_particles import bake
+ particlecount=bake(json.loads(effectpath.read_text(encoding='utf-8')),folder,bpy,images,matfiles,warnings)
+ bpy.context.scene.frame_set(1)
 meshobjects=[o for o in bpy.data.objects if o.type=='MESH' and len(o.data.polygons)]
-if not meshobjects:raise RuntimeError('No mesh could be imported. The extracted source resources remain available.')
+if not meshobjects:
+ if effectpath.exists():
+  report=json.loads(Path(q['Result']).read_text());report.update(Meshes=0,ResourceOnly=True,BakedParticles=0);report['Warnings']+=warnings+['No supported effect geometry was reconstructed; source resources and emitter definitions are retained.'];Path(q['Result']).write_text(json.dumps(report,indent=2));sys.exit(0)
+ raise RuntimeError('No mesh could be imported. The extracted source resources remain available.')
 for mat in list(bpy.data.materials):
  # glTF importer may suffix material names when a package contains multiple meshes.
  key=re.sub(r'\.\d{3}$','',mat.name).casefold();definition=matfiles.get(key)
@@ -80,6 +114,10 @@ for mat in list(bpy.data.materials):
   mask=None
   if skinfile:
    skintex=tex(skinfile.stem,True);mask=skintex.outputs['Alpha'];links.new(mask,mix.inputs[0]);mat['RocketLeagueDecal']=q['Decal']['Name'];mat['DecalMask']=skinfile.name
+  elif q.get('Decal'):
+   from rocketleague_shader import animated_mask
+   mask=animated_mask(mat,images,folder,bpy)
+   if mask:links.new(mask,mix.inputs[0]);mat['RocketLeagueDecal']=q['Decal']['Name']
   if diffuse:
    shaded=nodes.new('ShaderNodeMixRGB');shaded.blend_type='MULTIPLY';shaded.inputs[0].default_value=1;links.new(diffuse.outputs['Color'],shaded.inputs[1]);links.new(mix.outputs[0],shaded.inputs[2]);links.new(shaded.outputs[0],shader.inputs['Base Color'])
   else:links.new(mix.outputs[0],shader.inputs['Base Color'])
@@ -114,16 +152,28 @@ for mat in list(bpy.data.materials):
   if value.casefold() in images and value not in [values.get('Diffuse'),values.get('Normal')]:tex(value)
 if q.get('Decal'):
  warnings.append('Decal paint/shader reconstruction is simplified; source textures and parameter properties are retained.')
- if not skinfile:warnings.append('This decal uses a custom shader without a supported Skin mask. Its source resources are included; appearance is not reproduced.')
+ if not skinfile and not any(m.get('RocketAnimatedShader') for m in bpy.data.materials):warnings.append('This decal uses a custom shader without a supported Skin mask. Its source resources are included; appearance is not reproduced.')
+if effectpath.exists():
+ effect=json.loads(effectpath.read_text(encoding='utf-8'))
+ for source in effect['Objects']:
+  if source['Class']!='MaterialInstanceConstant':continue
+  colours=[p for p in source['Properties'].get('VectorParameterValues',[]) if p.get('ParameterName') in ['DragonColor','DragonColorSecond']]
+  material=bpy.data.materials.get(source['Name'])
+  if not material or not colours:continue
+  value=colours[0]['ParameterValue'];rgba=tuple(value.get(k,0) for k in ['R','G','B'])+(1,)
+  shader=next((n for n in material.node_tree.nodes if n.type=='BSDF_PRINCIPLED'),None)
+  if shader:
+   shader.inputs['Base Color'].default_value=rgba;shader.inputs['Emission Color'].default_value=rgba;shader.inputs['Emission Strength'].default_value=1
+   material['SourceColourParameter']=colours[0]['ParameterName'];material['SourceColour']=rgba
 for img in bpy.data.images:
  if img.source=='FILE':
   try:img.pack()
   except Exception as ex:warnings.append('Could not pack '+img.name+': '+str(ex))
 for o in bpy.data.objects:o['SourceGame']='Rocket League'
 bpy.context.scene.unit_settings.system='METRIC'
-bpy.context.scene['AssetId']=asset['Id'];bpy.context.scene['AssetName']=asset['Name'];bpy.context.scene['Category']=asset['Category'];bpy.context.scene['ExportLimits']='Unreal gameplay, level placement and particle simulation are not reproduced.'
+bpy.context.scene['AssetId']=asset['Id'];bpy.context.scene['AssetName']=asset['Name'];bpy.context.scene['Category']=asset['Category'];bpy.context.scene['ExportLimits']='Unreal gameplay, baked lighting and particle simulation are not reproduced.'
 bpy.ops.wm.save_as_mainfile(filepath=str(folder/(q['Name']+'.blend')))
-report=json.loads(Path(q['Result']).read_text());report['Meshes']=len(meshobjects);report['Warnings']+=warnings;report['DecalMaskApplied']=bool(skinfile);report['Appearance']=appearance;report['MountedWheels']=4 if q.get('Wheel') and len(mounts)>=4 else 0;Path(q['Result']).write_text(json.dumps(report,indent=2))
+report=json.loads(Path(q['Result']).read_text());report['Meshes']=len(meshobjects);report['Warnings']+=warnings;report['DecalMaskApplied']=bool(skinfile);report['Appearance']=appearance;report['BakedParticles']=particlecount;report['AnimatedShader']=any(m.get('RocketAnimatedShader') for m in bpy.data.materials);report['MountedWheels']=4 if q.get('Wheel') and len(mounts)>=4 else 0;Path(q['Result']).write_text(json.dumps(report,indent=2))
 
 if q.get('Preview'):
  scene=bpy.context.scene;visible=[o for o in scene.objects if o.type=='MESH' and not o.hide_render and o.name!='Icosphere'];corners=[o.matrix_world@Vector(c) for o in visible for c in o.bound_box]

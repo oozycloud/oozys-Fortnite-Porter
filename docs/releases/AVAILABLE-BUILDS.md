@@ -14,6 +14,7 @@ The [GitHub Releases page](https://github.com/oozycloud/oozys-Fortnite-Porter/re
 | beta 0.4.4 | Installer, portable app, source backup |
 | beta 0.5.0 | Installer, portable app, source backup |
 | beta 0.6.0 | Installer, portable app, source backup |
+| beta 0.7.0 | Installer, portable app, source backup |
 
 Each newly uploaded beta release includes SHA-256 checksums. Extract the entire portable ZIP before opening its launcher; keep the launcher and `app` folder together.
 

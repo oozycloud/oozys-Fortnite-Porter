@@ -61,7 +61,7 @@ public partial class MainWindow
   await Run(async(_,progress,ct)=>{
    if(status!=null)status.Text="Rendering selected appearance…";
    string cacheRoot=Path.Combine(AppSettings.DataFolder,"rl-previews");Directory.CreateDirectory(cacheRoot);
-   string key=System.Text.Json.JsonSerializer.Serialize(new{asset.Id,asset.ObjectPath,Appearance=appearance,Style=_selectedStyles.GetValueOrDefault(asset.Id,"Default"),Version="0.6.0",Stamp=File.Exists(asset.ObjectPath.Split('|')[0])?File.GetLastWriteTimeUtc(asset.ObjectPath.Split('|')[0]).Ticks:0});
+   string key=System.Text.Json.JsonSerializer.Serialize(new{asset.Id,asset.ObjectPath,Appearance=appearance,Style=_selectedStyles.GetValueOrDefault(asset.Id,"Default"),Version="0.7.0",Stamp=File.Exists(asset.ObjectPath.Split('|')[0])?File.GetLastWriteTimeUtc(asset.ObjectPath.Split('|')[0]).Ticks:0});
    string cached=Path.Combine(cacheRoot,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(key)))+".png");
    if(File.Exists(cached)){var saved=new BitmapImage();saved.BeginInit();saved.CacheOption=BitmapCacheOption.OnLoad;saved.UriSource=new Uri(cached);saved.EndInit();saved.Freeze();if(image!=null)image.Source=saved;if(status!=null)status.Text="Preview of the selected appearance.";return;}
    var settings=new AppSettings{ExportFolder=cacheRoot,ExportFormat="BLEND"};

@@ -78,7 +78,7 @@ public sealed class RocketLeagueSession
             await File.WriteAllTextAsync(request,JsonSerializer.Serialize(new {Action="export",Asset=asset,Decal=decal,Appearance=appearance,Wheel=wheel,Preview=preview,Output=stage,Name=name,Cache,Result=resultPath}),ct);
             progress.Report("Reading Rocket League: "+asset.Name);
             await Run(Script(Path.Combine("unity-runtime","python.exe")),new[]{"-X","utf8","-u",Script("rocketleague_assets.py"),request},progress,ct);
-            using(var report=JsonDocument.Parse(await File.ReadAllTextAsync(resultPath,ct))) if(report.RootElement.GetProperty("Meshes").GetInt32()>0) {
+            using(var report=JsonDocument.Parse(await File.ReadAllTextAsync(resultPath,ct))) if(report.RootElement.GetProperty("Meshes").GetInt32()>0 || (report.RootElement.TryGetProperty("HasEffectTimeline",out var timeline) && timeline.GetBoolean())) {
                 string blenderRoot=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"Blender Foundation");
                 string? blender=Directory.Exists(blenderRoot)?Directory.EnumerateFiles(blenderRoot,"blender.exe",SearchOption.AllDirectories).OrderDescending().FirstOrDefault():null;
                 if(blender==null)throw new IOException("Install Blender to create the Rocket League model scene.");

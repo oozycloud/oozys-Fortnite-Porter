@@ -13,7 +13,7 @@ The original source was deleted. This checkout was reconstructed from the instal
 - `recovery/dependencies`: preserved third-party dependencies needed by the recovered projects.
 - `recovery/licenses`: preserved third-party notices.
 - `recovery/original/launcher.exe`: preserved native launcher. The package script updates its version resource.
-- `recovery/package-current.py`: beta 0.6.0 packaging script.
+- `recovery/package-current.py`: beta 0.7.0 packaging script.
 
 ## Build
 
@@ -21,9 +21,9 @@ On Windows x64, install the .NET 10 SDK and Python. Blender is needed for conver
 
 ```powershell
 dotnet build work/FortniteObj/Porter.csproj -c Release
-dotnet publish work/FortniteObj/Porter.csproj -c Release -r win-x64 --self-contained true -o work/publish-beta0.6.0/app
+dotnet publish work/FortniteObj/Porter.csproj -c Release -r win-x64 --self-contained true -o work/publish-beta0.7.0/app
 python -X utf8 recovery/package-current.py
-dotnet publish work/Installer/Installer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o work/installer-beta0.6.0
+dotnet publish work/Installer/Installer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o work/installer-beta0.7.0
 ```
 
 The source backup excludes game data, export caches, generated installers, installer payloads and intermediate build folders. The package script regenerates the installer payload. Keep the dependency DLLs and their notices with this recovered checkout.

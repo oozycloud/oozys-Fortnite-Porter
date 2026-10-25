@@ -138,7 +138,7 @@ internal static class Payload
 				foreach (ZipArchiveEntry obj in array2)
 				{
 					string text4 = obj.FullName.Replace('\\', '/');
-					if (text4 != "oozys-Fortnite-Porter (beta 0.6.0).exe" && !text4.StartsWith("app/", StringComparison.Ordinal))
+					if (text4 != "oozys-Fortnite-Porter (beta 0.7.0).exe" && !text4.StartsWith("app/", StringComparison.Ordinal))
 					{
 						throw new IOException("The installer contains an unexpected file.");
 					}
@@ -155,12 +155,12 @@ internal static class Payload
 						progress?.Report($"Preparing files… {names.Count} / {array.Length}");
 					}
 				}
-				if (new string[6] { "oozys-Fortnite-Porter (beta 0.6.0).exe", "app/Porter.exe", "app/Porter.dll", "app/Porter.runtimeconfig.json", "app/hostfxr.dll", "app/coreclr.dll" }.Any((string name) => !names.Contains(name)))
+				if (new string[6] { "oozys-Fortnite-Porter (beta 0.7.0).exe", "app/Porter.exe", "app/Porter.dll", "app/Porter.runtimeconfig.json", "app/hostfxr.dll", "app/coreclr.dll" }.Any((string name) => !names.Contains(name)))
 				{
 					throw new IOException("The installer is incomplete.");
 				}
 				names.Add("app/installation.json");
-				File.WriteAllText(SafePath(text2, "app/installation.json"), JsonSerializer.Serialize(new InstalledProduct("oozycloud.fortnite-porter", "beta 0.6.0", "oozys-Fortnite-Porter (beta 0.6.0).exe", names.Order().ToArray())));
+				File.WriteAllText(SafePath(text2, "app/installation.json"), JsonSerializer.Serialize(new InstalledProduct("oozycloud.fortnite-porter", "beta 0.7.0", "oozys-Fortnite-Porter (beta 0.7.0).exe", names.Order().ToArray())));
 				HashSet<string> hashSet = (installedProduct?.Files ?? Array.Empty<string>()).Select((string x) => x.Replace('\\', '/')).ToHashSet(StringComparer.OrdinalIgnoreCase);
 				string[] array3 = names.Concat(hashSet).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 				string[] array4 = array3;

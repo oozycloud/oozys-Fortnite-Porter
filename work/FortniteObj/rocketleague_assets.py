@@ -2,6 +2,7 @@
 import csv,json,re,subprocess,sys,urllib.request,base64,time,shutil
 from pathlib import Path
 BASE=Path(__file__).resolve().parent
+sys.path.insert(0,str(BASE))
 TOOLS=BASE/'rocketleague'
 CATEGORIES={'Body':'Cars','Decal':'Decals','Wheels':'Wheels','Goal Explosion':'Goal explosions','Rocket Boost':'Boosts','Trail':'Trails','Topper':'Toppers','Antenna':'Antennas','Paint Finish':'Paint finishes','Engine Audio':'Engine audio','Player Banner':'Banners','Avatar Border':'Avatar borders','Player Anthem':'Anthems'}
 def save(path,data): Path(path).write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8')
@@ -34,7 +35,7 @@ def scan(q):
   if not slot or not f:continue
   label=p['Label'] if p['Label'] and not p['Label'].startswith('?INT?') else p['Name'].replace('_',' ')
   a={'Id':'RL'+p['ID'],'Name':label,'Category':slot,'ObjectPath':str(f),'PackagePath':str(root),'Availability':'Source resources' if slot in ['Goal explosions','Boosts','Trails','Engine audio','Anthems','Banners','Avatar borders','Paint finishes'] else 'Mesh and textures'}
-  if slot=='Goal explosions':a['Availability']='Effect resources; Unreal simulation unavailable'
+  if slot=='Goal explosions':a['Availability']='Effect attachments and supported timelines'
   assets.append(a);products[a['Id']]=p;used.add(f.stem.lower())
  for a in [x for x in assets if x['Category']=='Cars']:
   name=a['Name'].casefold();token=products[a['Id']]['Name'].removeprefix('Body_').casefold()
@@ -48,7 +49,7 @@ def scan(q):
  for m in meta['Maps']:
   f=files.get(m['Name'].lower())
   if f:
-   assets.append({'Id':'RLM_'+f.stem,'Name':m['Label'] or f.stem,'Category':'Maps','ObjectPath':str(f),'PackagePath':str(root),'Availability':'Mesh library; level placement unavailable'});used.add(f.stem.lower())
+   assets.append({'Id':'RLM_'+f.stem,'Name':m['Label'] or f.stem,'Category':'Maps','ObjectPath':str(f),'PackagePath':str(root),'Availability':'Authored level geometry'});used.add(f.stem.lower())
  # New packages remain discoverable even when public product metadata trails a game update.
  prefixes=[('body_','Cars'),('goalexplosion_','Goal explosions'),('explosion_','Goal explosions'),('wheel_','Wheels'),('boost_','Boosts'),('trail_','Trails'),('topper_','Toppers'),('antenna_','Antennas'),('skin_','Decals')]
  for key,f in files.items():
@@ -80,7 +81,10 @@ def export(q):
  # Octane's standard body is cooked into Startup; its product package contains the premium-UV alternate.
  if a['Id']=='RL23':parts=[str(root/'Startup.upk'),'Body_Octane_SK','SkeletalMesh'];f=root/'Startup.upk'
  args=['-export','-gltf','-png','-noanim',f.stem,*parts[1:]]
- text=run(args,root,out/'resources',out/'reader.log')
+ if a['Category']=='Maps':
+  from rocketleague_scene import export_map
+  export_map(f.stem,root,out,TOOLS,run,warnings);text=''
+ else:text=run(args,root,out/'resources',out/'reader.log')
  if len(parts)>1:
   dependencies={}
   for cls,obj,pkg in re.findall(r'Loading (Texture2D|Material3|MaterialInstanceConstant) (\S+) from package (\S+)\.upk',text):
@@ -98,10 +102,14 @@ def export(q):
   if decal.parent!=root or not decal.is_file():raise ValueError('Decal package is missing.')
   text+=run(['-export','-gltf','-png','-noanim',decal.stem],root,out/'decal',out/'decal-reader.log')
   run(['-dump','-all',decal.stem],root,out/'decal',out/'decal-properties.txt')
- if a['Category'] in ['Goal explosions','Boosts','Trails','Maps']:
+  from rocketleague_shader import export_shader
+  export_shader(decal.stem,root,out,TOOLS)
+ if a['Category'] in ['Goal explosions','Boosts','Trails']:
+  from rocketleague_effects import export_effect
+  export_effect(f.stem,root,out,TOOLS,run,warnings)
   source=out/'source';source.mkdir(exist_ok=True);shutil.copy2(f,source/f.name)
   run(['-list',f.stem],root,out/'resources',out/'package-objects.txt')
-  warnings.append('Unreal level placement and particle/gameplay simulation are not reconstructed. This export contains available meshes, textures and material resources.')
+  warnings.append('Effect attachments and supported skeletal animations are reconstructed. Unreal gameplay and unsupported particle simulation are retained as source data.')
  if 'WARNING:' in text:warnings.append('The package reader reported unresolved dependencies. See reader.log for details.')
  meshes=list((out/'resources').rglob('*.gltf'));textures=list(out.rglob('*.png'))
  if q.get('Preview') and not meshes:
@@ -114,7 +122,9 @@ def export(q):
    except Exception as ex:warnings.append('Thumbnail unavailable: '+str(ex))
  if not meshes:warnings.append('This package has no directly exportable mesh. Texture/material resources are retained; no Blender scene is fabricated.')
  (out/'aes.txt').unlink(missing_ok=True)
- save(q['Result'],{'Meshes':len(meshes),'Textures':len(textures),'Warnings':warnings,'ResourceOnly':not meshes})
+ effectpath=out/'effect-scene.json'
+ timeline=effectpath.exists() and bool(json.loads(effectpath.read_text(encoding='utf-8')).get('ParticleComponents'))
+ save(q['Result'],{'Meshes':len(meshes),'Textures':len(textures),'Warnings':warnings,'ResourceOnly':not meshes and not timeline,'HasEffectTimeline':timeline})
 if __name__=='__main__':
  try:
   q=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8-sig'))

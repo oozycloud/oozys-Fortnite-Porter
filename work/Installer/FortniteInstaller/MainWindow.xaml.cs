@@ -72,7 +72,7 @@ public partial class MainWindow : Window, IComponentConnector
 				}
 				else
 				{
-					text = (((object)installedProduct == null) ? "Ready to install version beta 0.6.0." : ("Found version " + installedProduct.Version + ". Update will install beta 0.6.0 and keep your settings and exports."));
+					text = (((object)installedProduct == null) ? "Ready to install version beta 0.7.0." : ("Found version " + installedProduct.Version + ". Update will install beta 0.7.0 and keep your settings and exports."));
 				}
 				status.Text = text;
 				InstallButton.IsEnabled = !flag;
@@ -151,9 +151,9 @@ public partial class MainWindow : Window, IComponentConnector
 			catch (IOException)
 			{
 			}
-			Status.Text = "Version beta 0.6.0 is ready.";
+			Status.Text = "Version beta 0.7.0 is ready.";
 			InstallButton.Content = "Update";
-			System.Windows.MessageBox.Show(this, "Open oozys-Fortnite-Porter (beta 0.6.0).exe from:\n\n" + Payload.Root(folder), "Installation complete", MessageBoxButton.OK, MessageBoxImage.Asterisk);
+			System.Windows.MessageBox.Show(this, "Open oozys-Fortnite-Porter (beta 0.7.0).exe from:\n\n" + Payload.Root(folder), "Installation complete", MessageBoxButton.OK, MessageBoxImage.Asterisk);
 		}
 		catch (Exception ex2)
 		{

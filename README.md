@@ -8,7 +8,7 @@ Bring Fortnite characters, animations and props into Blender, with packed textur
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current build: beta 0.6.0.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.6.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
+> **Current build: beta 0.7.0.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.7.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
 ## What it does
 
@@ -29,7 +29,7 @@ This is a Blender reconstruction of Fortnite assets. Support varies by asset; th
 
 Select **Rocket League** in the games sidebar, choose its installation folder and scan. Select a car, then choose a known compatible decal under **Decal style**. Choose car/decal colours, supported paint tints such as Cobalt and Crimson, common finish reconstructions, and wheels with their own paint. Click **Generate preview** to render the same appearance used for export. Colour presets and custom hex colours are supported; appearances are remembered per asset. Multiple assets can be exported together. The scan lists locally installed packages; unavailable products are not invented. Unknown new packages remain searchable with an unverified label.
 
-Car meshes retain their rig and available textures. Decal masks use a simplified editable paint material. Paint tints are enabled when the source exposes a paint parameter; this does not imply every variant is obtainable in the game. The eight common finishes approximate surface properties. Previews are generated on demand, with source thumbnails used for resource-only packages; custom animated shaders are not fully reproduced. **Maps export a mesh library, not an assembled stadium. Goal explosions, boosts and trails export available meshes, textures and original package resources, not a working Unreal particle simulation.** Texture-only assets are retained as resources without fabricating a model. Read each export report and reader log for missing dependencies.
+Car meshes retain their rig and available textures. Decal masks use a simplified editable paint material. Paint tints are enabled when the source exposes a paint parameter; this does not imply every variant is obtainable in the game. The eight common finishes approximate surface properties. Previews are generated on demand, with source thumbnails used for resource-only packages; custom animated shaders are not fully reproduced. Maps follow authored streamed levels and assemble placed mesh instances. Effects reconstruct supported skeletal attachments and sprite timelines, and animated UberSkin noise inputs use frame-rate-aware Blender drivers. These are partial reconstructions: baked lighting, gameplay, ribbons, mesh particles and other unsupported modules remain source data and are listed in each export report. Texture-only assets are retained as resources without fabricating a model. Read each export report and reader log for missing dependencies.
 
 Rocket League keys refresh in the background at launch and before scans/exports, with a saved fallback when offline. The public website catalogue currently covers Fortnite and PCBS2; Rocket League browsing is in the desktop app.
 
@@ -47,15 +47,15 @@ Rocket League keys refresh in the background at launch and before scans/exports,
 ## Install or update
 
 1. Download the installer from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases).
-2. Run `oozys-Fortnite-Porter-Installer (beta 0.6.0).exe`.
+2. Run `oozys-Fortnite-Porter-Installer (beta 0.7.0).exe`.
 3. Choose an installation folder. If the installer detects an existing installation there, it offers **Update**.
 4. Close the running porter before updating, then install.
-5. Open `oozys-Fortnite-Porter (beta 0.6.0).exe` from that folder.
+5. Open `oozys-Fortnite-Porter (beta 0.7.0).exe` from that folder.
 
 The installed layout is:
 
 ```text
-oozys-Fortnite-Porter (beta 0.6.0).exe
+oozys-Fortnite-Porter (beta 0.7.0).exe
 app/
     Porter.exe
     Porter.dll
@@ -138,7 +138,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.6.0.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.7.0.md) for tested examples and outstanding work.
 
 ## Update checks
 
