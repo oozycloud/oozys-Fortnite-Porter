@@ -40,11 +40,14 @@ def animated_mask(mat,images,folder,bpy):
      var=driver.variables.new();var.name=varname;var.targets[0].id_type='SCENE';var.targets[0].id=bpy.context.scene;var.targets[0].data_path=prop
     # Blender flips texture V on glTF import, so V panning changes sign too.
     driver.expression=f'(frame-1)*base/fps*{speed if axis==0 else -speed!r}'
-  texture=nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(image),check_existing=True);texture.label=name;links.new(mapping.outputs['Vector'],texture.inputs['Vector']);outputs.append(texture.outputs['Color'])
+  texture=nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(image),check_existing=True);texture.image.colorspace_settings.name='Non-Color';texture.label=name;links.new(mapping.outputs['Vector'],texture.inputs['Vector'])
+  # Packed noise channels are data, not sRGB diffuse colour. The green channel
+  # contains the fire pattern; a luminance conversion suppresses it almost entirely.
+  channel=nodes.new('ShaderNodeSeparateColor');links.new(texture.outputs['Color'],channel.inputs[0]);outputs.append(channel.outputs['Green'])
  if not outputs:return None
  signal=outputs[0]
  if len(outputs)>1:
-  mix=nodes.new('ShaderNodeMixRGB');mix.blend_type='MULTIPLY';mix.inputs[0].default_value=1;links.new(signal,mix.inputs[1]);links.new(outputs[1],mix.inputs[2]);signal=mix.outputs[0]
+  mix=nodes.new('ShaderNodeMath');mix.operation='ADD';mix.use_clamp=True;links.new(signal,mix.inputs[0]);links.new(outputs[1],mix.inputs[1]);signal=mix.outputs[0]
  ramp=nodes.new('ShaderNodeMapRange');ramp.clamp=True
  position=params.get('DecalBlendRampPosition',.5);width=max(.001,params.get('DecalBlendRampWidth',.5))
  ramp.inputs['From Min'].default_value=position-width/2;ramp.inputs['From Max'].default_value=position+width/2;links.new(signal,ramp.inputs['Value'])
