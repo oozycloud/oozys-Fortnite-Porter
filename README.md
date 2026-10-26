@@ -8,7 +8,7 @@ Bring Fortnite characters, animations and props into Blender, with packed textur
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current build: beta 0.7.0.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.7.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
+> **Current build: beta 0.7.1.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.7.1.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
 ## What it does
 
@@ -47,15 +47,15 @@ Rocket League keys refresh in the background at launch and before scans/exports,
 ## Install or update
 
 1. Download the installer from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases).
-2. Run `oozys-Fortnite-Porter-Installer (beta 0.7.0).exe`.
+2. Run `oozys-Fortnite-Porter-Installer (beta 0.7.1).exe`.
 3. Choose an installation folder. If the installer detects an existing installation there, it offers **Update**.
 4. Close the running porter before updating, then install.
-5. Open `oozys-Fortnite-Porter (beta 0.7.0).exe` from that folder.
+5. Open `oozys-Fortnite-Porter (beta 0.7.1).exe` from that folder.
 
 The installed layout is:
 
 ```text
-oozys-Fortnite-Porter (beta 0.7.0).exe
+oozys-Fortnite-Porter (beta 0.7.1).exe
 app/
     Porter.exe
     Porter.dll
@@ -138,7 +138,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.7.0.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.7.1.md) for tested examples and outstanding work.
 
 ## Update checks
 

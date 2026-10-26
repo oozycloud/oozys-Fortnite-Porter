@@ -6,6 +6,10 @@ Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entr
 
 Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
 
+## beta 0.7.1
+
+Fixed duplicated front wheels and missing rear wheels, cloned wheel-rig bindings, exported bone-widget spheres, selected livery diffuse textures, and Blender viewport defaults. [Full notes](docs/releases/beta-0.7.1.md).
+
 ## beta 0.7.0
 
 Authored streamed map placement, inherited component settings, skeletal effect attachments and timing, supported sprite timelines, animated UberSkin noise inputs, and native reader source. Support limits remain explicit in export reports. [Full notes](docs/releases/beta-0.7.0.md).

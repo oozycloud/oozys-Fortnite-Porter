@@ -43,7 +43,7 @@ public sealed class UpdateChecker
 		try
 		{
 			using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/oozycloud/oozys-Fortnite-Porter/releases?per_page=100");
-			request.Headers.UserAgent.ParseAdd("oozys-Fortnite-Porter/beta-0.7.0");
+			request.Headers.UserAgent.ParseAdd("oozys-Fortnite-Porter/beta-0.7.1");
 			request.Headers.Accept.ParseAdd("application/vnd.github+json");
 			request.Headers.Add("X-GitHub-Api-Version", "2026-03-10");
 			using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -91,9 +91,9 @@ public sealed class UpdateChecker
 			}
 			(JsonElement, Version, string) tuple = list.OrderByDescending(((JsonElement Release, Version Version, string Label) x) => x.Version).First();
 			var (jsonElement, _, _) = tuple;
-			if (tuple.Item2 <= ParseVersion("beta 0.7.0"))
+			if (tuple.Item2 <= ParseVersion("beta 0.7.1"))
 			{
-				return new UpdateResult(Available: false, "You're up to date — version beta 0.7.0.");
+				return new UpdateResult(Available: false, "You're up to date — version beta 0.7.1.");
 			}
 			if (!Uri.TryCreate(jsonElement.GetProperty("html_url").GetString(), UriKind.Absolute, out Uri result) || result.Scheme != "https" || result.Host != "github.com" || !result.IsDefaultPort || !string.IsNullOrEmpty(result.UserInfo) || !result.AbsolutePath.StartsWith("/oozycloud/oozys-Fortnite-Porter/releases/tag/", StringComparison.OrdinalIgnoreCase))
 			{

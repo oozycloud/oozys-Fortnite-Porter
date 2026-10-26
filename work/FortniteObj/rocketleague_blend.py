@@ -9,6 +9,9 @@ resources=folder/'resources';images={p.stem.casefold():p for p in resources.rglo
 matfiles={p.stem.casefold():p for p in resources.rglob('*.mat')}
 images.update({p.stem.casefold():p for p in (folder/'wheels').rglob('*.png')});matfiles.update({p.stem.casefold():p for p in (folder/'wheels').rglob('*.mat')})
 appearance=q.get('Appearance') or {}
+shaderdata=json.loads((folder/'decal-shader.json').read_text(encoding='utf-8')) if (folder/'decal-shader.json').exists() else {}
+decaldiffuse=next((p.get('ParameterValue') for obj in shaderdata.get('Objects',[]) if obj['Class']=='MaterialInstanceConstant' and obj['Name']==shaderdata.get('Material') for p in obj['Properties'].get('TextureParameterValues',[]) if p.get('ParameterName')=='Diffuse'),None)
+liveryfile=images.get(decaldiffuse.get('Name','').casefold()) if isinstance(decaldiffuse,dict) else None
 paints={'Crimson':'#B7162D','Lime':'#A2D928','Black':'#15171B','Sky Blue':'#63CBF2','Cobalt':'#264DD9','Burnt Sienna':'#7B3D27','Forest Green':'#208448','Purple':'#7C3DB8','Pink':'#E881B5','Orange':'#F17E24','Grey':'#8A8B90','Titanium White':'#ECEEF0','Saffron':'#E1CB29','Gold':'#D6AC49'}
 def colour(text):
  text=text.lstrip('#');srgb=[int(text[i:i+2],16)/255 for i in (0,2,4)];return tuple((v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4) for v in srgb)+(1,)
@@ -57,27 +60,37 @@ if q.get('Wheel'):
  before=set(bpy.data.objects)
  for path in sorted((folder/'wheels').rglob('*.gltf')):
   bpy.ops.import_scene.gltf(filepath=str(path))
- wheelobjects=list(set(bpy.data.objects)-before)
+ widgets={b.custom_shape for o in bpy.data.objects if o.type=='ARMATURE' for b in o.pose.bones if b.custom_shape}
+ wheelobjects=[o for o in set(bpy.data.objects)-before if o not in widgets]
  rigs=[o for o in bpy.data.objects if o.type=='ARMATURE' and o not in wheelobjects]
  rig=rigs[0] if rigs else None
- mounts=[b for b in rig.data.bones if re.search(r'(FL|FR|BL|BR|RL|RR).*Disc',b.name,re.I)] if rig else []
- if len(mounts)>=4:
-  roots=[o for o in wheelobjects if o.parent not in wheelobjects]
-  for i,bone in enumerate(mounts[:4]):
+ # One actual mount per corner. Geometry child bones are not extra axles.
+ mounts=[]
+ if rig:
+  for corner in ['FL','FR','BL','BR']:
+   candidates=[b for b in rig.data.bones if re.match(r'^'+('(?:BL|RL)' if corner=='BL' else '(?:BR|RR)' if corner=='BR' else corner)+r'_(?:Disc|WheelTranslation)(?:_jnt)?$',b.name,re.I)]
+   candidates.sort(key=lambda b:('disc' not in b.name.lower(),b.name))
+   if candidates:mounts.append(candidates[0])
+ if len(mounts)==4:
+  # Snapshot every local transform before moving any source object.
+  locals={o:(o.matrix_local.copy() if o.parent in wheelobjects else o.matrix_world.copy()) for o in wheelobjects}
+  for i,bone in enumerate(mounts):
    anchor=bpy.data.objects.new('Wheel '+bone.name,None);bpy.context.scene.collection.objects.link(anchor)
    anchor.matrix_world=rig.matrix_world@Matrix.Translation(bone.head_local)@Matrix.Rotation(math.pi if bone.head_local.y>0 else 0,4,'Z')
-   if i==0: copies={o:o for o in wheelobjects}
-   else:
-    copies={o:o.copy() for o in wheelobjects}
-    for original,clone in copies.items():bpy.context.scene.collection.objects.link(clone)
+   copies={o:o if i==0 else o.copy() for o in wheelobjects}
+   if i:
+    for clone in copies.values():bpy.context.scene.collection.objects.link(clone)
    for original,clone in copies.items():
-    local=original.matrix_local.copy() if original.parent in wheelobjects else original.matrix_world.copy()
-    # Original objects have already moved on later iterations; retain their authored local transform.
-    if i==0:original['RocketWheelSourceMatrix']=[v for row in local for v in row]
-    elif original.parent not in wheelobjects:
-     flat=original['RocketWheelSourceMatrix'];local=Matrix([flat[k:k+4] for k in range(0,16,4)])
-    clone.parent=copies.get(original.parent,anchor);clone.matrix_parent_inverse=Matrix.Identity(4);clone.matrix_basis=local
- else:warnings.append('Wheel mounting bones were not found. The selected wheel remains a separate mesh at its source origin.')
+    clone.parent=copies.get(original.parent,anchor);clone.matrix_parent_inverse=Matrix.Identity(4);clone.matrix_basis=locals[original]
+    for modifier in clone.modifiers:
+     if modifier.type=='ARMATURE' and modifier.object in copies:modifier.object=copies[modifier.object]
+ else:warnings.append('Four distinct wheel mounting bones were not found. The selected wheel remains at its source origin.')
+# glTF bone display widgets are editor aids, never model geometry to duplicate/export.
+widgets={b.custom_shape for o in bpy.data.objects if o.type=='ARMATURE' for b in o.pose.bones if b.custom_shape}
+for obj in bpy.data.objects:
+ if obj.type=='ARMATURE':
+  for bone in obj.pose.bones:bone.custom_shape=None
+for widget in widgets:bpy.data.objects.remove(widget,do_unlink=True)
 particlecount=0
 if effectpath.exists():
  from rocketleague_particles import bake
@@ -110,6 +123,7 @@ for mat in list(bpy.data.materials):
  shader.inputs['Roughness'].default_value=.42
  isbody=asset['Category']=='Cars' and re.search('body|paint',mat.name,re.I) and not re.search('chassis',mat.name,re.I)
  if isbody:
+  if liveryfile:diffuse=tex(liveryfile.stem);links.new(diffuse.outputs['Color'],shader.inputs['Base Color']);mat['RocketLeagueLivery']=liveryfile.name
   mix=nodes.new('ShaderNodeMixRGB');mix.blend_type='MIX';mix.inputs[0].default_value=0;mix.inputs[1].default_value=primary;mix.inputs[2].default_value=secondary
   mask=None
   if skinfile:
@@ -118,9 +132,9 @@ for mat in list(bpy.data.materials):
    from rocketleague_shader import animated_mask
    mask=animated_mask(mat,images,folder,bpy)
    if mask:links.new(mask,mix.inputs[0]);mat['RocketLeagueDecal']=q['Decal']['Name']
-  if diffuse:
+  if diffuse and not liveryfile:
    shaded=nodes.new('ShaderNodeMixRGB');shaded.blend_type='MULTIPLY';shaded.inputs[0].default_value=1;links.new(diffuse.outputs['Color'],shaded.inputs[1]);links.new(mix.outputs[0],shaded.inputs[2]);links.new(shaded.outputs[0],shader.inputs['Base Color'])
-  else:links.new(mix.outputs[0],shader.inputs['Base Color'])
+  elif not liveryfile:links.new(mix.outputs[0],shader.inputs['Base Color'])
   finishes={'Glossy':(.23,.05),'Matte':(.83,0),'Metallic':(.27,.7),'Pearlescent':(.22,.22),'Anodized':(.2,.85),'Anodized Pearl':(.2,.85),'Brushed Metal':(.38,.85),'Carbon Fiber':(.35,.5)}
   first=appearance.get('PrimaryFinish','Glossy');second=appearance.get('SecondaryFinish','Glossy');r1,m1=finishes.get(first,finishes['Glossy']);r2,m2=finishes.get(second,finishes['Glossy'])
   for slot,a,b in [('Roughness',r1,r2),('Metallic',m1,m2)]:
@@ -172,6 +186,20 @@ for img in bpy.data.images:
 for o in bpy.data.objects:o['SourceGame']='Rocket League'
 bpy.context.scene.unit_settings.system='METRIC'
 bpy.context.scene['AssetId']=asset['Id'];bpy.context.scene['AssetName']=asset['Name'];bpy.context.scene['Category']=asset['Category'];bpy.context.scene['ExportLimits']='Unreal gameplay, baked lighting and particle simulation are not reproduced.'
+# Present the textured model without rig widgets, relationship lines or floor grid.
+bpy.context.view_layer.update()
+corners=[o.matrix_world@Vector(c) for o in meshobjects for c in o.bound_box]
+lo=Vector([min(v[i] for v in corners) for i in range(3)]);hi=Vector([max(v[i] for v in corners) for i in range(3)])
+for obj in bpy.context.scene.objects:
+ obj.select_set(False)
+ if obj.type in {'ARMATURE','EMPTY'}:obj.hide_set(True)
+for screen in bpy.data.screens:
+ for area in screen.areas:
+  if area.type=='VIEW_3D':
+   space=area.spaces.active;space.shading.type='MATERIAL'
+   space.region_3d.view_location=(lo+hi)/2;space.region_3d.view_distance=max(max(hi-lo)*1.8,.5)
+   for name in ['show_extras','show_relationship_lines','show_bones','show_floor','show_axis_x','show_axis_y','show_cursor']:
+    if hasattr(space.overlay,name):setattr(space.overlay,name,False)
 bpy.ops.wm.save_as_mainfile(filepath=str(folder/(q['Name']+'.blend')))
 report=json.loads(Path(q['Result']).read_text());report['Meshes']=len(meshobjects);report['Warnings']+=warnings;report['DecalMaskApplied']=bool(skinfile);report['Appearance']=appearance;report['BakedParticles']=particlecount;report['AnimatedShader']=any(m.get('RocketAnimatedShader') for m in bpy.data.materials);report['MountedWheels']=4 if q.get('Wheel') and len(mounts)>=4 else 0;Path(q['Result']).write_text(json.dumps(report,indent=2))
 
