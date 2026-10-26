@@ -55,7 +55,7 @@ else:
  for p in models:
   try:bpy.ops.import_scene.gltf(filepath=str(p))
   except Exception as ex:warnings.append(p.name+': '+str(ex))
-wheelobjects=[]
+wheelobjects=[];animatedwheelfaces=0
 if q.get('Wheel'):
  before=set(bpy.data.objects)
  for path in sorted((folder/'wheels').rglob('*.gltf')):
@@ -84,7 +84,15 @@ if q.get('Wheel'):
     clone.parent=copies.get(original.parent,anchor);clone.matrix_parent_inverse=Matrix.Identity(4);clone.matrix_basis=locals[original]
     for modifier in clone.modifiers:
      if modifier.type=='ARMATURE' and modifier.object in copies:modifier.object=copies[modifier.object]
+   from rocketleague_wheel_fx import build_wheel_faces
+   paint=colour(paints[appearance['WheelPaint']]) if appearance.get('WheelPaint') in paints else None
+   animatedwheelfaces+=build_wheel_faces(folder,anchor,i,bpy,images,paint)
  else:warnings.append('Four distinct wheel mounting bones were not found. The selected wheel remains at its source origin.')
+elif asset['Category']=='Wheels':
+ from rocketleague_wheel_fx import build_wheel_faces
+ anchor=bpy.data.objects.new('Wheel effect attachment',None);bpy.context.scene.collection.objects.link(anchor)
+ paint=colour(paints[appearance['BodyPaint']]) if appearance.get('BodyPaint') in paints else None
+ animatedwheelfaces=build_wheel_faces(folder,anchor,0,bpy,images,paint)
 # glTF bone display widgets are editor aids, never model geometry to duplicate/export.
 widgets={b.custom_shape for o in bpy.data.objects if o.type=='ARMATURE' for b in o.pose.bones if b.custom_shape}
 for obj in bpy.data.objects:
@@ -179,6 +187,7 @@ if effectpath.exists():
   if shader:
    shader.inputs['Base Color'].default_value=rgba;shader.inputs['Emission Color'].default_value=rgba;shader.inputs['Emission Strength'].default_value=1
    material['SourceColourParameter']=colours[0]['ParameterName'];material['SourceColour']=rgba
+if animatedwheelfaces:warnings.append('Animated wheel faces use recovered source textures and attachment transforms. Their pulse shader is reconstructed with an editable speed; the compiled Unreal shader is not reproduced exactly. Shader animation is retained in the Blender file; exchange formats do not preserve Blender material drivers.')
 for img in bpy.data.images:
  if img.source=='FILE':
   try:img.pack()
@@ -201,7 +210,7 @@ for screen in bpy.data.screens:
    for name in ['show_extras','show_relationship_lines','show_bones','show_floor','show_axis_x','show_axis_y','show_cursor']:
     if hasattr(space.overlay,name):setattr(space.overlay,name,False)
 bpy.ops.wm.save_as_mainfile(filepath=str(folder/(q['Name']+'.blend')))
-report=json.loads(Path(q['Result']).read_text());report['Meshes']=len(meshobjects);report['Warnings']+=warnings;report['DecalMaskApplied']=bool(skinfile);report['Appearance']=appearance;report['BakedParticles']=particlecount;report['AnimatedShader']=any(m.get('RocketAnimatedShader') for m in bpy.data.materials);report['MountedWheels']=4 if q.get('Wheel') and len(mounts)>=4 else 0;Path(q['Result']).write_text(json.dumps(report,indent=2))
+report=json.loads(Path(q['Result']).read_text());report['Meshes']=len(meshobjects);report['Warnings']+=warnings;report['DecalMaskApplied']=bool(skinfile);report['Appearance']=appearance;report['BakedParticles']=particlecount;report['AnimatedShader']=any(m.get('RocketAnimatedShader') for m in bpy.data.materials);report['AnimatedWheelFaces']=animatedwheelfaces;report['MountedWheels']=4 if q.get('Wheel') and len(mounts)>=4 else 0;Path(q['Result']).write_text(json.dumps(report,indent=2))
 
 if q.get('Preview'):
  scene=bpy.context.scene;visible=[o for o in scene.objects if o.type=='MESH' and not o.hide_render and o.name!='Icosphere'];corners=[o.matrix_world@Vector(c) for o in visible for c in o.bound_box]

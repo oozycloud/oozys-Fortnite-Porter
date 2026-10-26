@@ -3,7 +3,7 @@ from pathlib import Path
 anchors=[o for o in bpy.data.objects if o.name.startswith('Wheel ') and o.type=='EMPTY']
 assert len(anchors)==4
 assert not any(o.name.startswith('Icosphere') for o in bpy.data.objects)
-assert sum(o.type=='MESH' for o in bpy.context.scene.objects)==5
+assert sum(o.type=='MESH' and not o.get('AnimatedWheelFace') for o in bpy.context.scene.objects)==5
 assert len({tuple(round(x,5) for x in o.matrix_world.translation) for o in anchors})==4
 assert all(o.hide_get() for o in bpy.context.scene.objects if o.type in {'ARMATURE','EMPTY'})
 for o in bpy.data.objects:

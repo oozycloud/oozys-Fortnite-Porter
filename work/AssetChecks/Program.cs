@@ -2,6 +2,18 @@ using FortniteObj.Core;
 using CUE4Parse.FileProvider;
 using Newtonsoft.Json;
 using System.Reflection;
+if(args.Contains("--rocket-zomba-check")) {
+ var rl=new RocketLeagueSession();var log=new LogProgress();var folder=Path.GetFullPath(args[0]);Directory.CreateDirectory(folder);
+ var catalog=await rl.Scan(RocketLeagueSession.Detect()??throw new Exception("Rocket League not found"),log,CancellationToken.None);
+ var car=catalog.Single(x=>x.Id=="RL5823");var decal=rl.GetDecals(car).Single(x=>x.Id=="RL6065");
+ var appearance=new RocketAppearance{WheelId="RL1580"};
+ var result=await rl.Export(car,decal.Id,new AppSettings{ExportFolder=folder,OnlyBlend=true},log,CancellationToken.None,appearance,true);
+ using var report=System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(result.Folder,"export-report.json")));
+ if(report.RootElement.GetProperty("AnimatedWheelFaces").GetInt32()!=8)throw new Exception("Zomba attachment layers missing");
+ if(!File.Exists(Path.Combine(result.Folder,"preview.png")))throw new Exception("Zomba preview missing");
+ File.WriteAllText(Path.Combine(folder,"validation.json"),System.Text.Json.JsonSerializer.Serialize(new {Result=result},new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+ Console.WriteLine("PASS actual Camaro + Zomba export with eight animated source rim-face layers and preview.");return;
+}
 if(args.Contains("--rocket-check")) {
  var rl=new RocketLeagueSession();var log=new LogProgress();var folder=Path.GetFullPath(args[0]);Directory.CreateDirectory(folder);
  var catalog=await rl.Scan(RocketLeagueSession.Detect()??throw new Exception("Rocket League not found"),log,CancellationToken.None);

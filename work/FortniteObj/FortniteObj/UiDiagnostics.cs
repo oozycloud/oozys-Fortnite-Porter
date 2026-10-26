@@ -290,7 +290,7 @@ internal static class UiDiagnostics
             await Task.Delay(200);
             Save(window, Path.Combine(folder, "pcbs2-minimum-size.png"));
             games.SelectedIndex = 0;
-            if (gamePath.Text != fortnitePath) throw new Exception("Game switch overwrote Fortnite path.");
+            if (gamePath.Text != fortnitePath) throw new Exception($"Game switch overwrote Fortnite path. Expected '{fortnitePath}', got '{gamePath.Text}'.");
             games.SelectedIndex = 1;
             if (gamePath.Text != @"C:\Games\PCBS2-test" || AppSettings.Load().PcBuildingFolder != gamePath.Text)
                 throw new Exception("PCBS2 path was not retained independently.");

@@ -4,6 +4,8 @@ Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entr
 
 ## Unreleased
 
+Local test build beta 0.7.2 adds reconstructed animated Zomba rim faces from source wheel attachments and textures. It is not yet a published binary release. [Test-build notes](docs/releases/beta-0.7.2.md).
+
 Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
 
 ## beta 0.7.1

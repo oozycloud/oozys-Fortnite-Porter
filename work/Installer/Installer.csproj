@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>oozys-Fortnite-Porter-Installer (beta 0.7.1)</AssemblyName>
+    <AssemblyName>oozys-Fortnite-Porter-Installer (beta 0.7.2)</AssemblyName>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <OutputType>WinExe</OutputType>
     <UseWPF>True</UseWPF>

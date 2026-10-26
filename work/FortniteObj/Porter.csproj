@@ -109,5 +109,6 @@
 <Content Include="rocketleague_effects.py" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
 <Content Include="rocketleague_shader.py" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
 <Content Include="rocketleague_particles.py" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
+<Content Include="rocketleague_wheel_fx.py" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
 <Content Include="rocketleague/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
 </ItemGroup></Project>

@@ -97,6 +97,11 @@ def export(q):
   if wheel.parent!=root or not wheel.is_file():raise ValueError('Wheel package is missing.')
   text+=run(['-export','-gltf','-png','-noanim',wheel.stem],root,out/'wheels',out/'wheel-reader.log')
   run(['-dump','-all',wheel.stem],root,out/'wheels',out/'wheel-properties.txt')
+  from rocketleague_wheel_fx import extract_wheel_effects
+  extract_wheel_effects(wheel.stem,root,out,TOOLS)
+ elif a['Category']=='Wheels':
+  from rocketleague_wheel_fx import extract_wheel_effects
+  extract_wheel_effects(f.stem,root,out,TOOLS)
  if q.get('Decal'):
   decal=Path(q['Decal']['Package']).resolve()
   if decal.parent!=root or not decal.is_file():raise ValueError('Decal package is missing.')
@@ -131,7 +136,12 @@ if __name__=='__main__':
   if q['Action']=='capabilities':
    asset=q['Asset'];root=cooked(asset['PackagePath']);stage=Path(q['Cache']);warnings=[];refresh_keys(stage,warnings)
    text=run(['-dump','-all',Path(asset['ObjectPath'].split('|')[0]).stem],root,stage,stage/('details-'+asset['Id']+'.log'))
-   save(q['Result'],{'Paint':bool(re.search(r'ParameterName = PaintColor\b',text)),'PaintFinish':asset['Category']=='Cars'})
+   paint=bool(re.search(r'ParameterName = PaintColor\b',text))
+   if not paint and asset['Category']=='Wheels':
+    from rocketleague_wheel_fx import extract_wheel_effects
+    wheeldata=extract_wheel_effects(Path(asset['ObjectPath'].split('|')[0]).stem,root,stage,TOOLS)
+    paint=any(o['Class']=='ProductAttribute_PaintSettings_TA' and any(k.startswith('MaterialGroups') for k in o['Properties']) for o in wheeldata['Objects'])
+   save(q['Result'],{'Paint':paint,'PaintFinish':asset['Category']=='Cars'})
   elif q['Action']=='keys':
    warnings=[];refresh_keys(Path(q['Cache']),warnings,True);print('Rocket League compatibility refreshed.' if not warnings else warnings[0],flush=True)
   else:(scan if q['Action']=='scan' else export)(q)
