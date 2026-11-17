@@ -33,6 +33,8 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 
 		public float MetallicOverride { get; set; }
 
+		public string SurfaceMaskPacking { get; set; } = "SMR";
+
 		public bool Matte { get; set; }
 
 		public float Roughness { get; set; } = 0.5f;
@@ -210,8 +212,9 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 				Map("StyleLightMask", "# selected_light_mask", Texture(new string[1] { "Emissive" }));
 			}
 		}
-		if (Texture(new string[2] { "PM_SpecularMasks", "SpecularMasks" }) is UTexture value2)
+		if (Texture(new string[3] { "PM_SpecularMasks", "SpecularMasks", "SRM" }) is UTexture value2)
 		{
+			if (Texture("SRM")?.GetPathName() == value2.GetPathName()) info.SurfaceMaskPacking = "SRM";
 			if (!matteMaterials)
 			{
 				Map("Specular", "map_Ks", value2);
@@ -311,6 +314,18 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 		}
 		UUnrealMaterial? Texture(params string[] names)
 		{
+			// Resolve semantic aliases at the closest instance first. The flattened
+			// parser dictionary may alias a detail weave to PM_Diffuse, even when
+			// this instance explicitly supplies the actual Diffuse texture.
+			if (parameters != null)
+				foreach (string name in names)
+					foreach (var pair in parameters.Textures)
+						if (Normalize(pair.Key) == Normalize(name)) return pair.Value;
+			var seen = new HashSet<string>(StringComparer.Ordinal);
+			for (var current = material as UMaterialInstanceConstant; current != null && seen.Add(current.GetPathName()); current = current.Parent?.Load<UMaterialInstanceConstant>())
+				foreach (string name in names)
+					foreach (var parameter in current.TextureParameterValues)
+						if (Normalize(parameter.Name) == Normalize(name)) return parameter.ParameterValue?.Load<UTexture>();
 			foreach (string key in names)
 			{
 				if (p.Textures.TryGetValue(key, out var reference) && reference.Load() is UTexture value3)
@@ -341,7 +356,7 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 				{
 					text2 = ((role == "Metallic") ? $"|{info.Metallic}|{info.MetallicOverride}" : "");
 				}
-				string key = pathName + "|" + text + text2;
+				string key = pathName + "|" + text + text2 + "|" + info.SurfaceMaskPacking;
 				if (!_textures.TryGetValue(key, out TextureInfo value3))
 				{
 					CTexture cTexture = uTexture.Decode() ?? throw new IOException("Cannot decode " + uTexture.Name);
@@ -372,7 +387,7 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 								}
 								else
 								{
-									b = ((role == "Metallic") ? ((byte)Math.Clamp((int)Math.Round((float)(int)sKColor.Green * (1f - info.MetallicOverride) + 255f * info.Metallic * info.MetallicOverride), 0, 255)) : ((byte)Math.Clamp((int)Math.Round(255f * info.RoughMin + (float)(int)sKColor.Blue * (info.RoughMax - info.RoughMin)), 0, 255)));
+									b = ((role == "Metallic") ? ((byte)Math.Clamp((int)Math.Round((float)(int)(info.SurfaceMaskPacking == "SRM" ? sKColor.Blue : sKColor.Green) * (1f - info.MetallicOverride) + 255f * info.Metallic * info.MetallicOverride), 0, 255)) : ((byte)Math.Clamp((int)Math.Round(255f * info.RoughMin + (float)(int)(info.SurfaceMaskPacking == "SRM" ? sKColor.Green : sKColor.Blue) * (info.RoughMax - info.RoughMin)), 0, 255)));
 								}
 								pixels[i] = new SKColor(b, b, b, byte.MaxValue);
 							}

@@ -159,9 +159,20 @@ for mat in list(bpy.data.materials):
    else:warnings.append('This car does not expose a supported body trim mask. Its body paint tint is not reconstructed.')
   mat['PrimaryColour']=appearance.get('Primary','#195CB8');mat['DecalColour']=appearance.get('Secondary','#EF8124');mat['PrimaryFinish']=first;mat['DecalFinish']=second
  # Standard wheel shaders use separate UV tiles for tyre and rim.
- wheelvalues=list(values.values());rimname=next((v for v in wheelvalues if re.search(r'Rim_D$',v,re.I)),None);tirename=next((v for v in wheelvalues if re.search(r'Tire_D$',v,re.I)),None)
+ wheelvalues=list(values.values());rimname=next((v for v in wheelvalues if re.search(r'^Rim(?:_.*)?_D$',v,re.I)),None);tirename=next((v for v in wheelvalues if re.search(r'^Tire(?:_.*)?_D$',v,re.I)),None)
  if rimname and tirename:
   rim=tex(rimname);tire=tex(tirename);coords=nodes.new('ShaderNodeTexCoord');splituv=nodes.new('ShaderNodeSeparateXYZ');links.new(coords.outputs['UV'],splituv.inputs[0]);is_tire=nodes.new('ShaderNodeMath');is_tire.operation='GREATER_THAN';is_tire.inputs[1].default_value=1;links.new(splituv.outputs['Y'],is_tire.inputs[0]);surface=nodes.new('ShaderNodeMixRGB');links.new(is_tire.outputs[0],surface.inputs[0]);links.new(rim.outputs['Color'],surface.inputs[1]);links.new(tire.outputs['Color'],surface.inputs[2]);links.new(surface.outputs[0],shader.inputs['Base Color'])
+  # This wheel family authors the tyre selector in vertex red; UVs may
+  # repeat horizontally many times around the tread, so UV tiles cannot select it.
+  if any(o.type=='MESH' and mat.name in o.data.materials and len(o.data.color_attributes) for o in bpy.data.objects):
+   vertex=nodes.new('ShaderNodeVertexColor');vertex.label='Authored tyre / rim selector'
+   is_tire=nodes.new('ShaderNodeSeparateColor');links.new(vertex.outputs['Color'],is_tire.inputs[0]);links.new(is_tire.outputs[0],surface.inputs[0]);mat['WheelTyreSelector']='VertexColor.R'
+  mat['WheelTyreTexture']=tirename;mat['WheelRimTexture']=rimname
+  # The tyre has its own normal map and rubber roughness in the second UV tile.
+  rimnormal=tex(rimname[:-2]+'_N',True);tyrenormal=tex(tirename[:-2]+'_N',True)
+  if rimnormal and tyrenormal:
+   normals=nodes.new('ShaderNodeMixRGB');links.new(is_tire.outputs[0],normals.inputs[0]);links.new(rimnormal.outputs['Color'],normals.inputs[1]);links.new(tyrenormal.outputs['Color'],normals.inputs[2]);normalmap=nodes.new('ShaderNodeNormalMap');links.new(normals.outputs[0],normalmap.inputs['Color']);links.new(normalmap.outputs[0],shader.inputs['Normal'])
+  roughness=nodes.new('ShaderNodeMapRange');roughness.inputs['To Min'].default_value=.42;roughness.inputs['To Max'].default_value=.8;links.new(is_tire.outputs[0],roughness.inputs['Value']);links.new(roughness.outputs[0],shader.inputs['Roughness'])
   paint=appearance.get('WheelPaint','Default') if asset['Category']=='Cars' else appearance.get('BodyPaint','Default')
   if paint in paints:
    tinted=nodes.new('ShaderNodeMixRGB');tinted.blend_type='MIX';tinted.inputs[0].default_value=.8;tinted.inputs[2].default_value=colour(paints[paint]);links.new(rim.outputs['Color'],tinted.inputs[1]);links.new(tinted.outputs[0],surface.inputs[1]);mat['PaintVariant']=paint
@@ -187,7 +198,7 @@ if effectpath.exists():
   if shader:
    shader.inputs['Base Color'].default_value=rgba;shader.inputs['Emission Color'].default_value=rgba;shader.inputs['Emission Strength'].default_value=1
    material['SourceColourParameter']=colours[0]['ParameterName'];material['SourceColour']=rgba
-if animatedwheelfaces:warnings.append('Animated wheel faces use recovered source textures and attachment transforms. Their pulse shader is reconstructed with an editable speed; the compiled Unreal shader is not reproduced exactly. Shader animation is retained in the Blender file; exchange formats do not preserve Blender material drivers.')
+if animatedwheelfaces:warnings.append('Zomba wheel faces use source shader equations, recovered timing, packed texture channels and attachment transforms. Unreal scene fog and exposure are not reproduced. Material animation is retained in Blender; exchange formats do not preserve Blender material drivers.')
 for img in bpy.data.images:
  if img.source=='FILE':
   try:img.pack()

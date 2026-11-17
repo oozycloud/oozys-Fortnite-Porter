@@ -243,7 +243,20 @@ internal static class UiDiagnostics
 			{
 				throw new Exception("Cancellation or stale progress changed the result.");
 			}
-			BitmapImage thumbnail = new BitmapImage(new Uri("https://fortnite-api.com/images/cosmetics/br/cid_116_athena_commando_m_carbideblack/icon.png"));
+			// Exercise the asynchronous HTTP image decoder without relying on a
+            // third-party CDN accepting this machine's requests during installer QA.
+            using var imageStream = Application.GetResourceStream(new Uri("pack://application:,,,/assets/porter.png")).Stream;
+            using var imageBuffer = new MemoryStream(); imageStream.CopyTo(imageBuffer); byte[] imageBytes = imageBuffer.ToArray();
+            using var imageServer = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0); imageServer.Start();
+            int imagePort = ((IPEndPoint)imageServer.LocalEndpoint).Port;
+            var serveImage = Task.Run(async () => {
+                using var client = await imageServer.AcceptTcpClientAsync(); using var network = client.GetStream();
+                using var requestReader = new StreamReader(network, System.Text.Encoding.ASCII, false, 1024, leaveOpen: true);
+                while (!string.IsNullOrEmpty(await requestReader.ReadLineAsync())) { }
+                byte[] header = System.Text.Encoding.ASCII.GetBytes($"HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: {imageBytes.Length}\r\nConnection: close\r\n\r\n");
+                await network.WriteAsync(header); await network.WriteAsync(imageBytes);
+            });
+            BitmapImage thumbnail = new BitmapImage(new Uri($"http://127.0.0.1:{imagePort}/thumbnail.png"));
 			if (thumbnail.IsDownloading)
 			{
 				TaskCompletionSource done = new TaskCompletionSource();
@@ -257,9 +270,10 @@ internal static class UiDiagnostics
 				};
 				await done.Task.WaitAsync(TimeSpan.FromSeconds(20L));
 			}
+			await serveImage.WaitAsync(TimeSpan.FromSeconds(20));
 			if (thumbnail.PixelWidth < 32)
 			{
-				throw new Exception("Live catalogue thumbnail failed to load.");
+				throw new Exception("HTTP thumbnail fixture failed to load.");
 			}
 			window.Width = 1220.0;
 			window.Height = 760.0;
@@ -457,7 +471,7 @@ internal static class UiDiagnostics
 				CompletionProgress = true,
 				CancellationProgress = true,
 				StaleProgressIgnored = true,
-				LiveThumbnail = true
+				HttpThumbnailFixture = true
 			}));
 		}
 		finally

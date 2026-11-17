@@ -54,41 +54,8 @@ def build_wheel_faces(folder,anchor,corner,bpy,images,paint=None):
  pattern=images.get('twirl_rgb_t');ramp=images.get('curve_rainbow')
  if not models or not pattern or not ramp:return 0
  scene=bpy.context.scene
- if 'ZombaPulseCyclesPerSecond' not in scene:
-  scene['ZombaPulseCyclesPerSecond']=1.0
-  scene.id_properties_ui('ZombaPulseCyclesPerSecond').update(description='Editable reconstructed pulse speed; the compiled Unreal shader clock is not preserved.',min=0,max=20)
- materialname='Zomba animated rim'+(' painted' if paint else '')
- material=bpy.data.materials.get(materialname)
- if material is None:
-  material=bpy.data.materials.new(materialname);material.use_nodes=True;nodes=material.node_tree.nodes;nodes.clear();links=material.node_tree.links
-  output=nodes.new('ShaderNodeOutputMaterial');transparent=nodes.new('ShaderNodeBsdfTransparent');emission=nodes.new('ShaderNodeEmission');mix=nodes.new('ShaderNodeMixShader')
-  texture=nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(pattern),check_existing=True);texture.image.colorspace_settings.name='Non-Color';texture.label='Actual Zomba packed twirl texture'
-  separate=nodes.new('ShaderNodeSeparateColor');links.new(texture.outputs['Color'],separate.inputs[0])
-  clock=nodes.new('ShaderNodeValue');clock.label='Reconstructed editable pulse clock';driver=clock.outputs[0].driver_add('default_value').driver
-  for name,data_path in [('fps','render.fps'),('base','render.fps_base'),('speed','["ZombaPulseCyclesPerSecond"]')]:
-   var=driver.variables.new();var.name=name;var.targets[0].id_type='SCENE';var.targets[0].id=scene;var.targets[0].data_path=data_path
-  driver.expression='(frame-1)*base/fps*speed'
-  def mathnode(operation,a,b=None):
-   node=nodes.new('ShaderNodeMath');node.operation=operation
-   for index,value in enumerate([a,b]):
-    if value is None:continue
-    if isinstance(value,(int,float)):node.inputs[index].default_value=value
-    else:links.new(value,node.inputs[index])
-   return node.outputs[0]
-  total=None;mask=None
-  for index,channel in enumerate(['Red','Green','Blue']):
-   wave=mathnode('MULTIPLY',clock.outputs[0],math.tau);wave=mathnode('ADD',wave,index*math.tau/3);wave=mathnode('SINE',wave);wave=mathnode('MULTIPLY_ADD',wave,.5)
-   # MULTIPLY_ADD's third socket is the +0.5 offset.
-   wave.node.inputs[2].default_value=.5
-   weighted=mathnode('MULTIPLY',separate.outputs[channel],wave);total=weighted if total is None else mathnode('ADD',total,weighted)
-   mask=separate.outputs[channel] if mask is None else mathnode('MAXIMUM',mask,separate.outputs[channel])
-  if paint:emission.inputs['Color'].default_value=paint
-  else:
-   coord=nodes.new('ShaderNodeCombineXYZ');links.new(mathnode('FRACT',total),coord.inputs['X']);coord.inputs['Y'].default_value=.5
-   rainbow=nodes.new('ShaderNodeTexImage');rainbow.image=bpy.data.images.load(str(ramp),check_existing=True);rainbow.label='Actual Zomba colour ramp';links.new(coord.outputs[0],rainbow.inputs['Vector']);links.new(rainbow.outputs['Color'],emission.inputs['Color'])
-  links.new(mathnode('ADD',total,.15),emission.inputs['Strength'])
-  opacity=mathnode('MULTIPLY',mask,15);opacity.node.use_clamp=True;links.new(opacity,mix.inputs[0]);links.new(transparent.outputs[0],mix.inputs[1]);links.new(emission.outputs[0],mix.inputs[2]);links.new(mix.outputs[0],output.inputs['Surface'])
-  material['SourceTexture']='Twirl_RGB_T';material['SourceColourRamp']='Curve_Rainbow';material['AnimatedWheelReconstruction']=True
+ material=build_zomba_material(bpy,pattern,ramp,paint)
+
  count=0
  for attachment in settings['Attachments']:
   socket=native_socket_matrix(models[0],attachment.get('Socket'))
@@ -109,3 +76,80 @@ def build_wheel_faces(folder,anchor,corner,bpy,images,paint=None):
    obj.matrix_local=socket@unreal_matrix(attachment['Component'])@Matrix.Translation(position)
    obj['SourceEmitter']=emitter['Name'];obj['SourceSocket']=attachment['Socket'];obj['AnimatedWheelFace']=True;count+=1
  return count
+
+
+def build_zomba_material(bpy,pattern,ramp,paint):
+ """Port of Proto_09_Mat's SM5 pixel shader and uniform expressions.
+
+ UV rotations: +time and -2*time radians. LUT pans: -.2 and -.5 units/s.
+ Twirl channels R/B and G/A are sampled separately; alpha is not max(RGB).
+ Source disassembly/provenance is documented in docs/zomba-shader.md.
+ """
+ scene=bpy.context.scene
+ if 'ZombaTimeScale' not in scene:
+  scene['ZombaTimeScale']=1.0
+  scene.id_properties_ui('ZombaTimeScale').update(description='1 = recovered game shader timing; 0 = pause.',min=0,max=20)
+ name='Zomba source shader'+(' painted' if paint else '')
+ material=bpy.data.materials.get(name)
+ if material:return material
+ material=bpy.data.materials.new(name);material.use_nodes=True
+ nodes=material.node_tree.nodes;nodes.clear();links=material.node_tree.links
+ def mathnode(op,*args):
+  n=nodes.new('ShaderNodeMath');n.operation=op
+  for i,a in enumerate(args):
+   if isinstance(a,(int,float)):n.inputs[i].default_value=a
+   else:links.new(a,n.inputs[i])
+  return n.outputs[0]
+ def combine(x,y,z=0):
+  n=nodes.new('ShaderNodeCombineXYZ')
+  for i,a in enumerate((x,y,z)):
+   if isinstance(a,(int,float)):n.inputs[i].default_value=a
+   else:links.new(a,n.inputs[i])
+  return n.outputs[0]
+ def split(value):
+  n=nodes.new('ShaderNodeSeparateXYZ');links.new(value,n.inputs[0]);return list(n.outputs)
+ def clamp(a):return mathnode('MINIMUM',mathnode('MAXIMUM',a,0),1)
+ def sample(path,uv,label,noncolor=False):
+  n=nodes.new('ShaderNodeTexImage');n.image=bpy.data.images.load(str(path),check_existing=True);n.label=label;n.extension='REPEAT';n.image.alpha_mode='CHANNEL_PACKED'
+  n.image.colorspace_settings.name='Non-Color' if noncolor else 'sRGB'
+  links.new(uv,n.inputs['Vector']);channels=nodes.new('ShaderNodeSeparateColor');links.new(n.outputs['Color'],channels.inputs[0]);return list(channels.outputs)[:3]+[n.outputs['Alpha']]
+ clock=nodes.new('ShaderNodeValue');clock.label='Game shader seconds';driver=clock.outputs[0].driver_add('default_value').driver
+ for name,path in [('fps','render.fps'),('base','render.fps_base'),('speed','["ZombaTimeScale"]')]:
+  var=driver.variables.new();var.name=name;var.targets[0].id_type='SCENE';var.targets[0].id=scene;var.targets[0].data_path=path
+ driver.expression='(frame-1)*base/fps*speed';time=clock.outputs[0]
+ uv=nodes.new('ShaderNodeTexCoord');xy=split(uv.outputs['UV']);x=mathnode('SUBTRACT',xy[0],.5);y=mathnode('SUBTRACT',xy[1],.5)
+ # glTF/Blender V is flipped relative to the original Unreal particle UV.
+ y=mathnode('MULTIPLY',y,-1)
+ radius=mathnode('ADD',mathnode('MULTIPLY',x,x),mathnode('MULTIPLY',y,y))
+ def rotated(rate):
+  angle=mathnode('MULTIPLY',time,rate);c=mathnode('COSINE',angle);sn=mathnode('SINE',angle)
+  u=mathnode('ADD',mathnode('SUBTRACT',mathnode('MULTIPLY',c,x),mathnode('MULTIPLY',sn,y)),.5)
+  v=mathnode('ADD',mathnode('ADD',mathnode('MULTIPLY',sn,x),mathnode('MULTIPLY',c,y)),.5)
+  return combine(u,v)
+ a=sample(pattern,rotated(1),'Twirl R/B: +1 radian per second')
+ b=sample(pattern,rotated(-2),'Twirl G/A: -2 radians per second')
+ r2=mathnode('MULTIPLY',mathnode('MINIMUM',radius,1),2)
+ def lut(rate):return sample(ramp,combine(mathnode('ADD',r2,mathnode('FRACT',mathnode('MULTIPLY',time,rate))),r2),'Source colour/pulse LUT')
+ pulse=lut(-.2);hue=lut(-.5)
+ edge=mathnode('MAXIMUM',mathnode('MULTIPLY',mathnode('SUBTRACT',.22,radius),3),0)
+ summed=mathnode('ADD',a[0],b[1])
+ amp=clamp(mathnode('MULTIPLY',mathnode('SUBTRACT',mathnode('MULTIPLY',summed,mathnode('MULTIPLY',a[2],b[3])),.1),10))
+ patternlight=clamp(mathnode('MULTIPLY',mathnode('MULTIPLY',summed,mathnode('ADD',mathnode('ADD',pulse[0],pulse[1]),pulse[2])),.8))
+ flash=mathnode('MULTIPLY',amp,pulse[0]);boost=mathnode('MULTIPLY',flash,6)
+ strength=mathnode('ADD',mathnode('MULTIPLY',mathnode('MULTIPLY',mathnode('ADD',mathnode('ADD',patternlight,boost),.3),mathnode('POWER',edge,.2)),2),boost)
+ alpha=clamp(mathnode('MULTIPLY',mathnode('MULTIPLY',mathnode('ADD',flash,edge),edge),15))
+ # The game's Hue_Shift function rotates RGB around the neutral-grey axis.
+ # Painted particles set HueShift_Sharpness=0, retaining the chosen colour.
+ colour=paint or (1,.1,.1,1)
+ if paint:rgb=combine(*colour[:3])
+ else:
+  angle=mathnode('MULTIPLY',mathnode('MULTIPLY',hue[2],r2),math.tau);c=mathnode('COSINE',angle);sn=mathnode('SINE',angle);mean=sum(colour[:3])/3
+  channels=[]
+  for i in range(3):
+   cross=(colour[(i+2)%3]-colour[(i+1)%3])/math.sqrt(3)
+   channels.append(mathnode('ADD',mathnode('ADD',mathnode('MULTIPLY',c,colour[i]),mathnode('MULTIPLY',mathnode('SUBTRACT',1,c),mean)),mathnode('MULTIPLY',sn,cross)))
+  rgb=combine(*channels)
+ emission=nodes.new('ShaderNodeEmission');links.new(rgb,emission.inputs['Color']);links.new(strength,emission.inputs['Strength'])
+ transparent=nodes.new('ShaderNodeBsdfTransparent');mix=nodes.new('ShaderNodeMixShader');links.new(alpha,mix.inputs[0]);links.new(transparent.outputs[0],mix.inputs[1]);links.new(emission.outputs[0],mix.inputs[2]);output=nodes.new('ShaderNodeOutputMaterial');links.new(mix.outputs[0],output.inputs['Surface'])
+ material['SourceTexture']='Twirl_RGB_T';material['SourceColourRamp']='Curve_Rainbow';material['SourceShaderGuid']='f989e447-37b1-4565-88bd-03224d48e241';material['SourceShaderPort']=True;material['AnimationRatesRadians']=[1.0,-2.0];material['LutPanRates']=[-.2,-.5]
+ return material

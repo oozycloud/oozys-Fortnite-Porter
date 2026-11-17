@@ -11,6 +11,13 @@ assert all(math.isfinite(v) for o in faces for row in o.matrix_world for v in ro
 assert not any(o.name.startswith('Icosphere') for o in scene.objects)
 material=faces[0].data.materials[0]
 assert material['SourceTexture']=='Twirl_RGB_T'
+assert material['SourceShaderPort']
+wheelmaterials=[m for m in bpy.data.materials if m.get('WheelTyreTexture')]
+assert wheelmaterials and all(m.get('WheelTyreSelector')=='VertexColor.R' for m in wheelmaterials)
+assert all('Tire_' in m['WheelTyreTexture'] and 'Rim_' in m['WheelRimTexture'] for m in wheelmaterials)
+assert list(material['AnimationRatesRadians'])==[1.,-2.]
+assert list(material['LutPanRates'])==[-.2,-.5]
+assert any(n.type=='TEX_IMAGE' and n.image.name=='Twirl_RGB_T.png' and n.image.alpha_mode=='CHANNEL_PACKED' and n.outputs['Alpha'].is_linked for n in material.node_tree.nodes)
 textures=[n.image for n in material.node_tree.nodes if n.type=='TEX_IMAGE']
 assert {i.name for i in textures}=={'Twirl_RGB_T.png','Curve_Rainbow.png'}
 assert all(i.packed_file for i in textures)
@@ -21,5 +28,5 @@ for fps,frame in [(24,1),(24,8),(24,25),(30,31)]:
 assert values[0]!=values[1]
 assert abs(values[2]-values[3])<1e-5,values
 assert all(d.is_valid for d in material.node_tree.animation_data.drivers)
-report={'AnimatedFaces':expected,'WheelCorners':expected//2,'PackedSourceTextures':True,'ClockChangesAcrossFrames':True,'SameSpeedAt24And30FPS':True}
+report={'SourceShaderEquations':True,'IndependentPackedAlpha':True,'AnimatedFaces':expected,'WheelCorners':expected//2,'PackedSourceTextures':True,'ClockChangesAcrossFrames':True,'SameSpeedAt24And30FPS':True}
 Path('recovery/rocketleague/zomba-validation.json').write_text(json.dumps(report,indent=2));print(report)

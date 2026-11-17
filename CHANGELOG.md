@@ -4,7 +4,7 @@ Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entr
 
 ## Unreleased
 
-Local test build beta 0.7.2 adds reconstructed animated Zomba rim faces from source wheel attachments and textures. It is not yet a published binary release. [Test-build notes](docs/releases/beta-0.7.2.md).
+Local test build beta 0.7.3 fixes Games Manager texture resolution and SRM mask channels, separates Rocket League tyre/rim maps, and replaces the guessed Zomba pulse with a port of its recovered SM5 shader equations and timing. It is not yet a published binary release. [Test-build notes](docs/releases/beta-0.7.3.md).
 
 Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
 

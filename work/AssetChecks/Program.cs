@@ -5,9 +5,9 @@ using System.Reflection;
 if(args.Contains("--rocket-zomba-check")) {
  var rl=new RocketLeagueSession();var log=new LogProgress();var folder=Path.GetFullPath(args[0]);Directory.CreateDirectory(folder);
  var catalog=await rl.Scan(RocketLeagueSession.Detect()??throw new Exception("Rocket League not found"),log,CancellationToken.None);
- var car=catalog.Single(x=>x.Id=="RL5823");var decal=rl.GetDecals(car).Single(x=>x.Id=="RL6065");
- var appearance=new RocketAppearance{WheelId="RL1580"};
- var result=await rl.Export(car,decal.Id,new AppSettings{ExportFolder=folder,OnlyBlend=true},log,CancellationToken.None,appearance,true);
+ var painted=args.Contains("--painted");var car=catalog.Single(x=>x.Id==(painted?"RL2919":"RL5823"));var style=painted?"Default":rl.GetDecals(car).Single(x=>x.Id=="RL6065").Id;
+ var appearance=new RocketAppearance{WheelId="RL1580",WheelPaint=painted?"Grey":"Default"};
+ var result=await rl.Export(car,style,new AppSettings{ExportFolder=folder,OnlyBlend=true},log,CancellationToken.None,appearance,true);
  using var report=System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(result.Folder,"export-report.json")));
  if(report.RootElement.GetProperty("AnimatedWheelFaces").GetInt32()!=8)throw new Exception("Zomba attachment layers missing");
  if(!File.Exists(Path.Combine(result.Folder,"preview.png")))throw new Exception("Zomba preview missing");
@@ -71,6 +71,14 @@ if(args.Contains("--meshdiag") || args.Contains("--cached-export")) {
  list=await session.Scan(AppSettings.Load(),progress,CancellationToken.None);
  provider=(AbstractFileProvider)typeof(GameSession).GetField("_provider",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(session)!;
 }
+if(args.Contains("--material-probe")) {
+ foreach(var path in args.Skip(Array.IndexOf(args,"--material-probe")+1)) {
+  var material=provider.LoadPackage(path.Split('.')[0]).GetExports().OfType<CUE4Parse.UE4.Assets.Exports.Material.UMaterialInterface>().First();
+  var p=new CUE4Parse.UE4.Assets.Exports.Material.CMaterialParams2();material.GetParams(p,CUE4Parse.UE4.Assets.Exports.Material.EMaterialDepth.AllLayers);
+  File.WriteAllText(Path.Combine(output,material.Name+".json"),JsonConvert.SerializeObject(new {Material=material,Scalars=p.Scalars,Colors=p.Colors,Switches=p.Switches,Textures=p.Textures.ToDictionary(x=>x.Key,x=>x.Value.ToString())},Formatting.Indented));
+ }
+ return;
+}
 if(args.Contains("--cached-export")) {
  WebsiteAssetId.TryParse(args[2],out var requested);
  var selected=list.First(x=>x.Id==(requested?.Id ?? args[2]) || x.Name.Equals(args[2],StringComparison.OrdinalIgnoreCase));
@@ -87,7 +95,7 @@ if(args.Contains("--cached-export")) {
  if(args.Contains("--parts-only")) {session.InspectCharacterParts(selected,output);return;}
  if(args.Contains("--with-emote")) {
   var emote=list.First(x=>x.Category=="Animations" && x.Name.Equals(args[Array.IndexOf(args,"--with-emote")+1],StringComparison.OrdinalIgnoreCase));
-  var scene=session.ExportScene(selected,emote,output,"Ghoul_Business_Hips",progress,CancellationToken.None,"PINK",matteMaterials:false);
+  var scene=session.ExportScene(selected,emote,output,Installation.SafeName(selected.Name)+"_"+Installation.SafeName(emote.Name),progress,CancellationToken.None,selectedStyle,matteMaterials:false);
   Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(scene));return;
  }
  var result=session.Export(selected,output,progress,CancellationToken.None,styleName:selectedStyle,matteMaterials:false);
