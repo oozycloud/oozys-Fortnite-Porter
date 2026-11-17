@@ -12,7 +12,7 @@ Bring Fortnite characters, animations and props into Blender, with packed textur
 
 ## What it does
 
-The [website source](website/README.md) includes a dark 3D entrance, a temporary textured GameRock RTX 4090 preview, and a download button that checks the newest published beta installer. Run it locally with `python -m http.server 8080 --directory website`, then open `http://localhost:8080`. The catalogue has searchable cards with stable IDs, complete style combinations and source thumbnails. Paste an ID into the app to select and export that asset from your installed game files.
+The [website source](website/README.md) includes a dark 3D entrance, a textured Black & Gold Renegade Raider performing Scenario, with drag rotation and zoom, and a download button that checks the newest published beta installer. Run it locally with `python -m http.server 8080 --directory website`, then open `http://localhost:8080`. The catalogue has searchable cards with stable IDs, complete style combinations and source thumbnails. Paste an ID into the app to select and export that asset from your installed game files.
 
 - Exports skins, pickaxes, back blings, gliders, emotes, emoticons, sidekicks, prefabs, weapons, building pieces and edits, vehicles, and kicks from a local Fortnite installation.
 - Browses Rocket League cars, known compatible decals, wheels, goal explosions, maps, balls, boosts, trails and other installed cosmetic resources. Mesh assets convert to packed Blender and exchange formats.
@@ -20,7 +20,7 @@ The [website source](website/README.md) includes a dark 3D entrance, a temporary
 - Combines a skin and emote, or applies a separately exported emote to an existing skin using the Blender tools.
 - Supports multiple selections, authored cosmetic styles, animation resampling and selected animated material effects.
 - Provides a custom title bar with the app name and minimize, maximize/restore and close buttons.
-- Provides an orange-and-black interface, dark dropdowns, hover help, animated backgrounds and reduced motion.
+- Provides a charcoal studio interface with soft-grey text, restrained gold accents and Manrope typography, dark dropdowns, hover help, animated backgrounds and reduced motion.
 - Installs through one self-contained EXE, with supporting application files kept in an `app` folder.
 
 This is a Blender reconstruction of Fortnite assets. Support varies by asset; the exporter does not reproduce the entire Unreal material, physics or gameplay runtime.

@@ -41,6 +41,9 @@
     <Resource Remove="assets\porter.png" />
     <Resource Include="assets\porter.ico" LogicalName="assets/porter.ico" />
     <Resource Include="assets\porter.png" LogicalName="assets/porter.png" />
+    <None Remove="assets\manrope-regular.ttf" />
+    <Resource Include="assets\manrope-regular.ttf" LogicalName="assets/manrope-regular.ttf" />
+    <Content Include="assets\MANROPE-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CUE4Parse">

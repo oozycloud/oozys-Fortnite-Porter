@@ -169,17 +169,32 @@ public sealed partial class GameSession : IDisposable
 					list3.Add(new AnimationTrack(array[num].Name, list4));
 				}
 			}
-			float duration = sequence.OriginalSequence.SequenceLength / Math.Max(0.001f, sequence.OriginalSequence.RateScale);
-			float authoredFps = ((duration > 0f) ? ((float)(sequence.NumFrames - 1) / duration) : 30f);
-			double outputFps = ((animationFps > 0.0 && double.IsFinite(animationFps)) ? Math.Clamp(animationFps, 1.0, 240.0) : ((double)authoredFps));
-			double[] times = ((animationFps > 0.0) ? (from f in Enumerable.Range(0, Math.Max(2, (int)Math.Ceiling((double)duration * outputFps - 0.001) + 1))
-				select Math.Min(duration, (double)f / outputFps)).ToArray() : (from f in Enumerable.Range(0, sequence.NumFrames)
-				select (double)f / (double)authoredFps).ToArray());
-			times[^1] = duration;
-			if (animationFps > 0.0)
-			{
-				list3 = list3.Select((AnimationTrack track) => new AnimationTrack(track.Bone, times.Select((double t) => InterpolateFrame(track.Frames, (duration > 0f) ? (t / (double)duration * (double)(sequence.NumFrames - 1)) : 0.0)).ToList())).ToList();
-			}
+            double sourceLength = sequence.OriginalSequence.SequenceLength;
+            double rate = Math.Max(.001f, sequence.OriginalSequence.RateScale);
+            var loop = EmoteLoop.SourceWindow(asset, sequence);
+            rate = loop?.Rate ?? rate;
+            double sourceStart = loop?.Start ?? 0, sourceEnd = loop?.End ?? sourceLength;
+            double duration = (sourceEnd-sourceStart)/rate;
+            double authoredFps = duration > 0 ? (sequence.NumFrames-1)/sourceLength*rate : 30;
+            double requestedFps = animationFps>0 && double.IsFinite(animationFps) ? Math.Clamp(animationFps,1,240) : authoredFps;
+            int intervals=Math.Max(1,(int)Math.Round(duration*requestedFps));
+            // Integer playback intervals preserve duration without a fractional duplicate end frame.
+            double outputFps=loop!=null ? intervals/duration : requestedFps;
+            double[] times=loop!=null ? Enumerable.Range(0,intervals+1).Select(f=>f*duration/intervals).ToArray()
+                : Enumerable.Range(0,Math.Max(2,(int)Math.Ceiling(duration*outputFps-.001)+1)).Select(f=>Math.Min(duration,f/outputFps)).ToArray();
+            times[^1]=duration;
+            list3=list3.Select(track=>new AnimationTrack(track.Bone,times.Select(t=>InterpolateFrame(track.Frames,(sourceStart+t*rate)/sourceLength*(sequence.NumFrames-1))).ToList())).ToList();
+            if(loop!=null) {
+                // A closure key is retained for interpolation/export, but not played twice.
+                // Traversal root translation keeps its travelled distance; other channels close exactly.
+                list3=list3.Select(track=>{
+                    var last=(float[])track.Frames[0].Clone();
+                    if(orDefault && track.Bone.Equals("root",StringComparison.OrdinalIgnoreCase))
+                        Array.Copy(track.Frames[^1],last,3);
+                    track.Frames[^1]=last;return track;
+                }).ToList();
+            }
+
 			list2.Add(new
 			{
 				Name = sequence.Name,
@@ -188,6 +203,11 @@ public sealed partial class GameSession : IDisposable
 				Fps = outputFps,
 				Duration = duration,
 				AuthoredFps = authoredFps,
+                Loop = loop != null,
+                LoopFrames = loop != null ? intervals : (int?)null,
+                LoopSourceStart = sourceStart,
+                LoopSourceEnd = sourceEnd,
+                Traversal = orDefault,
 				Bones = bones,
 				Tracks = list3,
 				SlotName = sequence.SlotName

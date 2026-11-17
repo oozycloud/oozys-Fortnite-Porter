@@ -4,7 +4,9 @@ Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entr
 
 ## Unreleased
 
-Local test build beta 0.7.3 fixes Games Manager texture resolution and SRM mask channels, separates Rocket League tyre/rim maps, and replaces the guessed Zomba pulse with a port of its recovered SM5 shader equations and timing. It is not yet a published binary release. [Test-build notes](docs/releases/beta-0.7.3.md).
+Local test build beta 0.8.0 adds the website's charcoal studio theme to the app and installer, authored emote loop ranges with a continuous seam, and the interactive Scenario website cover. [Test-build notes](docs/releases/beta-0.8.0.md).
+
+Beta 0.7.3 fixed Games Manager materials and the Zomba shader. [Notes](docs/releases/beta-0.7.3.md).
 
 Remaining fidelity and cosmetic support work is tracked in [Unreleased notes](docs/releases/unreleased.md).
 

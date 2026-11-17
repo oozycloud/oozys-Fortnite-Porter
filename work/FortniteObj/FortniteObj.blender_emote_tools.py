@@ -53,7 +53,7 @@ def legacy_payload(source, actions, fps):
                 else:rotation=Euler(sample(pb,'rotation_euler',(0,0,0),frame),pb.rotation_mode).to_quaternion()
                 values=unreal_transform(rests[pb.name] @ Matrix.LocRotScale(position,rotation,scale),pb.parent is None)
                 tracks[index]['Frames'].append(values)
-        clips.append({'Name':action.name,'Bones':bones,'Tracks':tracks,'Frames':count,'Fps':fps,'FrameTimes':[(f-start)/fps for f in frames],'Duration':(end-start)/fps})
+        clips.append({'Name':action.name,'Bones':bones,'Tracks':tracks,'Frames':count,'Fps':fps,'FrameTimes':[(f-start)/fps for f in frames],'Duration':(end-start)/fps,'Loop':bool(action.get('Loop')),'Traversal':bool(action.get('Traversal'))})
     if not clips:raise ValueError('This file has no skeletal emote actions.')
     return {'Bones':bones,'Clips':clips}
 

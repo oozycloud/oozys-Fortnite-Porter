@@ -2,6 +2,14 @@ using FortniteObj.Core;
 using CUE4Parse.FileProvider;
 using Newtonsoft.Json;
 using System.Reflection;
+if(args.Contains("--loop-checks")) {
+ var intro=EmoteLoop.FindCycle(new[]{new EmoteLoop.Section("Intro","Loop",0),new EmoteLoop.Section("Loop","Loop",1),new EmoteLoop.Section("Outro","None",4)},5);
+ if(intro!=new EmoteLoop.Window(1,4))throw new Exception("Intro/outro were included in loop");
+ var scenario=EmoteLoop.FindCycle(new[]{new EmoteLoop.Section("Loop","Default",0),new EmoteLoop.Section("Default","Loop",.0046577794)},8.133333);
+ if(scenario!=new EmoteLoop.Window(0,8.133333))throw new Exception("Two-section loop not detected");
+ if(EmoteLoop.FindCycle(new[]{new EmoteLoop.Section("OneShot","None",0)},3)!=null)throw new Exception("One-shot was forced to loop");
+ Console.WriteLine("PASS authored self-loop, linked section cycle, intro/outro exclusion and one-shot preservation");return;
+}
 if(args.Contains("--rocket-zomba-check")) {
  var rl=new RocketLeagueSession();var log=new LogProgress();var folder=Path.GetFullPath(args[0]);Directory.CreateDirectory(folder);
  var catalog=await rl.Scan(RocketLeagueSession.Detect()??throw new Exception("Rocket League not found"),log,CancellationToken.None);
@@ -71,6 +79,13 @@ if(args.Contains("--meshdiag") || args.Contains("--cached-export")) {
  list=await session.Scan(AppSettings.Load(),progress,CancellationToken.None);
  provider=(AbstractFileProvider)typeof(GameSession).GetField("_provider",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(session)!;
 }
+if(args.Contains("--animation-probe")) {
+ foreach(var path in args.Skip(Array.IndexOf(args,"--animation-probe")+1)) {
+  var exports=provider.LoadPackage(path.Split('.')[0]).GetExports();
+  File.WriteAllText(Path.Combine(output,Installation.SafeName(path.Split('/').Last().Split('.')[0])+".json"),JsonConvert.SerializeObject(exports,Formatting.Indented));
+ }
+ return;
+}
 if(args.Contains("--material-probe")) {
  foreach(var path in args.Skip(Array.IndexOf(args,"--material-probe")+1)) {
   var material=provider.LoadPackage(path.Split('.')[0]).GetExports().OfType<CUE4Parse.UE4.Assets.Exports.Material.UMaterialInterface>().First();
@@ -95,10 +110,10 @@ if(args.Contains("--cached-export")) {
  if(args.Contains("--parts-only")) {session.InspectCharacterParts(selected,output);return;}
  if(args.Contains("--with-emote")) {
   var emote=list.First(x=>x.Category=="Animations" && x.Name.Equals(args[Array.IndexOf(args,"--with-emote")+1],StringComparison.OrdinalIgnoreCase));
-  var scene=session.ExportScene(selected,emote,output,Installation.SafeName(selected.Name)+"_"+Installation.SafeName(emote.Name),progress,CancellationToken.None,selectedStyle,matteMaterials:false);
+  var scene=session.ExportScene(selected,emote,output,Installation.SafeName(selected.Name)+"_"+Installation.SafeName(emote.Name),progress,CancellationToken.None,selectedStyle,matteMaterials:false,animationFps:args.Contains("--fps")?double.Parse(args[Array.IndexOf(args,"--fps")+1],System.Globalization.CultureInfo.InvariantCulture):0);
   Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(scene));return;
  }
- var result=session.Export(selected,output,progress,CancellationToken.None,styleName:selectedStyle,matteMaterials:false);
+ var result=session.Export(selected,output,progress,CancellationToken.None,styleName:selectedStyle,matteMaterials:false,animationFps:args.Contains("--fps")?double.Parse(args[Array.IndexOf(args,"--fps")+1],System.Globalization.CultureInfo.InvariantCulture):0);
  Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(result));return;
 }
 if(args.Contains("--website-icons")) {

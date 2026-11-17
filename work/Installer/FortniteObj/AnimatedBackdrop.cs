@@ -15,9 +15,9 @@ public sealed class AnimatedBackdrop : FrameworkElement
 
 	private readonly Stopwatch _clock = new Stopwatch();
 
-	private readonly SolidColorBrush _spark = new SolidColorBrush(Color.FromArgb(150, byte.MaxValue, 145, 64));
+	private readonly SolidColorBrush _spark = new SolidColorBrush(Color.FromArgb(90, 187, 161, 106));
 
-	private readonly Pen _line = new Pen(new SolidColorBrush(Color.FromArgb(55, byte.MaxValue, 133, 51)), 1.0);
+	private readonly Pen _line = new Pen(new SolidColorBrush(Color.FromArgb(35, 187, 177, 157)), 1.0);
 
 	private string _theme = "Embers";
 

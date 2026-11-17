@@ -42,10 +42,41 @@ def retarget_basis(target_rest, source_rest, animated, mode, root=False, accesso
     return translation, delta_q.normalized(), scale
 
 
+def polish_loop(channels, fps, traversal_root=False):
+    """Match both pose and velocity at an authored loop seam.
+
+    Keep the original duration; correct only the final ~150ms. The last
+    interval follows the first interval's angular/linear velocity exactly.
+    """
+    count=len(channels[0])
+    if count<8:return 0
+    last=count-1; width=min(last//3,max(3,round(.15*fps)))
+    start=last-width
+    first=Quaternion(tuple(channels[i][0] for i in range(3,7)))
+    second=Quaternion(tuple(channels[i][1] for i in range(3,7)))
+    delta=(first.conjugated()@second).normalized()
+    if delta.w<0:delta.negate()
+    axis,angle=delta.to_axis_angle()
+    endpos=[channels[i][-1] if traversal_root else channels[i][0] for i in range(3)]
+    for frame in range(start,last+1):
+        x=min(1,(frame-start)/max(1,last-1-start));weight=x*x*(3-2*x);steps=last-frame
+        target=(first@Quaternion(axis,-angle*steps)).normalized()
+        original=Quaternion(tuple(channels[i][frame] for i in range(3,7)))
+        if original.dot(target)<0:target.negate()
+        q=original.slerp(target,weight)
+        for i,value in enumerate(q,3):channels[i][frame]=value
+        for i in list(range(3))+list(range(7,10)):
+            endpoint=endpos[i] if i<3 else channels[i][0]
+            desired=endpoint-steps*(channels[i][1]-channels[i][0])
+            channels[i][frame]=channels[i][frame]*(1-weight)+desired*weight
+    return width/fps
+
+
 def apply_animation(rig, data):
     rig.animation_data_create()
     actions = []
-    scene_fps = data['Clips'][0]['Fps']
+    main_clip = next((c for c in data['Clips'] if not re.search(r'_(intro|outro|breakout|start|end)(?:_|$)', c['Name'], re.I)), data['Clips'][0])
+    scene_fps = main_clip['Fps']
     for clip in data['Clips']:
         bones = clip.get('Bones', data['Bones'])
         source = {b['Name'].casefold(): b for b in bones}
@@ -88,6 +119,7 @@ def apply_animation(rig, data):
                 previous = q.copy()
                 for channel, value in zip(channels, (*p, *q, *scale)):
                     channel.append(value)
+            if clip.get('Loop'): polish_loop(channels,scene_fps,root and clip.get('Traversal',False))
             pb.rotation_mode = 'QUATERNION'
             # Seed one key per property to let Blender create the correct action
             # slot/group, then fill each curve in bulk. Per-frame key insertion
@@ -115,7 +147,21 @@ def apply_animation(rig, data):
                     for curve in bag.fcurves:
                         for key in curve.keyframe_points:
                             key.interpolation = 'LINEAR'
-        actions.append({'Name': action.name, 'Frames': clip['Frames'], 'MatchedBones': len(targets), 'Fps': scene_fps, 'Duration': clip.get('Duration', (clip['Frames']-1)/clip['Fps']), 'Retargeting': 'Authored local rotations; target bone lengths; source translation modes; accessory rest deltas'})
+        if clip.get('Loop'):
+            action['Loop'] = True
+            action['LoopDuration'] = clip['Duration']
+            action['PlaybackFrames'] = round(clip['Duration']*scene_fps)
+            action['Traversal'] = bool(clip.get('Traversal'))
+            action['SeamBlendSeconds'] = min((clip['Frames']-1)//3,max(3,round(.15*scene_fps)))/scene_fps if clip['Frames']>=8 else 0
+            action.use_frame_range = True; action.frame_start = 1; action.frame_end = times[-1]
+            for layer in action.layers:
+                for strip in layer.strips:
+                    for bag in strip.channelbags:
+                        for curve in bag.fcurves:
+                            cycle = curve.modifiers.new('CYCLES')
+                            if clip.get('Traversal') and 'pose.bones["root"].location' in curve.data_path:
+                                cycle.mode_before = cycle.mode_after = 'REPEAT_OFFSET'
+        actions.append({'Name': action.name, 'Frames': clip['Frames'], 'MatchedBones': len(targets), 'Fps': scene_fps, 'Duration': clip.get('Duration', (clip['Frames']-1)/clip['Fps']), 'Loop': bool(clip.get('Loop')), 'PlaybackFrames': round(clip['Duration']*scene_fps) if clip.get('Loop') else clip['Frames'], 'ClosureKey': bool(clip.get('Loop')), 'Retargeting': 'Authored local rotations; target bone lengths; source translation modes; accessory rest deltas'})
     if not actions:
         raise ValueError('No animation actions were created')
     # Montages can list a brief introduction before the actual dance. Retain
@@ -130,7 +176,7 @@ def apply_animation(rig, data):
     scene.render.fps = round(first['Fps'])
     scene.render.fps_base = round(first['Fps']) / first['Fps']
     scene.frame_start = 1
-    scene.frame_end = math.ceil(first['Duration']*scene_fps - 1e-3)+1
+    scene.frame_end = max(1,round(first['Duration']*scene_fps)) if first['Loop'] else math.ceil(first['Duration']*scene_fps - 1e-3)+1
     scene.frame_set(1)
     rig['Rig type'] = 'Retargeted emote actions on source deformation bones'
     return actions

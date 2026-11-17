@@ -50,8 +50,12 @@ if kind in {'FBX', 'OBJ'}:
 if kind in {'GLB', 'GLTF'}:
     bpy.ops.export_scene.gltf(filepath=path, export_format='GLB' if kind == 'GLB' else 'GLTF_SEPARATE',
         use_selection=True, export_animations=animate, export_animation_mode='ACTIVE_ACTIONS',
-        export_cameras=False, export_lights=False, export_apply=True, export_image_format='AUTO')
+        export_cameras=False, export_lights=False, export_apply=True, export_image_format='AUTO',
+        export_frame_range=False, export_extras=True, export_anim_slide_to_zero=True)
 elif kind == 'FBX':
+    # Keep the closure key in interchange data while Blender playback excludes it.
+    if animate:
+        scene.frame_end = max(scene.frame_end, max((round(o.animation_data.action.frame_range[1]) for o in objects if o.animation_data and o.animation_data.action), default=scene.frame_end))
     bpy.ops.export_scene.fbx(filepath=path, use_selection=True, object_types={'MESH', 'ARMATURE'},
         add_leaf_bones=False, path_mode='COPY', embed_textures=True, bake_anim=animate,
         bake_anim_use_all_actions=False, bake_anim_use_nla_strips=False, bake_anim_simplify_factor=0.0,

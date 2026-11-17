@@ -70,6 +70,12 @@ internal static class UiDiagnostics
             }
             finally { File.Delete(indexFixture); }
 			window.Show();
+            var studioTypeface = new Typeface(window.FontFamily,window.FontStyle,window.FontWeight,window.FontStretch);
+            if(!studioTypeface.TryGetGlyphTypeface(out var studioGlyphs) || !studioGlyphs.FamilyNames.Values.Any(n=>n.Contains("Manrope",StringComparison.OrdinalIgnoreCase)))
+                throw new Exception("Bundled Manrope font did not resolve; studio typography would fall back.");
+            if(window.Background is not SolidColorBrush studioBackground || studioBackground.Color!=Color.FromRgb(18,18,18))
+                throw new Exception("Studio charcoal palette was not applied.");
+
             ((ListBox)window.FindName("GameSelector")).SelectedIndex = 0;
 			await Task.Delay(500);
 			((TabControl)window.FindName("WorkspaceTabs")).SelectedIndex = 1;
