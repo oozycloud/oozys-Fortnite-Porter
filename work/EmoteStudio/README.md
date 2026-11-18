@@ -4,8 +4,8 @@ The animation editor inside oozy’s porter studio. Import a rigged Blender mode
 
 ## Getting started
 
-1. Run **oozys-Porter-Studio-Installer (beta 0.9.0).exe** and choose an installation folder. The installer offers Repair for an existing copy and Update for an older version.
-2. Open **oozys-Porter-Studio (beta 0.9.0).exe** and choose **Emote Studio** at the top.
+1. Run **oozys-Porter-Studio-Installer (beta 0.10.0).exe** and choose an installation folder. The installer offers Repair for an existing copy and Update for an older version.
+2. Open **oozys-Porter-Studio (beta 0.10.0).exe** and choose **Emote Studio** at the top.
 3. Choose your rigged **.blend** model. Its textures should already be packed or available at the paths stored in the Blender file.
 4. Click **Add emotes** and select one or several Porter `.blend` emotes or Porter animation JSON files.
 5. Select an emote in the library. Use the timeline to scrub, play, pause, stop, or move one frame at a time. Drag the preview to orbit; scroll to zoom.
