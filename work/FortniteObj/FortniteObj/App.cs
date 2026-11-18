@@ -17,6 +17,13 @@ public class App : Application
 	protected override async void OnStartup(StartupEventArgs e)
 	{
 		base.OnStartup(e);
+        if(e.Args.FirstOrDefault()=="--studio-check"){
+            ShutdownMode=ShutdownMode.OnExplicitShutdown;
+            string folder=Path.GetFullPath(e.Args.ElementAtOrDefault(1)??"studio-check");Directory.CreateDirectory(folder);
+            var window=new MainWindow(checkUpdates:false){ShowInTaskbar=false};window.Show();
+            try{await window.RunMergedDiagnostics(folder,e.Args.ElementAtOrDefault(2),e.Args.Skip(3).ToArray());window.Close();if(Windows.Count!=0)throw new IOException("A hidden editor window remained after closing the shell.");Shutdown(0);}
+            catch(Exception ex){File.WriteAllText(Path.Combine(folder,"merged-error.txt"),ex.ToString());window.Close();Shutdown(1);}return;
+        }
 		if (e.Args.FirstOrDefault() == "--ui-check")
 		{
 			ShutdownMode = ShutdownMode.OnExplicitShutdown;

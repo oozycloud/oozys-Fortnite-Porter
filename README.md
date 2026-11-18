@@ -1,18 +1,22 @@
-<p align="center"><img src="docs/assets/porter.png" width="96" height="96" alt="oozy’s Fortnite Porter icon"></p>
+<p align="center"><img src="docs/assets/porter.png" width="96" height="96" alt="oozy’s porter studio icon"></p>
 
-# oozy's Fortnite Porter
+# oozy's porter studio
 
-Bring Fortnite characters, animations and props into Blender, with packed textures and editable rigs. Also export PC part models from PC Building Simulator 2 and installed Rocket League asset resources.
+Export game assets and add emotes to rigged Blender models in one desktop app. Switch between **Porter** and **Emote Studio** using the two tabs at the very top center. Includes Fortnite, PC Building Simulator 2 PC parts, and installed Rocket League asset resources.
 
 **Windows x64 · Blender workflow · Beta**
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current build: beta 0.7.1.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.7.1.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
+> **Current build: beta 0.9.0.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.9.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
-## Emote Studio companion
+## Two tools, one window
 
-[oozy’s Emote Studio](work/EmoteStudio/README.md) imports rigged `.blend` models, applies a library of exported emotes, and provides a textured 3D preview and timeline. Save `.blend`, `.glb`, `.fbx` or a portable Studio project. Its independent first version is **beta 0.0.1**; Blender runs in the background. [Release notes](docs/releases/emote-studio-beta-0.0.1.md).
+**Porter** browses supported game files and exports models, textures and animations. **Emote Studio** imports a rigged `.blend`, keeps a library of exported emotes, and previews the selected move with a timeline. Save `.blend`, `.glb`, `.fbx` or a portable Studio project. Each tab retains its state while you switch.
+
+Install **oozys-Porter-Studio-Installer (beta 0.9.0).exe**, then run **oozys-Porter-Studio (beta 0.9.0).exe**. Supporting files live in `app`. The installer recognizes earlier Porter installations for Update and preserves existing settings. Blender runs in the background for Studio processing; WebView2 powers the preview. .NET is included.
+
+[Studio workflow and rig compatibility](work/EmoteStudio/README.md) · [Merged release notes](docs/releases/beta-0.9.0.md)
 
 ## What it does
 
@@ -142,7 +146,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.7.1.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.9.0.md) for tested examples and outstanding work.
 
 ## Update checks
 

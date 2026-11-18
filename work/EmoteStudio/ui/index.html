@@ -2,20 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>oozy’s Emote Studio</title>
+<title>oozy's porter studio</title>
 <link rel="stylesheet" href="studio.css">
 <script type="importmap">{"imports":{"three":"./assets/vendor/three.module.js"}}</script>
 <script type="module" src="studio.js"></script>
 </head>
 <body>
 <header class="titlebar" id="titlebar">
-  <div class="brand" data-native-drag><span class="brand-mark" aria-hidden="true">o</span><div><h1>oozy’s Emote Studio</h1><p>a little movement. a new story.</p></div></div>
-  <div class="title-actions"><span class="version" id="version">beta 0.0.1</span><button id="open-project" class="subtle" title="Open an Emote Studio project">Open project</button><button class="caption" data-command="minimize" aria-label="Minimize">−</button><button class="caption" data-command="maximize" aria-label="Maximize or restore">□</button><button class="caption close" data-command="close" aria-label="Close">×</button></div>
+  <div class="brand" data-native-drag><span class="brand-mark" aria-hidden="true">o</span><div><h1>oozy's porter studio</h1><p>assets &amp; animation.</p></div></div>
+  <div class="title-actions"><span class="version" id="version">beta 0.9.0</span><button class="caption" data-command="minimize" aria-label="Minimize">−</button><button class="caption" data-command="maximize" aria-label="Maximize or restore">□</button><button class="caption close" data-command="close" aria-label="Close">×</button></div>
 </header>
-<div id="browser-note" class="browser-note" hidden>Open Emote Studio on your desktop to import files.</div>
+<div id="browser-note" class="browser-note" hidden>Open oozy's porter studio on your desktop to import files.</div>
 <div class="error-banner" id="error-banner" role="alert" hidden><span id="error-text"></span><button id="dismiss-error" aria-label="Dismiss error">×</button></div>
 <main class="workspace">
   <aside class="library panel" aria-label="Model and emote library">
+    <div class="library-tools"><span>emote studio</span><button id="open-project" class="subtle" title="Open a saved Studio project">Open project</button></div>
     <section class="model-section">
       <div class="section-head"><h2>your model</h2><span class="step">01</span></div>
       <button id="import-model" class="primary wide">Import a .blend model <span aria-hidden="true">↗</span></button>

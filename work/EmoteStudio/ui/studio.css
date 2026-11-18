@@ -24,3 +24,11 @@
 .warnings-section li{min-width:0;overflow-wrap:anywhere;word-break:break-word}
 .clip-facts dd{overflow-wrap:anywhere}
 @media(max-width:950px){.inspector{overflow:visible}.inspector-content{max-height:420px}.inspector .save-section{border-top:0;padding-top:0}}
+
+/* The native shell owns the shared brand, centered tool tabs and caption controls. */
+body.embedded .titlebar,body.embedded .browser-note{display:none!important}
+body.embedded .workspace{padding-top:18px}
+.library-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid #35312b;min-width:0}
+.library-tools>span{color:#b6aa93;font-size:12px;white-space:nowrap}
+.library-tools .subtle{margin:0;font-size:12px;padding:7px 9px;min-height:32px;white-space:nowrap}
+@media(max-width:1180px){.library-tools{align-items:flex-start;flex-direction:column;gap:10px;margin-bottom:18px;padding-bottom:14px}.library-tools .subtle{width:100%;text-align:left}}

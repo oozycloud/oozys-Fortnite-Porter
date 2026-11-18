@@ -3,12 +3,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 
-[assembly: AssemblyCompany("oozys-Fortnite-Porter-Installer (beta 0.8.0)")]
+[assembly: AssemblyCompany("oozys-Porter-Studio-Installer (beta 0.9.0)")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyFileVersion("0.8.0.0")]
-[assembly: AssemblyInformationalVersion("0.8.0-beta")]
-[assembly: AssemblyProduct("oozy's Fortnite Porter")]
-[assembly: AssemblyTitle("oozys-Fortnite-Porter-Installer (beta 0.8.0)")]
+[assembly: AssemblyFileVersion("0.9.0.0")]
+[assembly: AssemblyInformationalVersion("0.9.0-beta")]
+[assembly: AssemblyProduct("oozy's porter studio")]
+[assembly: AssemblyTitle("oozys-Porter-Studio-Installer (beta 0.9.0)")]
 [assembly: TargetPlatform("Windows7.0")]
 [assembly: SupportedOSPlatform("Windows7.0")]
-[assembly: AssemblyVersion("0.8.0.0")]
+[assembly: AssemblyVersion("0.9.0.0")]

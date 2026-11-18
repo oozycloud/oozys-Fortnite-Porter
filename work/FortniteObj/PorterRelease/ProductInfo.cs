@@ -4,17 +4,17 @@ namespace PorterRelease;
 
 public static class ProductInfo
 {
-	public const string Name = "oozy's Fortnite Porter";
+	public const string Name = "oozy's porter studio";
 
-	public const string Version = "beta 0.8.0";
+	public const string Version = "beta 0.9.0";
 
-	public const string NumericVersion = "0.8.0";
+	public const string NumericVersion = "0.9.0";
 
-	public const string ReleaseTag = "beta-0.8.0";
+	public const string ReleaseTag = "beta-0.9.0";
 
 	public const string Id = "oozycloud.fortnite-porter";
 
-	public const string Launcher = "oozys-Fortnite-Porter (beta 0.8.0).exe";
+	public const string Launcher = "oozys-Porter-Studio (beta 0.9.0).exe";
 
 	public const string Repository = "https://github.com/oozycloud/oozys-Fortnite-Porter";
 
@@ -26,7 +26,7 @@ public static class ProductInfo
 		{
 			if (System.Version.TryParse(version.Substring(5), out Version result))
 			{
-				return result > System.Version.Parse("0.8.0");
+				return result > System.Version.Parse("0.9.0");
 			}
 			return false;
 		}

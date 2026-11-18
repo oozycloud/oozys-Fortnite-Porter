@@ -1,6 +1,17 @@
 # Changelog
 
-Changes to **oozy's Fortnite Porter**, formerly **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
+Changes to **oozy's porter studio**, formerly **oozy's Fortnite Porter** and **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
+
+## beta 0.9.0 — 18 November 2026
+
+- Renamed the product to **oozy's porter studio**.
+- Merged Porter and Emote Studio into one window and one installer.
+- Added two tool tabs at the direct top center; each tool keeps its state while switching.
+- Kept a shared titlebar and removed the duplicate editor header.
+- Included rigged `.blend` import, multiple emotes, textured timeline preview and BLEND/GLB/FBX/project saving.
+- Updated launcher, installer, app metadata and update checks; older Porter installations remain recognized.
+
+[Release notes](docs/releases/beta-0.9.0.md).
 
 ## Unreleased
 

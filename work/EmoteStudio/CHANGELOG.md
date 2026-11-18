@@ -1,5 +1,9 @@
 # Changelog
 
+## beta 0.9.0 — 18 November 2026
+
+Merged into oozy's porter studio with a shared window, installer and top-center tool tabs. Existing Studio projects stay compatible.
+
 ## beta 0.0.1 — 18 November 2026
 
 First companion release.

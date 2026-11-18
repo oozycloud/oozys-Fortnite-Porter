@@ -101,7 +101,7 @@ public partial class MainWindow : Window, IComponentConnector
 		_startupUpdates = checkUpdates;
 		InitializeComponent();
 		Directory.CreateDirectory(AppSettings.DataFolder);
-		File.WriteAllText(_logFile, $"oozy's Fortnite Porter — {DateTime.Now}\n");
+		File.WriteAllText(_logFile, $"oozy's porter studio — {DateTime.Now}\n");
 		AppSettings appSettings = AppSettings.Load();
 		GamePath.Text = ((!string.IsNullOrWhiteSpace(appSettings.GameFolder)) ? appSettings.GameFolder : (Installation.Detect()?.Path ?? ""));
 		ExportPath.Text = appSettings.ExportFolder;
@@ -424,7 +424,7 @@ public partial class MainWindow : Window, IComponentConnector
 		{
 			Report("Could not finish: " + ex2.Message);
 			File.AppendAllText(_logFile, ex2?.ToString() + "\n");
-			MessageBox.Show(this, ex2.Message, "oozy's Fortnite Porter", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+			MessageBox.Show(this, ex2.Message, "oozy's porter studio", MessageBoxButton.OK, MessageBoxImage.Exclamation);
 			Activity.IsIndeterminate = false;
 			Activity.Value = 0.0;
 			ProgressText.Text = "Failed — see session log";

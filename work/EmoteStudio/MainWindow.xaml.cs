@@ -13,12 +13,22 @@ public sealed class ClipInfo {public string name {get;set;}="";public int frames
 public sealed class EmoteInfo {public string id{get;set;}=Guid.NewGuid().ToString("N");public string name{get;set;}="";public string path{get;set;}="";public string payload{get;set;}="";public List<ClipInfo> clips{get;set;}=[];public string[] warnings{get;set;}=[];}
 public sealed class StudioProject {public int schema{get;set;}=1;public string projectName{get;set;}="Untitled project";public string id{get;set;}=Guid.NewGuid().ToString("N");public JsonObject? model{get;set;}public string rig{get;set;}="";public List<EmoteInfo> emotes{get;set;}=[];public string? selectedEmote{get;set;}public int selectedClip{get;set;}public Dictionary<string,string> boneMap{get;set;}=[];}
 public partial class MainWindow:Window {
- const string Version="beta 0.0.1";
+ const string Version="beta 0.9.0";
  readonly string root=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"oozycloud","EmoteStudio");
  string Projects=>Path.Combine(root,"projects");string Folder=>Path.Combine(Projects,project.id);string BaseBlend=>Path.Combine(Folder,"base.blend");string SessionBlend=>Path.Combine(Folder,"session.blend");
  readonly string[] args;StudioProject project=new();JsonObject manifest=new();bool initialized,busy;string message="Import a .blend model to begin.",error="",previewUrl="",exportPath="";double progress;long revision;List<string>warnings=[];string blender="";CancellationTokenSource? operation;Process? worker;
  readonly JsonSerializerOptions json=new(){WriteIndented=true};
  [DllImport("user32.dll")]static extern bool ReleaseCapture();[DllImport("user32.dll")]static extern IntPtr SendMessageW(IntPtr h,int msg,IntPtr w,IntPtr l);
+ public Microsoft.Web.WebView2.Wpf.WebView2 StudioBrowser=>Web;
+ public Window? HostWindow {get;private set;}
+ Window DialogOwner=>HostWindow??this;
+ public TaskCompletionSource<int> DiagnosticCompletion {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
+ public FrameworkElement CreateEmbeddedContent(Window owner){
+  HostWindow=owner;Loaded-=Initialize;var content=(FrameworkElement)Content;Content=null;
+  bool started=false;content.Loaded+=(_,_)=>{if(started)return;started=true;Initialize(this,new RoutedEventArgs());};
+  owner.Closing+=(_,_)=>{operation?.Cancel();if(worker is {HasExited:false})worker.Kill(true);};
+  owner.Closed+=(_,_)=>{initialized=false;Web.Dispose();Close();};return content;
+ }
  public MainWindow(string[] arguments){InitializeComponent();args=arguments;Loaded+=Initialize;Closing+=(_,_)=>{operation?.Cancel();if(worker is {HasExited:false})worker.Kill(true);};}
  async void Initialize(object sender,RoutedEventArgs e){
   try {
@@ -29,10 +39,11 @@ public partial class MainWindow:Window {
    Web.CoreWebView2.SetVirtualHostNameToFolderMapping("studio.local",Path.Combine(AppContext.BaseDirectory,"ui"),CoreWebView2HostResourceAccessKind.Allow);
    Web.CoreWebView2.SetVirtualHostNameToFolderMapping("project.studio.local",Projects,CoreWebView2HostResourceAccessKind.Allow);
    Web.CoreWebView2.NavigationStarting+=(_,v)=>{if(!v.Uri.StartsWith("https://studio.local/",StringComparison.Ordinal))v.Cancel=true;};Web.CoreWebView2.NewWindowRequested+=(_,v)=>v.Handled=true;
+   if(HostWindow!=null)await Web.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("document.addEventListener('DOMContentLoaded',()=>document.body.classList.add('embedded'));" );
    Web.CoreWebView2.WebMessageReceived+=Receive;initialized=true;Web.Source=new Uri("https://studio.local/index.html");StartupMessage.Visibility=Visibility.Collapsed;
    if(args.Length>0&&args[0]=="--smoke-test")_ = SmokeTest();
    else if(args.Length>0&&File.Exists(args[0]))await Job(()=>ImportModel(args[0]));
-  }catch(Exception ex){StartupMessage.Text="Emote Studio could not start.\n"+ex.Message+"\nInstall Microsoft Edge WebView2 Runtime if it is missing.";File.WriteAllText(Path.Combine(root,"startup-error.txt"),ex.ToString());}
+  }catch(Exception ex){StartupMessage.Text="Emote Studio could not start.\n"+ex.Message+"\nInstall Microsoft Edge WebView2 Runtime if it is missing.";File.WriteAllText(Path.Combine(root,"startup-error.txt"),ex.ToString());DiagnosticCompletion.TrySetException(ex);}
  }
  string FindBlender(){
   string settings=Path.Combine(root,"settings.json");if(File.Exists(settings)){try{var saved=JsonNode.Parse(File.ReadAllText(settings))?["blender"]?.GetValue<string>();if(File.Exists(saved))return saved!;}catch(JsonException){}}
@@ -43,20 +54,20 @@ public partial class MainWindow:Window {
   if(!e.Source.StartsWith("https://studio.local/",StringComparison.Ordinal))return;
   try {
    var m=JsonNode.Parse(e.WebMessageAsJson)??throw new IOException("Invalid command.");string type=m["type"]?.GetValue<string>()??"";
-   if(type=="ready"){SendState();return;}if(type=="close"){Close();return;}if(type=="minimize"){WindowState=WindowState.Minimized;return;}if(type=="maximize"){WindowState=WindowState==WindowState.Maximized?WindowState.Normal:WindowState.Maximized;return;}
-   if(type=="dragWindow"){ReleaseCapture();SendMessageW(new WindowInteropHelper(this).Handle,0xA1,(IntPtr)2,IntPtr.Zero);return;}
+   if(type=="ready"){SendState();return;}if(type=="close"){DialogOwner.Close();return;}if(type=="minimize"){DialogOwner.WindowState=WindowState.Minimized;return;}if(type=="maximize"){DialogOwner.WindowState=DialogOwner.WindowState==WindowState.Maximized?WindowState.Normal:WindowState.Maximized;return;}
+   if(type=="dragWindow"){ReleaseCapture();SendMessageW(new WindowInteropHelper(DialogOwner).Handle,0xA1,(IntPtr)2,IntPtr.Zero);return;}
    if(type=="cancel"){operation?.Cancel();return;}if(busy)return;
    switch(type){
-    case "chooseBlender":var exe=new OpenFileDialog{Title="Choose blender.exe",Filter="Blender executable|blender.exe"};if(exe.ShowDialog(this)==true){blender=exe.FileName;File.WriteAllText(Path.Combine(root,"settings.json"),JsonSerializer.Serialize(new{blender}));SendState();}break;
-    case "chooseModel":var model=new OpenFileDialog{Title="Import a rigged model",Filter="Blender model|*.blend",Multiselect=false};if(model.ShowDialog(this)==true)await Job(()=>ImportModel(model.FileName));break;
-    case "addEmotes":RequireModel();var files=new OpenFileDialog{Title="Add one or more exported emotes",Filter="Exported emotes|*.blend;*.json|Blender emotes|*.blend|Porter animation data|*.json",Multiselect=true};if(files.ShowDialog(this)==true)await Job(()=>AddEmotes(files.FileNames));break;
+    case "chooseBlender":var exe=new OpenFileDialog{Title="Choose blender.exe",Filter="Blender executable|blender.exe"};if(exe.ShowDialog(DialogOwner)==true){blender=exe.FileName;File.WriteAllText(Path.Combine(root,"settings.json"),JsonSerializer.Serialize(new{blender}));SendState();}break;
+    case "chooseModel":var model=new OpenFileDialog{Title="Import a rigged model",Filter="Blender model|*.blend",Multiselect=false};if(model.ShowDialog(DialogOwner)==true)await Job(()=>ImportModel(model.FileName));break;
+    case "addEmotes":RequireModel();var files=new OpenFileDialog{Title="Add one or more exported emotes",Filter="Exported emotes|*.blend;*.json|Blender emotes|*.blend|Porter animation data|*.json",Multiselect=true};if(files.ShowDialog(DialogOwner)==true)await Job(()=>AddEmotes(files.FileNames));break;
     case "selectEmote":RequireModel();project.selectedEmote=m["id"]?.GetValue<string>();project.selectedClip=m["clipIndex"]?.GetValue<int>()??0;await Job(Preview);break;
     case "removeEmote":var id=m["id"]?.GetValue<string>();project.emotes.RemoveAll(x=>x.id==id);if(project.selectedEmote==id){project.selectedEmote=project.emotes.FirstOrDefault()?.id;project.selectedClip=0;}await Job(Compose);break;
     case "selectRig":RequireModel();project.rig=m["name"]!.GetValue<string>();project.model!["rig"]=project.rig;project.boneMap.Clear();await Job(Compose);break;
     case "mapBones":RequireModel();project.boneMap=m["mapping"]?.Deserialize<Dictionary<string,string>>()??[];await Job(Compose);break;
-    case "export":RequireModel();string format=m["format"]?.GetValue<string>()??"BLEND";if(!new[]{"BLEND","GLB","FBX"}.Contains(format))throw new IOException("Choose .blend, .glb or .fbx.");var save=new SaveFileDialog{Title="Save animated model",Filter=format+" file|*."+format.ToLowerInvariant(),DefaultExt=format.ToLowerInvariant(),FileName=project.projectName+"."+format.ToLowerInvariant(),OverwritePrompt=true};if(save.ShowDialog(this)==true)await Job(()=>Export(save.FileName,format));break;
-    case "saveProject":RequireModel();var projectFile=new SaveFileDialog{Title="Save Emote Studio project",Filter="Emote Studio project|*.oozy-emotes",DefaultExt="oozy-emotes",FileName=project.projectName+".oozy-emotes",OverwritePrompt=true};if(projectFile.ShowDialog(this)==true)await Job(()=>SaveProject(projectFile.FileName));break;
-    case "openProject":var open=new OpenFileDialog{Title="Open Emote Studio project",Filter="Emote Studio project|*.oozy-emotes"};if(open.ShowDialog(this)==true)await Job(()=>OpenProject(open.FileName));break;
+    case "export":RequireModel();string format=m["format"]?.GetValue<string>()??"BLEND";if(!new[]{"BLEND","GLB","FBX"}.Contains(format))throw new IOException("Choose .blend, .glb or .fbx.");var save=new SaveFileDialog{Title="Save animated model",Filter=format+" file|*."+format.ToLowerInvariant(),DefaultExt=format.ToLowerInvariant(),FileName=project.projectName+"."+format.ToLowerInvariant(),OverwritePrompt=true};if(save.ShowDialog(DialogOwner)==true)await Job(()=>Export(save.FileName,format));break;
+    case "saveProject":RequireModel();var projectFile=new SaveFileDialog{Title="Save Emote Studio project",Filter="Emote Studio project|*.oozy-emotes",DefaultExt="oozy-emotes",FileName=project.projectName+".oozy-emotes",OverwritePrompt=true};if(projectFile.ShowDialog(DialogOwner)==true)await Job(()=>SaveProject(projectFile.FileName));break;
+    case "openProject":var open=new OpenFileDialog{Title="Open Emote Studio project",Filter="Emote Studio project|*.oozy-emotes"};if(open.ShowDialog(DialogOwner)==true)await Job(()=>OpenProject(open.FileName));break;
    }
   }catch(Exception ex){error=ex.Message;SendState();}
  }
@@ -134,6 +145,6 @@ public partial class MainWindow:Window {
    await Web.CoreWebView2.ExecuteScriptAsync("document.getElementById('play').click();");await Task.Delay(400);
    using(var shot=File.Create(Path.Combine(output,"studio.png")))await Web.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png,shot);
    File.WriteAllText(Path.Combine(output,"result.json"),JsonSerializer.Serialize(new{Success=true,Project=project,Manifest=manifest,Preview=previewUrl}));Environment.ExitCode=0;
-  }catch(Exception ex){File.WriteAllText(Path.Combine(output,"error.txt"),ex.ToString());Environment.ExitCode=1;}finally{Close();}
+  }catch(Exception ex){File.WriteAllText(Path.Combine(output,"error.txt"),ex.ToString());Environment.ExitCode=1;}finally{DiagnosticCompletion.TrySetResult(Environment.ExitCode);if(HostWindow==null)Close();}
  }
 }

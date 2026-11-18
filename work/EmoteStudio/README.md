@@ -1,11 +1,11 @@
-# oozy’s Emote Studio
+# Emote Studio — oozy's porter studio
 
-A desktop companion to oozy’s Fortnite Porter. Import a rigged Blender model, add exported emotes, and preview them before saving—without working through Blender’s interface.
+The animation editor inside oozy’s porter studio. Import a rigged Blender model, add exported emotes, and preview them before saving—without working through Blender’s interface.
 
 ## Getting started
 
-1. Run **oozys-Emote-Studio-Installer (beta 0.0.1).exe** and choose an installation folder. The installer offers Repair for an existing copy and Update for an older version.
-2. Open **oozys-Emote-Studio (beta 0.0.1).exe**.
+1. Run **oozys-Porter-Studio-Installer (beta 0.9.0).exe** and choose an installation folder. The installer offers Repair for an existing copy and Update for an older version.
+2. Open **oozys-Porter-Studio (beta 0.9.0).exe** and choose **Emote Studio** at the top.
 3. Choose your rigged **.blend** model. Its textures should already be packed or available at the paths stored in the Blender file.
 4. Click **Add emotes** and select one or several Porter `.blend` emotes or Porter animation JSON files.
 5. Select an emote in the library. Use the timeline to scrub, play, pause, stop, or move one frame at a time. Drag the preview to orbit; scroll to zoom.
