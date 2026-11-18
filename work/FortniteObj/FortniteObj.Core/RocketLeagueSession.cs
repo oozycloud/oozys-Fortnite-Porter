@@ -10,7 +10,7 @@ namespace FortniteObj.Core;
 public sealed class RocketLeagueSession
 {
     public static readonly string[] Categories = { "Cars", "Decals", "Wheels", "Goal explosions", "Boosts", "Trails", "Toppers", "Antennas", "Maps", "Balls", "Paint finishes", "Engine audio", "Banners", "Avatar borders", "Anthems" };
-    public sealed record Decal(string Id, string Name, string Package) { public override string ToString() => Name; }
+    public sealed record Decal(string Id, string Name, string Package, bool FixedColours=false, string? ImageUrl=null) { public override string ToString() => Name; }
     private sealed record Catalog(List<Cosmetic> Assets, Dictionary<string,List<Decal>> Styles, string[] Warnings);
     private Dictionary<string,List<Decal>> _styles = new();
     private List<Cosmetic> _assets = new();
@@ -59,6 +59,17 @@ public sealed class RocketLeagueSession
             _assets=catalog.Assets;_styles=catalog.Styles;Warnings=catalog.Warnings;progress.Report($"Loaded {catalog.Assets.Count:N0} Rocket League assets.");return catalog.Assets;
         } finally { Directory.Delete(stage,true); }
     }
+    public static async Task<string?> Thumbnail(Cosmetic asset,CancellationToken ct=default){
+        string key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(asset.ObjectPath)))[..24];
+        string stage=Path.Combine(Cache,"thumbnails",key);Directory.CreateDirectory(stage);string image=Path.Combine(stage,"preview.png");if(File.Exists(image))return image;
+        string result=Path.Combine(stage,"thumbnail-result.json"),request=Path.Combine(stage,"thumbnail-request.json");
+        if(File.Exists(result)){using var previous=JsonDocument.Parse(await File.ReadAllTextAsync(result));if(previous.RootElement.TryGetProperty("Image",out var missing)&&missing.ValueKind==JsonValueKind.Null)return null;}
+        await File.WriteAllTextAsync(request,JsonSerializer.Serialize(new{Action="thumbnail",Asset=asset,Output=stage,Cache,Result=result}));
+        using var timeout=CancellationTokenSource.CreateLinkedTokenSource(ct);timeout.CancelAfter(TimeSpan.FromMinutes(2));
+        await Run(Path.Combine(AppContext.BaseDirectory,"unity-runtime","python.exe"),new[]{"-X","utf8","-u",Script("rocketleague_assets.py"),request},new Progress<string>(),timeout.Token);
+        return File.Exists(image)?image:null;
+    }
+
     public async Task<ExportResult> Export(Cosmetic asset,string style,AppSettings settings,IProgress<string> progress,CancellationToken ct, RocketAppearance? appearance=null, bool preview=false)
     {
         appearance ??= new RocketAppearance();appearance.Validate();
@@ -75,7 +86,7 @@ public sealed class RocketLeagueSession
         string destination=Path.Combine(root,name+"_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+"_"+Guid.NewGuid().ToString("N")[..6]);
         try {
             string resultPath=Path.Combine(stage,"export-report.json"),request=Path.Combine(stage,"request.json");
-            await File.WriteAllTextAsync(request,JsonSerializer.Serialize(new {Action="export",Asset=asset,Decal=decal,Appearance=appearance,Wheel=wheel,Preview=preview,Output=stage,Name=name,Cache,Result=resultPath}),ct);
+            await File.WriteAllTextAsync(request,JsonSerializer.Serialize(new {Action="export",Asset=asset,Decal=decal,Appearance=appearance,Wheel=wheel,Preview=preview,TextureLimit=settings.TextureSizeLimit,Output=stage,Name=name,Cache,Result=resultPath}),ct);
             progress.Report("Reading Rocket League: "+asset.Name);
             await Run(Script(Path.Combine("unity-runtime","python.exe")),new[]{"-X","utf8","-u",Script("rocketleague_assets.py"),request},progress,ct);
             using(var report=JsonDocument.Parse(await File.ReadAllTextAsync(resultPath,ct))) if(report.RootElement.GetProperty("Meshes").GetInt32()>0 || (report.RootElement.TryGetProperty("HasEffectTimeline",out var timeline) && timeline.GetBoolean())) {

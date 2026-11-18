@@ -2,6 +2,18 @@
 
 Changes to **oozy's porter studio**, formerly **oozy's Fortnite Porter** and **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
 
+## beta 0.10.0 — 18 November 2026
+
+- Replaced library rows with a virtualized image-card gallery and two-line model names.
+- Moved styles, format selection, output, live progress and cancellation into an in-app export overlay.
+- Preserved batch selection and exact website ID lookup; removed combined skin + emote mode from Porter.
+- Connected real Fortnite/PC-part artwork and native Rocket League thumbnail extraction with a persistent decoded-image cache.
+- Added independent move, steer and roll controls at all four named wheel mounts, with mounted tyre/rim/effect assemblies following each corner.
+- Fixed team-decal material selection, legacy packed-mask colours and modern full-colour liveries; baked static paint and surface maps for exchange formats.
+- Verified Octane Dignitas, Fennec Dignitas 2024, Octane NRG, default blue paint, wheel transforms and GLB paint texture references.
+
+[Release notes](docs/releases/beta-0.10.0.md).
+
 ## beta 0.9.0 — 18 November 2026
 
 - Renamed the product to **oozy's porter studio**.

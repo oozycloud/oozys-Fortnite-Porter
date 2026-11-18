@@ -100,6 +100,7 @@ public partial class MainWindow : Window, IComponentConnector
 		_updateHttp = updateHttp ?? new HttpClient();
 		_startupUpdates = checkUpdates;
 		InitializeComponent();
+        PreviewKeyDown+=GalleryKeys;AssetArtwork.Lifetime=_lifetime.Token;AssetArtwork.RenderFallback=a=>ModelCardRenderer.Render(a,_lifetime.Token);
 		Directory.CreateDirectory(AppSettings.DataFolder);
 		File.WriteAllText(_logFile, $"oozy's porter studio — {DateTime.Now}\n");
 		AppSettings appSettings = AppSettings.Load();
@@ -516,108 +517,24 @@ public partial class MainWindow : Window, IComponentConnector
         finally { _scanning = false; SetBusy(_operation != null); }
 	}
 
-	private async void Export_Click(object sender, RoutedEventArgs e)
-	{
-		if (!IsFortnite) { await ExportUnitySelection(); return; }
-		bool sceneMode = SceneMode.IsChecked == true;
-		Cosmetic[] skins = _selectedSkins.ToArray();
-		Cosmetic[] emotes = _selectedEmotes.ToArray();
-		Cosmetic[] assets = CosmeticsGrid.SelectedItems.OfType<Cosmetic>().ToArray();
-		Dictionary<string, string> styles;
-		if (sceneMode && (skins.Length == 0 || emotes.Length == 0))
-		{
-			MessageBox.Show(this, "Choose at least one skin and one emote in the separate lists.", "Scene setup", MessageBoxButton.OK, MessageBoxImage.Asterisk);
-		}
-		else
-		{
-			if (!sceneMode && assets.Length == 0)
-			{
-				return;
-			}
-			string sceneName = SceneName.Text.Trim();
-			bool savePng = SavePng.IsChecked == true;
-			styles = new Dictionary<string, string>(_selectedStyles, StringComparer.OrdinalIgnoreCase);
-			await Run(async (AppSettings settings, IProgress<string> progress, CancellationToken ct) =>
-			{
-				List<ExportResult> results = new List<ExportResult>();
-				if (sceneMode)
-				{
-					Cosmetic[] array = skins;
-					foreach (Cosmetic skin in array)
-					{
-						Cosmetic[] array2 = emotes;
-						foreach (Cosmetic emote in array2)
-						{
-							ct.ThrowIfCancellationRequested();
-							List<ExportResult> list = results;
-							list.Add(await Task.Run(() => _session.ExportScene(skin, emote, settings.ExportFolder, sceneName, progress, ct, StyleFor(skin), settings.OnlyBlend, settings.MatteMaterials, settings.AnimationFps, StyleFor(emote)), ct));
-							if (savePng)
-							{
-								List<ExportResult> list2 = results;
-								list = list2;
-								int index = list2.Count - 1;
-								list[index] = await Task.Run(() =>
-								{
-									GameSession session = _session;
-									Cosmetic cosmetic = skin;
-									string style = StyleFor(skin);
-									List<ExportResult> list4 = results;
-									return session.AddPreviewPng(cosmetic, style, list4[list4.Count - 1], ct);
-								}, ct);
-							}
-						}
-					}
-				}
-				else
-				{
-					Cosmetic[] array = assets;
-					foreach (Cosmetic asset in array)
-					{
-						ct.ThrowIfCancellationRequested();
-						List<ExportResult> list = results;
-						list.Add(await Task.Run(() => _session.Export(asset, settings.ExportFolder, progress, ct, StyleFor(asset), settings.OnlyBlend, settings.MatteMaterials, settings.AnimationFps), ct));
-						if (savePng)
-						{
-							List<ExportResult> list2 = results;
-							list = list2;
-							int j = list2.Count - 1;
-							list[j] = await Task.Run(() =>
-							{
-								GameSession session = _session;
-								Cosmetic cosmetic = asset;
-								string style = StyleFor(asset);
-								List<ExportResult> list4 = results;
-								return session.AddPreviewPng(cosmetic, style, list4[list4.Count - 1], ct);
-							}, ct);
-						}
-					}
-				}
-				for (int i = 0; i < results.Count; i++)
-                    results[i] = await ExchangeExport.Create(results[i], settings, progress, ct);
-                List<ExportResult> list3 = results;
-				ExportResult exportResult = list3[list3.Count - 1];
-				_lastExport = exportResult.Folder;
-				Report(sceneMode ? $"Exported {results.Count} scene combination(s)." : $"Exported {results.Count} asset(s).");
-				foreach (string item in results.SelectMany((ExportResult x) => x.Warnings))
-				{
-					File.AppendAllText(_logFile, "WARNING: " + item + "\n");
-				}
-				bool flag = Directory.EnumerateFiles(exportResult.Folder, "*.blend", SearchOption.AllDirectories).Any();
-				string text = ((!flag) ? "No Blender file was produced. Check the export report and session log for details." : (sceneMode ? "Open a scene .blend file and press Space in Blender to play the emote on its skin." : (assets.Any((Cosmetic x) => x.Category == "Animations") ? "In Blender, select your exported skin, open the Porter sidebar and choose Apply exported emote. Select this emote's .blend file. Install the Blender tools from Settings first; Ctrl+P is not needed." : (assets.Any((Cosmetic x) => x.Category == "Skyboxes") ? "Open the Blender skybox scene and use it as a backdrop." : ((assets.Any((Cosmetic x) => x.Category == "Pickaxes") && File.Exists(Path.Combine(exportResult.Folder, "fx-report.json"))) ? "Open the .blend file and scrub frames 1–24 to preview the pickaxe effects." : "Open the .blend file to view textures and pose the rig. In Pose Mode, select a bone and press R. For cloth pins and attachment points, open Physics setup.txt in Blender's Text Editor.")))));
-				int num = results.Sum((ExportResult x) => x.Warnings.Length);
-				if (num > 0)
-				{
-					text += $"\n\n{num} export warning(s). Open the session log for details.";
-				}
-				if (settings.ExportFormat is not ("BLEND" or "SOURCE")) text = ExchangeExport.Hint(settings.ExportFormat) + "\n\nFind the exported files in the " + settings.ExportFormat + " subfolder.";
-                MessageBox.Show(this, $"Saved {results.Count} export(s). Last folder:\n{exportResult.Folder}\n\n" + text, flag ? "Export complete" : "Export needs attention", MessageBoxButton.OK, flag ? MessageBoxImage.Asterisk : MessageBoxImage.Exclamation);
-			});
-		}
-		string StyleFor(Cosmetic asset)
-		{
-			return styles.GetValueOrDefault(asset.Id, "Default");
-		}
-	}
+    private async void Export_Click(object sender,RoutedEventArgs e){
+        if(!IsFortnite){await ExportUnitySelection();return;}
+        var assets=CosmeticsGrid.SelectedItems.OfType<Cosmetic>().ToArray();if(assets.Length==0)return;
+        var styles=new Dictionary<string,string>(_selectedStyles,StringComparer.OrdinalIgnoreCase);bool savePng=SavePng.IsChecked==true;
+        await Run(async(settings,progress,ct)=>{
+            var results=new List<ExportResult>();
+            foreach(var asset in assets){ct.ThrowIfCancellationRequested();string style=styles.GetValueOrDefault(asset.Id,"Default");
+                var result=await Task.Run(()=>_session.Export(asset,settings.ExportFolder,progress,ct,style,settings.OnlyBlend,settings.MatteMaterials,settings.AnimationFps),ct);
+                if(savePng)result=await Task.Run(()=>_session.AddPreviewPng(asset,style,result,ct),ct);
+                results.Add(await ExchangeExport.Create(result,settings,progress,ct));
+            }
+            var last=results.Last();_lastExport=last.Folder;Report($"Exported {results.Count} asset(s).");
+            foreach(string warning in results.SelectMany(r=>r.Warnings))File.AppendAllText(_logFile,"WARNING: "+warning+"\n");
+            string hint=assets.Any(x=>x.Category=="Animations")?"Use the Emote Studio tab to apply exported emotes to a rigged .blend model.":"Your export is ready in the output folder.";
+            int warnings=results.Sum(r=>r.Warnings.Length);if(warnings>0)hint+=$"\n\n{warnings} export warning(s). Open the session log for details.";
+            MessageBox.Show(this,$"Saved {results.Count} export(s). Last folder:\n{last.Folder}\n\n"+hint,"Export complete",MessageBoxButton.OK,MessageBoxImage.Information);
+        });
+    }
 
 	private void RefreshFilter()
 	{
@@ -691,6 +608,7 @@ public partial class MainWindow : Window, IComponentConnector
 		}
 		Cosmetic[] array = CosmeticsGrid.SelectedItems.OfType<Cosmetic>().ToArray();
 		Cosmetic cosmetic = array.LastOrDefault();
+        UpdateCardSelection(cosmetic,array.Length);
 		TextBlock selectionTitle = SelectionTitle;
 		string text;
 		if (array.Length != 0)
@@ -847,6 +765,7 @@ public partial class MainWindow : Window, IComponentConnector
 
 	private void Mode_Changed(object sender, RoutedEventArgs e)
 	{
+        if(_loaded && SceneMode.IsChecked==true){SingleMode.IsChecked=true;return;}
 		if (!_loaded)
 		{
 			return;
@@ -966,7 +885,7 @@ public partial class MainWindow : Window, IComponentConnector
 
 	private void Style_Changed(object sender, SelectionChangedEventArgs e)
 	{
-		if(IsRocketLeague) { if(_rocketPreviewImage!=null)_rocketPreviewImage.Source=null; if(_rocketPreviewStatus!=null)_rocketPreviewStatus.Text="Decal changed. Generate an updated preview."; if(!_updatingStyles && _styleAsset != null && StyleSelector.SelectedItem is RocketLeagueSession.Decal decal) {_selectedStyles[_styleAsset.Id]=decal.Id;if(_rocketAppearances.TryGetValue(_styleAsset.Id,out var appearance))appearance.DecalId=decal.Id;SaveAppearanceSettings();} return; }
+		if(IsRocketLeague) { if(_rocketPreviewImage!=null)_rocketPreviewImage.Source=null; if(_rocketPreviewStatus!=null)_rocketPreviewStatus.Text="Decal changed. Generate an updated preview."; if(!_updatingStyles && _styleAsset != null && StyleSelector.SelectedItem is RocketLeagueSession.Decal decal) {_selectedStyles[_styleAsset.Id]=decal.Id;if(_rocketAppearances.TryGetValue(_styleAsset.Id,out var appearance))appearance.DecalId=decal.Id;SaveAppearanceSettings();if(OverlayThumbnail.Asset?.Id==_styleAsset.Id)OverlayThumbnail.Refresh();BuildRocketAppearance(_styleAsset);} return; }
         if (!_updatingStyles && (object)_styleAsset != null && StyleSelector.SelectedItem is StyleChoice styleChoice)
 		{
 			_selectedStyles[_styleAsset.Id] = styleChoice.Name;

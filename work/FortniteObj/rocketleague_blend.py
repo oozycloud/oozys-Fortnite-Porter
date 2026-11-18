@@ -76,6 +76,7 @@ if q.get('Wheel'):
   locals={o:(o.matrix_local.copy() if o.parent in wheelobjects else o.matrix_world.copy()) for o in wheelobjects}
   for i,bone in enumerate(mounts):
    anchor=bpy.data.objects.new('Wheel '+bone.name,None);bpy.context.scene.collection.objects.link(anchor)
+   anchor['RocketWheelMount']=bone.name
    anchor.matrix_world=rig.matrix_world@Matrix.Translation(bone.head_local)@Matrix.Rotation(math.pi if bone.head_local.y>0 else 0,4,'Z')
    copies={o:o if i==0 else o.copy() for o in wheelobjects}
    if i:
@@ -99,6 +100,10 @@ for obj in bpy.data.objects:
  if obj.type=='ARMATURE':
   for bone in obj.pose.bones:bone.custom_shape=None
 for widget in widgets:bpy.data.objects.remove(widget,do_unlink=True)
+car_control_rig=None
+if asset['Category']=='Cars' and appearance.get('RigWheels',True):
+ from rocketleague_car_rig import build
+ car_control_rig=build(bpy,warnings)
 particlecount=0
 if effectpath.exists():
  from rocketleague_particles import bake
@@ -131,33 +136,8 @@ for mat in list(bpy.data.materials):
  shader.inputs['Roughness'].default_value=.42
  isbody=asset['Category']=='Cars' and re.search('body|paint',mat.name,re.I) and not re.search('chassis',mat.name,re.I)
  if isbody:
-  if liveryfile:diffuse=tex(liveryfile.stem);links.new(diffuse.outputs['Color'],shader.inputs['Base Color']);mat['RocketLeagueLivery']=liveryfile.name
-  mix=nodes.new('ShaderNodeMixRGB');mix.blend_type='MIX';mix.inputs[0].default_value=0;mix.inputs[1].default_value=primary;mix.inputs[2].default_value=secondary
-  mask=None
-  if skinfile:
-   skintex=tex(skinfile.stem,True);mask=skintex.outputs['Alpha'];links.new(mask,mix.inputs[0]);mat['RocketLeagueDecal']=q['Decal']['Name'];mat['DecalMask']=skinfile.name
-  elif q.get('Decal'):
-   from rocketleague_shader import animated_mask
-   mask=animated_mask(mat,images,folder,bpy)
-   if mask:links.new(mask,mix.inputs[0]);mat['RocketLeagueDecal']=q['Decal']['Name']
-  if diffuse and not liveryfile:
-   shaded=nodes.new('ShaderNodeMixRGB');shaded.blend_type='MULTIPLY';shaded.inputs[0].default_value=1;links.new(diffuse.outputs['Color'],shaded.inputs[1]);links.new(mix.outputs[0],shaded.inputs[2]);links.new(shaded.outputs[0],shader.inputs['Base Color'])
-  elif not liveryfile:links.new(mix.outputs[0],shader.inputs['Base Color'])
-  finishes={'Glossy':(.23,.05),'Matte':(.83,0),'Metallic':(.27,.7),'Pearlescent':(.22,.22),'Anodized':(.2,.85),'Anodized Pearl':(.2,.85),'Brushed Metal':(.38,.85),'Carbon Fiber':(.35,.5)}
-  first=appearance.get('PrimaryFinish','Glossy');second=appearance.get('SecondaryFinish','Glossy');r1,m1=finishes.get(first,finishes['Glossy']);r2,m2=finishes.get(second,finishes['Glossy'])
-  for slot,a,b in [('Roughness',r1,r2),('Metallic',m1,m2)]:
-   if mask:
-    value=nodes.new('ShaderNodeMapRange');value.inputs['From Min'].default_value=0;value.inputs['From Max'].default_value=1;value.inputs['To Min'].default_value=a;value.inputs['To Max'].default_value=b;links.new(mask,value.inputs['Value']);links.new(value.outputs[0],shader.inputs[slot])
-   else:shader.inputs[slot].default_value=a
-  if 'Pearl' in first or first=='Pearlescent':shader.inputs['Iridescence Weight'].default_value=.6;shader.inputs['Iridescence Thickness'].default_value=400
-  if first in ['Carbon Fiber','Brushed Metal']:
-   coords=nodes.new('ShaderNodeTexCoord');noise=nodes.new('ShaderNodeTexNoise');noise.inputs['Scale'].default_value=150 if first=='Carbon Fiber' else 350;links.new(coords.outputs['Generated'],noise.inputs['Vector']);bump=nodes.new('ShaderNodeBump');bump.inputs['Strength'].default_value=.08;bump.inputs['Distance'].default_value=.001;links.new(noise.outputs['Fac'],bump.inputs['Height']);links.new(bump.outputs[0],shader.inputs['Normal'])
-  if appearance.get('BodyPaint') in paints:
-   blankname=values.get('Diffuse','').removesuffix('_D')+'_BlankSkin'
-   if blankname.casefold() in images:
-    blank=tex(blankname,True);regions=nodes.new('ShaderNodeSeparateColor');links.new(blank.outputs['Color'],regions.inputs[0]);used=nodes.new('ShaderNodeMath');used.operation='ADD';links.new(regions.outputs['Red'],used.inputs[0]);links.new(regions.outputs['Blue'],used.inputs[1]);trim=nodes.new('ShaderNodeMath');trim.operation='SUBTRACT';trim.use_clamp=True;trim.inputs[0].default_value=1;links.new(used.outputs[0],trim.inputs[1]);tint=nodes.new('ShaderNodeMixRGB');links.new(trim.outputs[0],tint.inputs[0]);links.new(shader.inputs['Base Color'].links[0].from_socket,tint.inputs[1]);tint.inputs[2].default_value=colour(paints[appearance['BodyPaint']]);links.new(tint.outputs[0],shader.inputs['Base Color']);mat['PaintVariant']=appearance['BodyPaint'];mat['PaintRegionMask']=blankname
-   else:warnings.append('This car does not expose a supported body trim mask. Its body paint tint is not reconstructed.')
-  mat['PrimaryColour']=appearance.get('Primary','#195CB8');mat['DecalColour']=appearance.get('Secondary','#EF8124');mat['PrimaryFinish']=first;mat['DecalFinish']=second
+  from rocketleague_paint import apply as apply_paint
+  apply_paint(mat,shader,images,values,skinfile,shaderdata,q,primary,secondary,paints,colour,bpy,warnings)
  # Standard wheel shaders use separate UV tiles for tyre and rim.
  wheelvalues=list(values.values());rimname=next((v for v in wheelvalues if re.search(r'^Rim(?:_.*)?_D$',v,re.I)),None);tirename=next((v for v in wheelvalues if re.search(r'^Tire(?:_.*)?_D$',v,re.I)),None)
  if rimname and tirename:
@@ -185,7 +165,7 @@ for mat in list(bpy.data.materials):
   if value.casefold() in images and value not in [values.get('Diffuse'),values.get('Normal')]:tex(value)
 if q.get('Decal'):
  warnings.append('Decal paint/shader reconstruction is simplified; source textures and parameter properties are retained.')
- if not skinfile and not any(m.get('RocketAnimatedShader') for m in bpy.data.materials):warnings.append('This decal uses a custom shader without a supported Skin mask. Its source resources are included; appearance is not reproduced.')
+ if not any(m.get('RocketLeagueDecal') for m in bpy.data.materials):warnings.append('This decal uses a custom shader without a supported Skin mask. Its source resources are included; appearance is not reproduced.')
 if effectpath.exists():
  effect=json.loads(effectpath.read_text(encoding='utf-8'))
  for source in effect['Objects']:
@@ -212,16 +192,18 @@ corners=[o.matrix_world@Vector(c) for o in meshobjects for c in o.bound_box]
 lo=Vector([min(v[i] for v in corners) for i in range(3)]);hi=Vector([max(v[i] for v in corners) for i in range(3)])
 for obj in bpy.context.scene.objects:
  obj.select_set(False)
- if obj.type in {'ARMATURE','EMPTY'}:obj.hide_set(True)
+ if obj.type in {'ARMATURE','EMPTY'} and obj!=car_control_rig:obj.hide_set(True)
 for screen in bpy.data.screens:
  for area in screen.areas:
   if area.type=='VIEW_3D':
    space=area.spaces.active;space.shading.type='MATERIAL'
    space.region_3d.view_location=(lo+hi)/2;space.region_3d.view_distance=max(max(hi-lo)*1.8,.5)
    for name in ['show_extras','show_relationship_lines','show_bones','show_floor','show_axis_x','show_axis_y','show_cursor']:
-    if hasattr(space.overlay,name):setattr(space.overlay,name,False)
+    if hasattr(space.overlay,name):setattr(space.overlay,name,name=='show_bones' and car_control_rig is not None)
+if car_control_rig:
+ car_control_rig.name=asset['Name']+' wheel rig';car_control_rig.select_set(True);bpy.context.view_layer.objects.active=car_control_rig
 bpy.ops.wm.save_as_mainfile(filepath=str(folder/(q['Name']+'.blend')))
-report=json.loads(Path(q['Result']).read_text());report['Meshes']=len(meshobjects);report['Warnings']+=warnings;report['DecalMaskApplied']=bool(skinfile);report['Appearance']=appearance;report['BakedParticles']=particlecount;report['AnimatedShader']=any(m.get('RocketAnimatedShader') for m in bpy.data.materials);report['AnimatedWheelFaces']=animatedwheelfaces;report['MountedWheels']=4 if q.get('Wheel') and len(mounts)>=4 else 0;Path(q['Result']).write_text(json.dumps(report,indent=2))
+report=json.loads(Path(q['Result']).read_text());report['Meshes']=len(meshobjects);report['Warnings']+=warnings;report['DecalMaskApplied']=bool(skinfile);report['DecalApplied']=any(m.get('RocketLeagueDecal') for m in bpy.data.materials);report['Appearance']=appearance;report['BakedParticles']=particlecount;report['AnimatedShader']=any(m.get('RocketAnimatedShader') for m in bpy.data.materials);report['AnimatedWheelFaces']=animatedwheelfaces;report['EditableWheelRig']=car_control_rig is not None;report['MountedWheels']=4 if q.get('Wheel') and len(mounts)>=4 else 0;Path(q['Result']).write_text(json.dumps(report,indent=2))
 
 if q.get('Preview'):
  scene=bpy.context.scene;visible=[o for o in scene.objects if o.type=='MESH' and not o.hide_render and o.name!='Icosphere'];corners=[o.matrix_world@Vector(c) for o in visible for c in o.bound_box]

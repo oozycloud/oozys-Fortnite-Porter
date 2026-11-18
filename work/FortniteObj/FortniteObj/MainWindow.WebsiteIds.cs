@@ -65,6 +65,7 @@ public partial class MainWindow
             RefreshStyles(matches[0]);
             CosmeticsGrid.ScrollIntoView(matches[0]);
             Status.Text = "Found " + matches[0].Name + ". Choose styles or export this asset.";
+            if(!export)OpenAssetOverlay(matches[0]);
             if (export) Export_Click(sender: ExportWebsiteIdButton, e: new RoutedEventArgs());
         }
         catch (Exception ex)

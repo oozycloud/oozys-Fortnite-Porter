@@ -14,6 +14,7 @@ public partial class MainWindow {
  private void PorterTab_Click(object sender,RoutedEventArgs e)=>SelectTool(false);
  private void StudioTab_Click(object sender,RoutedEventArgs e)=>SelectTool(true);
  private void SelectTool(bool studio,string[]? diagnosticArgs=null){
+  CloseAssetOverlay();
   if(studio&&_studioEditor==null){
    _studioEditor=new EmoteStudio.MainWindow(diagnosticArgs??Array.Empty<string>());
    StudioHost.Content=_studioEditor.CreateEmbeddedContent(this);

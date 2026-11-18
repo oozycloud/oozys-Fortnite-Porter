@@ -9,7 +9,8 @@ def export_shader(package,root,out,tools):
   props=o['Properties']
   if 'ParameterName' in props and 'DefaultValue' in props:defaults[props['ParameterName']]=props['DefaultValue']
  candidates=[o for o in p.objects.values() if o['Class']=='MaterialInstanceConstant']
- candidates.sort(key=lambda o:sum(len(o['Properties'].get(k,[])) for k in ['ScalarParameterValues','VectorParameterValues','TextureParameterValues']),reverse=True)
+ token=package.casefold().removesuffix('_sf')
+ candidates.sort(key=lambda o:(token not in o['Name'].casefold(),-sum('skin' in str(v.get('ParameterName','')).casefold() for v in o['Properties'].get('TextureParameterValues',[])),-sum(len(o['Properties'].get(k,[])) for k in ['ScalarParameterValues','VectorParameterValues','TextureParameterValues'])))
  parameters=defaults.copy();material=None
  if candidates:
   material=candidates[0]['Name']

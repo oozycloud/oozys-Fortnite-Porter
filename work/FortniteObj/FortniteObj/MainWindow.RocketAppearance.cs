@@ -19,7 +19,7 @@ public partial class MainWindow
   RocketAppearancePanel.Children.Clear();RocketAppearancePanel.Visibility=asset==null?Visibility.Collapsed:Visibility.Visible;
   if(asset==null)return;
   if(!_rocketAppearances.TryGetValue(asset.Id,out var appearance))_rocketAppearances[asset.Id]=appearance=new();
-  void changed(){if(_updatingStyles)return;SaveAppearanceSettings();if(_rocketPreviewImage!=null)_rocketPreviewImage.Source=null;if(_rocketPreviewStatus!=null)_rocketPreviewStatus.Text="Selections changed. Generate a preview to see this export.";}
+  void changed(){if(_updatingStyles)return;if(OverlayThumbnail.Asset?.Id==asset.Id)OverlayThumbnail.Refresh();SaveAppearanceSettings();if(_rocketPreviewImage!=null)_rocketPreviewImage.Source=null;if(_rocketPreviewStatus!=null)_rocketPreviewStatus.Text="Selections changed. Generate a preview to see this export.";}
   void label(string text)=>RocketAppearancePanel.Children.Add(new TextBlock{Text=text,Foreground=(Brush)FindResource("Muted"),FontSize=11,Margin=new Thickness(0,12,0,5)});
   ComboBox combo(string title,IEnumerable<string> values,string selected,Action<string> update){label(title);var c=new ComboBox{ItemsSource=values.ToArray(),SelectedItem=selected,MinWidth=160};c.SelectionChanged+=(_,_)=>{if(c.SelectedItem is string value){update(value);changed();}};RocketAppearancePanel.Children.Add(c);return c;}
   void color(string title,string selected,Action<string> update){
@@ -32,7 +32,12 @@ public partial class MainWindow
    input.TextChanged+=(_,_)=>{update(input.Text);changed();if(RocketAppearance.ValidColor(input.Text))input.BorderBrush=(Brush)FindResource("Line");else input.BorderBrush=Brushes.IndianRed;};RocketAppearancePanel.Children.Add(input);
   }
   if(asset.Category=="Cars"){
+   var wheelRig=new CheckBox{Content="Editable wheel controls",IsChecked=appearance.RigWheels,Margin=new Thickness(0,12,0,6),ToolTip="Adds move, steer and roll controls for each corner on the car's armature. Use Pose Mode in Blender."};wheelRig.Checked+=(_,_)=>{appearance.RigWheels=true;changed();};wheelRig.Unchecked+=(_,_)=>{appearance.RigWheels=false;changed();};RocketAppearancePanel.Children.Add(wheelRig);
+   int colourStart=RocketAppearancePanel.Children.Count;
    color("CAR COLOUR",appearance.Primary,x=>appearance.Primary=x);color("DECAL COLOUR",appearance.Secondary,x=>appearance.Secondary=x);
+   var chosenDecal=_rocketSession.GetDecals(asset).FirstOrDefault(d=>d.Id==_selectedStyles.GetValueOrDefault(asset.Id,"Default"));
+   if(chosenDecal?.FixedColours==true){for(int i=colourStart;i<RocketAppearancePanel.Children.Count;i++)if(RocketAppearancePanel.Children[i] is ComboBox or TextBox)RocketAppearancePanel.Children[i].IsEnabled=false;RocketAppearancePanel.Children.Add(new TextBlock{Text="This team decal uses its authored colours. Wheel paint remains editable.",TextWrapping=TextWrapping.Wrap,Foreground=(Brush)FindResource("Muted"),FontSize=12,Margin=new Thickness(0,8,0,0)});}
+
    combo("CAR FINISH",RocketAppearance.Finishes,appearance.PrimaryFinish,x=>appearance.PrimaryFinish=x);combo("DECAL FINISH",RocketAppearance.Finishes,appearance.SecondaryFinish,x=>appearance.SecondaryFinish=x);
   }
   if(asset.Category is "Cars" or "Wheels"){
@@ -61,14 +66,14 @@ public partial class MainWindow
   await Run(async(_,progress,ct)=>{
    if(status!=null)status.Text="Rendering selected appearance…";
    string cacheRoot=Path.Combine(AppSettings.DataFolder,"rl-previews");Directory.CreateDirectory(cacheRoot);
-   string key=System.Text.Json.JsonSerializer.Serialize(new{asset.Id,asset.ObjectPath,Appearance=appearance,Style=_selectedStyles.GetValueOrDefault(asset.Id,"Default"),Version="0.8.0",Stamp=File.Exists(asset.ObjectPath.Split('|')[0])?File.GetLastWriteTimeUtc(asset.ObjectPath.Split('|')[0]).Ticks:0});
+   string key=System.Text.Json.JsonSerializer.Serialize(new{asset.Id,asset.ObjectPath,Appearance=appearance,Style=_selectedStyles.GetValueOrDefault(asset.Id,"Default"),Version="0.10.0",Stamp=File.Exists(asset.ObjectPath.Split('|')[0])?File.GetLastWriteTimeUtc(asset.ObjectPath.Split('|')[0]).Ticks:0});
    string cached=Path.Combine(cacheRoot,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(key)))+".png");
-   if(File.Exists(cached)){var saved=new BitmapImage();saved.BeginInit();saved.CacheOption=BitmapCacheOption.OnLoad;saved.UriSource=new Uri(cached);saved.EndInit();saved.Freeze();if(image!=null)image.Source=saved;if(status!=null)status.Text="Preview of the selected appearance.";return;}
+   if(File.Exists(cached)){var saved=new BitmapImage();saved.BeginInit();saved.CacheOption=BitmapCacheOption.OnLoad;saved.UriSource=new Uri(cached);saved.EndInit();saved.Freeze();if(image!=null)image.Source=saved;if(OverlayThumbnail.Asset?.Id==asset.Id)OverlayThumbnail.SetPreview(saved);if(status!=null)status.Text="Preview of the selected appearance.";return;}
    var settings=new AppSettings{ExportFolder=cacheRoot,ExportFormat="BLEND"};
    var result=await _rocketSession.Export(asset,_selectedStyles.GetValueOrDefault(asset.Id,"Default"),settings,progress,ct,appearance,true);
    string path=Path.Combine(result.Folder,"preview.png");
    if(File.Exists(path)){File.Copy(path,cached,true);path=cached;}
-   if(File.Exists(path)&&image!=null){var bitmap=new BitmapImage();bitmap.BeginInit();bitmap.CacheOption=BitmapCacheOption.OnLoad;bitmap.UriSource=new Uri(path);bitmap.EndInit();bitmap.Freeze();image.Source=bitmap;if(status!=null)status.Text="Preview of the selected appearance. "+(result.Warnings.Length>0?"Some custom shader inputs are simplified.":"");}
+   if(File.Exists(path)&&image!=null){var bitmap=new BitmapImage();bitmap.BeginInit();bitmap.CacheOption=BitmapCacheOption.OnLoad;bitmap.UriSource=new Uri(path);bitmap.EndInit();bitmap.Freeze();image.Source=bitmap;if(OverlayThumbnail.Asset?.Id==asset.Id)OverlayThumbnail.SetPreview(bitmap);if(status!=null)status.Text="Preview of the selected appearance. "+(result.Warnings.Length>0?"Some custom shader inputs are simplified.":"");}
    else if(status!=null)status.Text="No model or source thumbnail is available for this package.";
    string resolved=Path.GetFullPath(result.Folder),owned=Path.GetFullPath(cacheRoot)+Path.DirectorySeparatorChar;
    if(resolved.StartsWith(owned,StringComparison.OrdinalIgnoreCase))Directory.Delete(resolved,true);

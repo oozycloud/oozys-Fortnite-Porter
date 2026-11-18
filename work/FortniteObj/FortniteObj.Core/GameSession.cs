@@ -324,23 +324,23 @@ public sealed partial class GameSession : IDisposable
                             "FortWeaponMeleeItemDefinition" => "Weapons",
                             "FortVehicleItemDefinition" => "Vehicles",
                             "BlueprintGeneratedClass" when IsBuildPackage(gameFile.Path) => "Builds",
-                            "AthenaCharacterItemDefinition" => "Skins", 
-							"AthenaPickaxeItemDefinition" => "Pickaxes", 
-							"AthenaBackpackItemDefinition" => "Back blings", 
-							"AthenaGliderItemDefinition" => "Gliders", 
-							"AthenaDanceItemDefinition" => "Animations", 
-							"AthenaEmojiItemDefinition" => "Emoticons", 
-							"AthenaSprayItemDefinition" => "Sprays", 
-							"AthenaLoadingScreenItemDefinition" => "Loading screens", 
-							"CosmeticShoesItemDefinition" => "Kicks", 
-							"AthenaItemWrapDefinition" => "Wraps", 
-							"AthenaPetCarrierItemDefinition" => "Pet carriers", 
-							"AthenaPetItemDefinition" => "Pets", 
-							"AthenaToyItemDefinition" => "Toys", 
-							"AthenaBattleBusItemDefinition" => "Battle buses", 
-							"CosmeticCompanionItemDefinition" => "Sidekicks", 
-							"FortPlaysetItemDefinition" => "Prefabs", 
-							_ => null, 
+                            "AthenaCharacterItemDefinition" => "Skins",
+							"AthenaPickaxeItemDefinition" => "Pickaxes",
+							"AthenaBackpackItemDefinition" => "Back blings",
+							"AthenaGliderItemDefinition" => "Gliders",
+							"AthenaDanceItemDefinition" => "Animations",
+							"AthenaEmojiItemDefinition" => "Emoticons",
+							"AthenaSprayItemDefinition" => "Sprays",
+							"AthenaLoadingScreenItemDefinition" => "Loading screens",
+							"CosmeticShoesItemDefinition" => "Kicks",
+							"AthenaItemWrapDefinition" => "Wraps",
+							"AthenaPetCarrierItemDefinition" => "Pet carriers",
+							"AthenaPetItemDefinition" => "Pets",
+							"AthenaToyItemDefinition" => "Toys",
+							"AthenaBattleBusItemDefinition" => "Battle buses",
+							"CosmeticCompanionItemDefinition" => "Sidekicks",
+							"FortPlaysetItemDefinition" => "Prefabs",
+							_ => null,
 						};
 						if (text == "Weapons" && (export.Name.Contains("Harvest", StringComparison.OrdinalIgnoreCase) || export.Name.Contains("Pickaxe", StringComparison.OrdinalIgnoreCase))) continue;
                         if (text != null && (!(text == "Loading screens") || export.Properties.Any((FPropertyTag p) => p.Name.Text == "BackgroundImage")) && (!(text == "Wraps") || export.Properties.Any((FPropertyTag p) => p.Name.Text == "ItemWrapMaterial")) && (!(text == "Prefabs") || JsonConvert.SerializeObject(export.Properties.Where((FPropertyTag p) => p.Name.Text == "CreativeTagsHelper")).Contains("Prefab", StringComparison.OrdinalIgnoreCase)))
@@ -1590,6 +1590,12 @@ public sealed partial class GameSession : IDisposable
             case "Vehicles":
 			case "Sprays":
 			case "Loading screens":
+            case "Builds":
+            case "Battle buses":
+            case "Pets":
+            case "Pet carriers":
+            case "Toys":
+            case "Wraps":
 				flag2 = true;
 				break;
 			default:

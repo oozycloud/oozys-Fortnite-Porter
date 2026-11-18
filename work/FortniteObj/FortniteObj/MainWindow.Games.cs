@@ -45,12 +45,13 @@ public partial class MainWindow
         GameSupportTitle.Text = IsFortnite ? "STREAMED FILES" : IsRocketLeague ? "ROCKET LEAGUE ASSETS" : "PC PART MODELS";
         GameSupportHint.Text = IsFortnite ? "Missing parts and larger textures are recovered during export when available." : IsRocketLeague ? "Car decals are filtered by known compatibility. Maps export mesh libraries; Unreal particles and gameplay are supplied as resources where supported." : "Each entry is a named PC part. Its enabled meshes stay together, with their original placement and available base-colour textures.";
         ScanButton.Content = IsFortnite ? "Scan Fortnite files" : IsRocketLeague ? "Scan Rocket League files" : "Scan PC Building Simulator 2";
-        SceneMode.Visibility = IsFortnite ? Visibility.Visible : Visibility.Collapsed;
+        SceneMode.Visibility = Visibility.Collapsed;
+        CloseAssetOverlay();
         SingleMode.IsChecked = true;
         SavePng.Visibility = IsFortnite ? Visibility.Visible : Visibility.Collapsed;
         AutoCompatibility.IsEnabled = IsFortnite;
         EngineVersion.IsEnabled = MappingPath.IsEnabled = MainKey.IsEnabled = IsFortnite;
-        CosmeticsGrid.Columns[0].Visibility = IsFortnite ? Visibility.Visible : Visibility.Collapsed;
+
         Category.SelectedIndex = 0;
         string[] categories = IsFortnite ? new[] { "Sidekicks", "Emoticons", "Prefabs" } : IsRocketLeague ? new[] { "Cars", "Goal explosions", "Balls" } : new[] { "GPUs", "Motherboards", "CPUs" };
         Button[] buttons = { GameCategory0, GameCategory1, GameCategory2 };

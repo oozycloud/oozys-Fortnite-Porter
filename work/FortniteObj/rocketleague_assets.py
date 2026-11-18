@@ -37,6 +37,7 @@ def scan(q):
   a={'Id':'RL'+p['ID'],'Name':label,'Category':slot,'ObjectPath':str(f),'PackagePath':str(root),'Availability':'Source resources' if slot in ['Goal explosions','Boosts','Trails','Engine audio','Anthems','Banners','Avatar borders','Paint finishes'] else 'Mesh and textures'}
   if slot=='Goal explosions':a['Availability']='Effect attachments and supported timelines'
   assets.append(a);products[a['Id']]=p;used.add(f.stem.lower())
+ team_tokens={re.sub('[^a-z0-9]','',p['Name'].removeprefix('ESportsTeam_').lower()) for p in meta['Products'] if p.get('Slot')=='ESportsTeam'}
  for a in [x for x in assets if x['Category']=='Cars']:
   name=a['Name'].casefold();token=products[a['Id']]['Name'].removeprefix('Body_').casefold()
   compatible=[]
@@ -44,7 +45,8 @@ def scan(q):
    p=products[d['Id']];label=d['Name'];prefix=label.split(':',1)[0].strip().casefold() if ':' in label else None
    # Car-specific labels are authoritative. Generic legacy black-market decals are universal.
    if prefix==name or (prefix is None and p['Name'].casefold().startswith('skin_'+token+'_')) or (prefix is None and p['Quality']=='Black Market' and name in {'octane','breakout','backfire','paladin','road hog','gizmo','x-devil','merc','venom','hotshot','fennec','dominus','takumi'}):
-    compatible.append({'Id':d['Id'],'Name':label,'Package':d['ObjectPath']})
+    is_team=any(len(t)>=3 and t in re.sub('[^a-z0-9]','',p['Name'].lower()) for t in team_tokens) or 'esport' in p['Name'].lower()
+    compatible.append({'Id':d['Id'],'Name':label,'Package':d['ObjectPath'],'FixedColours':is_team})
   styles[a['Id']]=sorted(compatible,key=lambda x:(x['Name'].casefold(),x['Id']))
  for m in meta['Maps']:
   f=files.get(m['Name'].lower())
@@ -130,6 +132,23 @@ def export(q):
  effectpath=out/'effect-scene.json'
  timeline=effectpath.exists() and bool(json.loads(effectpath.read_text(encoding='utf-8')).get('ParticleComponents'))
  save(q['Result'],{'Meshes':len(meshes),'Textures':len(textures),'Warnings':warnings,'ResourceOnly':not meshes and not timeline,'HasEffectTimeline':timeline})
+def thumbnail(q):
+ a=q['Asset'];root=cooked(a['PackagePath']);stage=Path(q['Output']);stage.mkdir(parents=True,exist_ok=True)
+ package=Path(a['ObjectPath'].split('|')[0])
+ if package.resolve().parent!=root:raise ValueError('Thumbnail is outside this installation.')
+ stem=re.sub('_SF$','',package.stem,flags=re.I)
+ candidate=root/(stem+'_T_SF.upk')
+ if not candidate.is_file():save(q['Result'],{'Image':None});return
+ warnings=[];cache=Path(q['Cache']);key=cache/'aes.txt'
+ if not key.exists():key=refresh_keys(cache,warnings)
+ (stage/'aes.txt').write_bytes(key.read_bytes())
+ try:
+  run(['-export','-png','-nomesh','-nostat',candidate.stem],root,stage/'images',stage/'reader.log')
+  images=list((stage/'images').rglob('*.png'))
+  if images:shutil.copy2(max(images,key=lambda p:p.stat().st_size),stage/'preview.png')
+  save(q['Result'],{'Image':str(stage/'preview.png') if images else None})
+ finally:(stage/'aes.txt').unlink(missing_ok=True)
+
 if __name__=='__main__':
  try:
   q=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8-sig'))
@@ -142,6 +161,7 @@ if __name__=='__main__':
     wheeldata=extract_wheel_effects(Path(asset['ObjectPath'].split('|')[0]).stem,root,stage,TOOLS)
     paint=any(o['Class']=='ProductAttribute_PaintSettings_TA' and any(k.startswith('MaterialGroups') for k in o['Properties']) for o in wheeldata['Objects'])
    save(q['Result'],{'Paint':paint,'PaintFinish':asset['Category']=='Cars'})
+  elif q['Action']=='thumbnail':thumbnail(q)
   elif q['Action']=='keys':
    warnings=[];refresh_keys(Path(q['Cache']),warnings,True);print('Rocket League compatibility refreshed.' if not warnings else warnings[0],flush=True)
   else:(scan if q['Action']=='scan' else export)(q)

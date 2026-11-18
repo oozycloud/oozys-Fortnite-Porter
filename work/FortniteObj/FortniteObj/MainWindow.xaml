@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window x:Class="FortniteObj.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:FortniteObj" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework" WindowStyle="None" Title="oozy's porter studio beta 0.9.0" Icon="Assets/porter.ico" Width="1500" Height="960" MinWidth="1220" MinHeight="760" Background="#121212" Foreground="#DEDBD5" FontFamily="pack://application:,,,/assets/#Manrope" FontSize="14" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+<Window x:Class="FortniteObj.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:FortniteObj" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework" WindowStyle="None" Title="oozy's porter studio beta 0.10.0" Icon="Assets/porter.ico" Width="1500" Height="960" MinWidth="1220" MinHeight="760" Background="#121212" Foreground="#DEDBD5" FontFamily="pack://application:,,,/assets/#Manrope" FontSize="14" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
   <shell:WindowChrome.WindowChrome>
     <shell:WindowChrome CaptionHeight="78" ResizeBorderThickness="6" CornerRadius="12" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
   </shell:WindowChrome.WindowChrome>
@@ -159,6 +159,17 @@
         <Setter Property="BorderBrush" Value="#DEDBD5" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Padding" Value="14,13" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+          <Border Name="MotionSurface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" TextElement.Foreground="{TemplateBinding Foreground}" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="MotionSurface" Property="Background" Value="#E9D7AE" /><Setter TargetName="MotionSurface" Property="BorderBrush" Value="#E9D7AE" /><Setter Property="Foreground" Value="#211E1A" /></Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="MotionSurface" Property="BorderBrush" Value="#9C7F48" /><Setter TargetName="MotionSurface" Property="BorderThickness" Value="2" /></Trigger>
+            <Trigger Property="IsPressed" Value="True"><Setter TargetName="MotionSurface" Property="Background" Value="#C8B58D" /><Setter TargetName="MotionSurface" Property="BorderBrush" Value="#C8B58D" /></Trigger>
+            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="MotionSurface" Property="Background" Value="#827E74" /><Setter TargetName="MotionSurface" Property="BorderBrush" Value="#827E74" /><Setter Property="Foreground" Value="#27241F" /></Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
       </Style>
       <Style x:Key="{x:Type ComboBox}" TargetType="{x:Type ComboBox}">
         <Setter Property="Background" Value="#201F1E" />
@@ -489,7 +500,7 @@
         </StackPanel>
         <Button shell:WindowChrome.IsHitTestVisibleInChrome="True" Name="UpdateNotice" Grid.ColumnSpan="4" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Bottom" MaxWidth="290" Height="23" FontSize="10" Padding="10,2" Margin="0,0,0,4" Click="OpenRelease_Click" />
         <Border Grid.Column="2" Background="#29261F" BorderBrush="#62563C" BorderThickness="1" CornerRadius="10" Padding="12,7" VerticalAlignment="Center">
-          <TextBlock Text="beta 0.9.0" FontSize="11" FontWeight="SemiBold" Foreground="#CDBB92" />
+          <TextBlock Text="beta 0.10.0" FontSize="11" FontWeight="SemiBold" Foreground="#CDBB92" />
         </Border>
         <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
           <Button Name="MinimizeButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" ToolTip="Minimize" AutomationProperties.Name="Minimize window" Click="Minimize_Click" />
@@ -500,11 +511,9 @@
     </Border>
     <Grid Name="PorterWorkspace" Grid.Row="1" Margin="18">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="290" />
-        <ColumnDefinition Width="14" />
+        <ColumnDefinition Width="260" />
+        <ColumnDefinition Width="20" />
         <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="14" />
-        <ColumnDefinition Width="350" />
       </Grid.ColumnDefinitions>
       <Border Name="LibraryShell" Grid.Column="0" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="10">
         <Grid Name="SettingsPanel">
@@ -534,7 +543,7 @@
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Name="LibraryTabContent" Margin="18,20,18,16">
                   <TextBlock Text="SOURCE" Style="{StaticResource Eyebrow}" />
-                  <TextBlock Name="GameFolderTitle" Text="Fortnite folder" Style="{StaticResource SectionTitle}" Margin="0,1,0,8" />
+                  <TextBlock Name="GameFolderTitle" Text="Fortnite folder" Style="{StaticResource SectionTitle}" TextWrapping="Wrap" LineHeight="28" Margin="0,1,0,8" />
                   <TextBlock Name="GameDescription" Text="Choose the game folder, then scan to load skins, emotes, skyboxes and prefabs." Foreground="{StaticResource Muted}" FontSize="13" LineHeight="20" />
                   <StackPanel Orientation="Horizontal" Margin="0,24,0,8">
                     <TextBlock Text="Installation folder" FontSize="14" VerticalAlignment="Center" />
@@ -652,23 +661,24 @@
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <StackPanel>
-            <TextBlock Text="LIBRARY" Style="{StaticResource Eyebrow}" />
-            <TextBlock Text="Browse assets" Style="{StaticResource SectionTitle}" Margin="0,1,0,0" />
+            <TextBlock Text="THE COLLECTION" Style="{StaticResource Eyebrow}" />
+            <TextBlock Text="Find your next model." FontSize="30" FontWeight="SemiBold" Margin="0,0,0,2" />
             <StackPanel Orientation="Horizontal" Margin="0,11,0,0">
               <Button Content="All" Tag="All assets" Padding="10,7" Click="CategoryTab_Click" />
               <Button Name="GameCategory0" Content="Sidekicks" Tag="Sidekicks" Padding="10,7" Margin="6,0,0,0" Click="CategoryTab_Click" />
               <Button Name="GameCategory1" Content="Emoticons" Tag="Emoticons" Padding="10,7" Margin="6,0,0,0" Click="CategoryTab_Click" />
               <Button Name="GameCategory2" Content="Prefabs" Tag="Prefabs" Padding="10,7" Margin="6,0,0,0" Click="CategoryTab_Click" />
             </StackPanel>
-            <TextBlock Text="Website asset ID" Foreground="{StaticResource Muted}" FontSize="12" Margin="0,14,0,6" />
-            <Grid>
+            <Expander Name="AssetIdLookup" Header="Have an asset ID?" IsExpanded="False" FontSize="12" Foreground="#BAB2A4" Margin="0,12,0,0" Background="Transparent" BorderThickness="0">
+            <Grid Margin="0,8,0,0">
               <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
               <TextBox Name="WebsiteId" MinWidth="180" MaxLength="180" FontSize="12" ToolTip="Copy an ID from the website. Find ID selects that exact asset and switches games; scan runs automatically if needed." />
               <Button Name="FindWebsiteIdButton" Grid.Column="1" Content="Find ID" Margin="6,0,0,0" Padding="10,7" Click="FindWebsiteId_Click" />
               <Button Name="ExportWebsiteIdButton" Grid.Column="2" Content="Export ID" Margin="6,0,0,0" Padding="10,7" Click="ExportWebsiteId_Click" ToolTip="Find this exact asset and export it to your output folder using the current settings. Use Find ID first to choose a style." />
             </Grid>
+            </Expander>
           </StackPanel>
-          <TextBlock Grid.Column="1" Text="Ctrl-click to select several" Foreground="#A29B92" FontSize="11" VerticalAlignment="Bottom" Margin="0,0,0,6" />
+          <Button Name="ReviewSelectionButton" Grid.Column="1" Content="Review selection →" Style="{StaticResource PrimaryButton}" VerticalAlignment="Bottom" Margin="14,0,0,0" Visibility="Collapsed" Click="ReviewSelection_Click" />
         </Grid>
         <Grid Row="1" Margin="0,0,0,12">
           <Grid.ColumnDefinitions>
@@ -706,33 +716,52 @@
             <ComboBoxItem Content="GPUs" /><ComboBoxItem Content="Motherboards" /><ComboBoxItem Content="CPUs" /><ComboBoxItem Content="Coolers" /><ComboBoxItem Content="Fans" /><ComboBoxItem Content="Cases" /><ComboBoxItem Content="RAM" /><ComboBoxItem Content="Storage" /><ComboBoxItem Content="Power supplies" /><ComboBoxItem Content="Water cooling" /><ComboBoxItem Content="Radiators" /><ComboBoxItem Content="Cables" /><ComboBoxItem Content="Fittings" />
           </ComboBox>
         </Grid>
-        <Border Grid.Row="2" Background="#1A1A19" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="10">
+        <Border Grid.Row="2" Background="#181817" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="12">
           <Grid>
-            <DataGrid Name="CosmeticsGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" SelectionUnit="FullRow" HeadersVisibility="Column" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" GridLinesVisibility="None" Background="#00FFFFFF" Foreground="#DEDBD5" BorderThickness="0" RowHeight="62" EnableRowVirtualization="True" VirtualizingPanel.VirtualizationMode="Recycling" SelectionChanged="Cosmetics_SelectionChanged">
-              <DataGrid.Columns>
-                <DataGridTemplateColumn Header="PREVIEW" Width="72">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <Border Width="46" Height="46" Background="#252422" CornerRadius="8" Margin="9,0">
-                        <Image Stretch="UniformToFill" Source="{Binding ImageUrl}" />
-                      </Border>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="NAME / ID" Width="*" MinWidth="220">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <StackPanel Margin="4,10,8,0">
-                        <TextBlock FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Text="{Binding Name}" />
-                        <TextBlock Foreground="#AAA39B" FontSize="11" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,5,0,0" Text="{Binding Id}" />
-                      </StackPanel>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="TYPE" Width="115" Binding="{Binding Category}" />
-                <DataGridTextColumn Header="AVAILABILITY" Width="145" Binding="{Binding Availability}" />
-              </DataGrid.Columns>
-            </DataGrid>
+            <ListBox Name="CosmeticsGrid" SelectionMode="Extended" SelectionChanged="Cosmetics_SelectionChanged" Background="Transparent" BorderThickness="0" Padding="6" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" AutomationProperties.Name="Model card gallery">
+              <ListBox.ItemsPanel><ItemsPanelTemplate><local:VirtualizingCardPanel ItemWidth="190" ItemHeight="248" /></ItemsPanelTemplate></ListBox.ItemsPanel>
+              <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                  <Setter Property="Width" Value="190" /><Setter Property="Height" Value="248" /><Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="0" />
+                  <Setter Property="Cursor" Value="Hand" /><Setter Property="AutomationProperties.Name" Value="{Binding Name}" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="VerticalContentAlignment" Value="Stretch" />
+                  <EventSetter Event="PreviewMouseLeftButtonUp" Handler="AssetCard_MouseUp" />
+                  <Setter Property="ToolTip"><Setter.Value><StackPanel MaxWidth="340"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" /><TextBlock Text="{Binding Category}" Margin="0,5,0,0" /><TextBlock Text="{Binding Id}" Foreground="#B7AEA0" FontSize="12" Margin="0,4,0,0" /></StackPanel></Setter.Value></Setter>
+                  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
+                    <Border Name="CardSurface" Margin="5" CornerRadius="12" BorderBrush="#35332F" BorderThickness="1" Background="#201F1D" SnapsToDevicePixels="True">
+                      <Grid>
+                        <ContentPresenter />
+                        <Border Name="SelectionMark" Width="23" Height="23" CornerRadius="7" Background="#D6C49C" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0" Visibility="Collapsed"><TextBlock Text="✓" Foreground="#242018" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                      </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                      <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="CardSurface" Property="BorderBrush" Value="#8C7850" /><Setter TargetName="CardSurface" Property="Background" Value="#28251F" /></Trigger>
+                      <Trigger Property="IsSelected" Value="True"><Setter TargetName="CardSurface" Property="BorderBrush" Value="#CCB783" /><Setter TargetName="CardSurface" Property="Background" Value="#302B22" /><Setter TargetName="SelectionMark" Property="Visibility" Value="Visible" /></Trigger>
+                      <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="CardSurface" Property="BorderBrush" Value="#F0DCB0" /><Setter TargetName="CardSurface" Property="BorderThickness" Value="2" /></Trigger>
+                      <Trigger Property="IsEnabled" Value="False"><Setter TargetName="CardSurface" Property="Opacity" Value="0.45" /></Trigger>
+                    </ControlTemplate.Triggers>
+                  </ControlTemplate></Setter.Value></Setter>
+                </Style>
+              </ListBox.ItemContainerStyle>
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <Grid Margin="0,0,0,10">
+                    <Grid.RowDefinitions><RowDefinition Height="146" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <Border Margin="8,8,8,0" Background="#252421" CornerRadius="8">
+                      <Grid>
+                        <local:AssetThumbnail x:Name="CardThumbnail" Asset="{Binding}" Margin="7" />
+                        <TextBlock Text="{Binding Status, ElementName=CardThumbnail}" FontSize="12" Foreground="#B4ADA0" LineHeight="18" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="130" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12" IsHitTestVisible="False">
+                          <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><DataTrigger Binding="{Binding Status, ElementName=CardThumbnail}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                        </TextBlock>
+                      </Grid>
+                    </Border>
+                    <StackPanel Grid.Row="1" Margin="12,8,12,0">
+                      <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="#E6E1D7" TextTrimming="CharacterEllipsis" TextWrapping="Wrap" Height="36" LineHeight="17" />
+                      <TextBlock Text="{Binding Category}" FontSize="11" Foreground="#AFA799" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,5,0,0" />
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
             <StackPanel Name="EmptyState" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="340" Margin="24" IsHitTestVisible="False">
               <TextBlock Text="＋" FontSize="42" Foreground="{StaticResource Orange}" HorizontalAlignment="Center" Margin="0,0,0,14" />
               <TextBlock Name="EmptyTitle" Text="No assets loaded" FontSize="23" FontWeight="SemiBold" TextAlignment="Center" />
@@ -746,60 +775,78 @@
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <TextBlock Name="CountLabel" Text="0 assets" Foreground="#AAA69F" FontSize="12" />
-          <TextBlock Grid.Column="1" Text="Select a row to inspect styles and export options" Foreground="#999289" FontSize="12" />
+          <TextBlock Grid.Column="1" Text="Click a card to export · Ctrl-click to select several" Foreground="#999289" FontSize="12" />
         </Grid>
       </Grid>
-      <Border Name="InspectorShell" Grid.Column="4" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="10">
+
+    </Grid>
+    <Border Name="PorterFooter" Grid.Row="2" Background="#1A1A19" BorderBrush="#34312D" BorderThickness="0,1,0,0">
+      <StackPanel>
+        <ProgressBar Name="Activity" Height="8" Margin="20,8,20,0" IsIndeterminate="False" Foreground="{StaticResource Orange}" Background="#302C24" BorderThickness="0" />
+        <TextBlock Name="ProgressText" Text="Ready" HorizontalAlignment="Right" Margin="20,3,20,0" FontSize="11" Foreground="#BDB7AE" />
+        <Grid Margin="20,6">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <Ellipse Name="StatusDot" Width="7" Height="7" Fill="{StaticResource Orange}" Margin="0,0,10,0" VerticalAlignment="Center" />
+          <TextBlock Name="Status" Grid.Column="1" Text="Ready. Choose your Fortnite folder to get started." Foreground="#BDB7AE" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+          <Button Grid.Column="2" Content="Session log ↗" Background="#00FFFFFF" BorderThickness="0" Padding="8,5" FontSize="11" Foreground="#BDB7AE" Click="Log_Click" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <Grid Name="AssetOverlay" Grid.Row="1" Grid.RowSpan="2" Visibility="Collapsed" Panel.ZIndex="20" KeyboardNavigation.TabNavigation="Cycle" FocusManager.IsFocusScope="True" AutomationProperties.Name="Asset export overlay">
+      <Border Background="#C4111111" MouseDown="OverlayBackdrop_MouseDown" />
+      <Border MaxWidth="1100" Margin="28,20" Background="#191918" BorderBrush="#5A5141" BorderThickness="1" CornerRadius="18">
+        <Border.Effect><DropShadowEffect Color="#000000" BlurRadius="36" ShadowDepth="10" Opacity="0.45" /></Border.Effect>
+        <Grid>
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+          <Border BorderBrush="#36332D" BorderThickness="0,0,0,1" Padding="24,18">
+            <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+              <StackPanel><TextBlock Text="YOUR SELECTION" FontSize="10" FontWeight="Bold" Foreground="#BDAE8A" /><TextBlock Text="Export asset" FontSize="25" FontWeight="SemiBold" Margin="0,3,0,0" /></StackPanel>
+              <Button Name="CloseOverlayButton" Grid.Column="1" Content="← Back to library" VerticalAlignment="Center" Padding="14,10" Click="CloseAssetOverlay_Click" ToolTip="Close this export view (Esc)" AutomationProperties.Name="Back to model library" />
+            </Grid>
+          </Border>
+          <Grid Grid.Row="1" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="326" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" BorderBrush="#36332D" BorderThickness="0,0,1,0" Padding="24,0,24,20">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                  <Border Background="#25231F" BorderBrush="#39362F" BorderThickness="1" CornerRadius="14" Height="286">
+                    <Grid>
+                      <local:AssetThumbnail x:Name="OverlayThumbnail" Margin="16" />
+                      <TextBlock Text="{Binding Status, ElementName=OverlayThumbnail}" FontSize="13" Foreground="#B4ADA0" LineHeight="21" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="210" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20" IsHitTestVisible="False">
+                        <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><DataTrigger Binding="{Binding Status, ElementName=OverlayThumbnail}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                      </TextBlock>
+                    </Grid>
+                  </Border>
+                  <TextBlock Name="OverlayAssetName" Text="Your selected model" FontSize="25" FontWeight="SemiBold" Margin="0,20,0,8" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding Asset.Category, ElementName=OverlayThumbnail}" Foreground="#C5B48D" FontSize="13" />
+                  <TextBlock Name="OverlayAssetId" Foreground="#A9A296" FontSize="11" TextWrapping="Wrap" Margin="0,12,0,0" />
+                  <Border BorderBrush="#37332C" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,15,0,0"><TextBlock Text="Choose the style and export settings on the right. Your library stays right where you left it." Foreground="#AAA399" FontSize="12" LineHeight="20" /></Border>
+                </StackPanel>
+              </ScrollViewer>
+            </Border>
+<Border Name="InspectorShell" Grid.Column="1" Background="Transparent" BorderThickness="0" CornerRadius="0">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
           <ScrollViewer Name="InspectorScroll" VerticalScrollBarVisibility="Auto">
-            <StackPanel Name="InspectorPanel" Margin="19">
-              <TextBlock Text="COMPOSE" Style="{StaticResource Eyebrow}" Foreground="{StaticResource OrangeLight}" />
-              <TextBlock Text="Export setup" Style="{StaticResource SectionTitle}" Margin="0,1,0,16" />
-              <StackPanel Orientation="Horizontal">
-                <RadioButton Name="SingleMode" Content="Single asset" IsChecked="True" GroupName="ExportMode" FontSize="13" Checked="Mode_Changed" />
-                <RadioButton Name="SceneMode" Content="Skin + emote" GroupName="ExportMode" FontSize="13" Checked="Mode_Changed" />
-                <Button Content="i" Style="{StaticResource InfoButton}" ToolTip="Single asset exports the selected library rows. Skin + emote lets you choose separate skin and emote lists." />
-              </StackPanel>
+            <StackPanel Name="InspectorPanel" Margin="26,10,26,18">
+              <TextBlock Text="EXPORT OPTIONS" Style="{StaticResource Eyebrow}" Foreground="{StaticResource OrangeLight}" />
+              <TextBlock Text="Export settings" FontSize="24" FontWeight="SemiBold" Margin="0,1,0,4" />
+
               <TextBlock Name="ModeHint" Text="Select one or more assets from the library." Foreground="{StaticResource Muted}" LineHeight="20" FontSize="13" Margin="0,13,0,18" />
               <StackPanel Name="AssetDetailsPanel">
                 <TextBlock Text="SELECTED ASSETS" Style="{StaticResource Eyebrow}" />
                 <TextBlock Name="SelectionTitle" Text="Nothing selected" FontSize="19" FontWeight="SemiBold" Margin="0,8,0,5" />
                 <TextBlock Name="AssetSource" Text="Choose an item from the library." Foreground="#AAA69F" FontSize="12" />
               </StackPanel>
-              <StackPanel Name="SceneSlots" Visibility="Collapsed" Margin="0,10,0,0">
-                <Border Background="#1A1A19" BorderBrush="#494135" BorderThickness="1" Padding="12" CornerRadius="9">
-                  <StackPanel>
-                    <Grid>
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition Width="Auto" />
-                      </Grid.ColumnDefinitions>
-                      <TextBlock Text="SKINS TO EXPORT" Style="{StaticResource Eyebrow}" VerticalAlignment="Center" />
-                      <Button Grid.Column="1" Content="Choose skins" Padding="9,6" FontSize="11" Click="ChooseSkin_Click" />
-                    </Grid>
-                    <ListBox Name="SceneSkinsList" SelectionMode="Extended" Height="108" Margin="0,5,0,0" DisplayMemberPath="Name" SelectionChanged="SceneSelection_Changed" />
-                    <TextBlock Name="SceneSkinLabel" Text="Nothing selected" FontSize="12" Foreground="#BDB5A8" Margin="0,7,0,0" />
-                  </StackPanel>
-                </Border>
-                <Border Background="#1A1A19" BorderBrush="#494135" BorderThickness="1" Padding="12" CornerRadius="9" Margin="0,9,0,0">
-                  <StackPanel>
-                    <Grid>
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition Width="Auto" />
-                      </Grid.ColumnDefinitions>
-                      <TextBlock Text="EMOTES TO EXPORT" Style="{StaticResource Eyebrow}" VerticalAlignment="Center" />
-                      <Button Grid.Column="1" Content="Choose emotes" Padding="9,6" FontSize="11" Click="ChooseEmote_Click" />
-                    </Grid>
-                    <ListBox Name="SceneEmotesList" SelectionMode="Extended" Height="108" Margin="0,5,0,0" DisplayMemberPath="Name" SelectionChanged="SceneSelection_Changed" />
-                    <TextBlock Name="SceneEmoteLabel" Text="Nothing selected" FontSize="12" Foreground="#BDB5A8" Margin="0,7,0,0" />
-                  </StackPanel>
-                </Border>
-              </StackPanel>
+
               <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Margin="0,20,0,18" />
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -833,10 +880,19 @@
                 <ComboBox Name="EmoteStyleSelector" ToolTip="Traversal uses the moving clip. Static traversal uses the stationary clip. This choice belongs to the selected emote." SelectionChanged="EmoteStyle_Changed" />
               </StackPanel>
               <CheckBox Name="SavePng" Content="Save preview PNG" Margin="0,12,0,0" ToolTip="Save the selected style’s source icon beside the export." />
-              <StackPanel Name="SceneNamePanel" Visibility="Collapsed" Margin="0,20,0,0">
-                <TextBlock Text="SCENE NAME" Style="{StaticResource Eyebrow}" />
-                <TextBox Name="SceneName" Text="Fortnite_Scene" Margin="0,9,0,0" />
-              </StackPanel>
+
+              <TextBlock Text="FILE FORMAT" Style="{StaticResource Eyebrow}" Margin="0,20,0,7" />
+              <ComboBox Name="OverlayExportFormat" SelectedIndex="{Binding SelectedIndex, ElementName=ExportFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Export file format">
+                <ComboBoxItem Content="Packed Blender (.blend)" />
+                <ComboBoxItem Content="Blender + OBJ source files" />
+                <ComboBoxItem Content="GLB + Blender" />
+                <ComboBoxItem Content="glTF + Blender" />
+                <ComboBoxItem Content="FBX + Blender" />
+                <ComboBoxItem Content="OBJ + Blender" />
+                <ComboBoxItem Content="STL + Blender" />
+              </ComboBox>
+              <TextBlock Text="SAVE TO" Style="{StaticResource Eyebrow}" Margin="0,18,0,6" />
+              <TextBlock Text="{Binding Text, ElementName=ExportPath}" Foreground="#C7C0B4" FontSize="12" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, ElementName=ExportPath}" />
               <Border Background="#25231F" BorderBrush="#494135" BorderThickness="1" Padding="12" Margin="0,20,0,0" CornerRadius="9">
                 <StackPanel>
                   <TextBlock Text="OUTPUT" Foreground="{StaticResource OrangeLight}" FontSize="11" FontWeight="Bold" />
@@ -845,10 +901,12 @@
               </Border>
             </StackPanel>
           </ScrollViewer>
-          <Border Grid.Row="1" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="19">
+          <Border Grid.Row="1" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="26,16">
             <StackPanel>
-              <TextBlock Text="EXPORT" Style="{StaticResource Eyebrow}" Margin="0,0,0,10" />
+
               <Button Name="ExportButton" Content="Export asset →" IsEnabled="False" Style="{StaticResource PrimaryButton}" Click="Export_Click" />
+              <ProgressBar Name="OverlayActivity" Height="4" Margin="0,8,0,0" Value="{Binding Value, ElementName=Activity}" Minimum="{Binding Minimum, ElementName=Activity}" Maximum="{Binding Maximum, ElementName=Activity}" IsIndeterminate="{Binding IsIndeterminate, ElementName=Activity}" Visibility="{Binding Visibility, ElementName=CancelButton}" Foreground="{StaticResource Orange}" Background="#302C24" BorderThickness="0" AutomationProperties.Name="Export progress" />
+              <TextBlock Name="OverlayProgressText" Text="{Binding Text, ElementName=ProgressText}" Visibility="{Binding Visibility, ElementName=CancelButton}" Foreground="#BDB7AE" FontSize="11" LineHeight="15" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="0,3,0,0" />
               <Button Name="CancelButton" Content="Cancel operation" Visibility="Collapsed" Padding="10,7" FontSize="12" Margin="0,8,0,0" Click="Cancel_Click" />
               <Button Name="OpenFolderButton" Content="Open export folder ↗" Background="#00FFFFFF" BorderThickness="0" FontSize="12" Foreground="#BDB7AE" Margin="0,6,0,0" Padding="8,7" Click="OpenFolder_Click" />
               <Button Content="Open session log ↗" Background="#00FFFFFF" BorderThickness="0" FontSize="12" Foreground="#BDB7AE" Padding="8,5" Click="Log_Click" />
@@ -856,23 +914,51 @@
           </Border>
         </Grid>
       </Border>
-    </Grid>
-    <Border Name="PorterFooter" Grid.Row="2" Background="#1A1A19" BorderBrush="#34312D" BorderThickness="0,1,0,0">
-      <StackPanel>
-        <ProgressBar Name="Activity" Height="8" Margin="20,8,20,0" IsIndeterminate="False" Foreground="{StaticResource Orange}" Background="#302C24" BorderThickness="0" />
-        <TextBlock Name="ProgressText" Text="Ready" HorizontalAlignment="Right" Margin="20,3,20,0" FontSize="11" Foreground="#BDB7AE" />
-        <Grid Margin="20,6">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
-          <Ellipse Name="StatusDot" Width="7" Height="7" Fill="{StaticResource Orange}" Margin="0,0,10,0" VerticalAlignment="Center" />
-          <TextBlock Name="Status" Grid.Column="1" Text="Ready. Choose your Fortnite folder to get started." Foreground="#BDB7AE" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-          <Button Grid.Column="2" Content="Session log ↗" Background="#00FFFFFF" BorderThickness="0" Padding="8,5" FontSize="11" Foreground="#BDB7AE" Click="Log_Click" />
+          </Grid>
         </Grid>
-      </StackPanel>
-    </Border>
+      </Border>
+    </Grid>
+    <StackPanel Name="LegacySceneControls" Visibility="Collapsed" IsHitTestVisible="False" Focusable="False">
+              <StackPanel Orientation="Horizontal">
+                <RadioButton Name="SingleMode" Content="Single asset" IsChecked="True" GroupName="ExportMode" FontSize="13" Checked="Mode_Changed" />
+                <RadioButton Name="SceneMode" Content="Skin + emote" GroupName="ExportMode" FontSize="13" Checked="Mode_Changed" />
+                <Button Content="i" Style="{StaticResource InfoButton}" ToolTip="Select a model card to configure its export." />
+              </StackPanel>
+<StackPanel Name="SceneSlots" Visibility="Collapsed" Margin="0,10,0,0">
+                <Border Background="#1A1A19" BorderBrush="#494135" BorderThickness="1" Padding="12" CornerRadius="9">
+                  <StackPanel>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="SKINS TO EXPORT" Style="{StaticResource Eyebrow}" VerticalAlignment="Center" />
+                      <Button Grid.Column="1" Content="Choose skins" Padding="9,6" FontSize="11" Click="ChooseSkin_Click" />
+                    </Grid>
+                    <ListBox Name="SceneSkinsList" SelectionMode="Extended" Height="108" Margin="0,5,0,0" DisplayMemberPath="Name" SelectionChanged="SceneSelection_Changed" />
+                    <TextBlock Name="SceneSkinLabel" Text="Nothing selected" FontSize="12" Foreground="#BDB5A8" Margin="0,7,0,0" />
+                  </StackPanel>
+                </Border>
+                <Border Background="#1A1A19" BorderBrush="#494135" BorderThickness="1" Padding="12" CornerRadius="9" Margin="0,9,0,0">
+                  <StackPanel>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="EMOTES TO EXPORT" Style="{StaticResource Eyebrow}" VerticalAlignment="Center" />
+                      <Button Grid.Column="1" Content="Choose emotes" Padding="9,6" FontSize="11" Click="ChooseEmote_Click" />
+                    </Grid>
+                    <ListBox Name="SceneEmotesList" SelectionMode="Extended" Height="108" Margin="0,5,0,0" DisplayMemberPath="Name" SelectionChanged="SceneSelection_Changed" />
+                    <TextBlock Name="SceneEmoteLabel" Text="Nothing selected" FontSize="12" Foreground="#BDB5A8" Margin="0,7,0,0" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+<StackPanel Name="SceneNamePanel" Visibility="Collapsed" Margin="0,20,0,0">
+                <TextBlock Text="SCENE NAME" Style="{StaticResource Eyebrow}" />
+                <TextBox Name="SceneName" Text="Fortnite_Scene" Margin="0,9,0,0" />
+              </StackPanel>
+    </StackPanel>
     <ContentControl Name="StudioHost" Grid.Row="1" Grid.RowSpan="2" Visibility="Collapsed" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
   </Grid>
 </Window>

@@ -162,30 +162,14 @@ internal static class UiDiagnostics
 			};
 			typeof(MainWindow).GetField("_cosmetics", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(window, list);
 			typeof(MainWindow).GetMethod("RefreshFilter", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(window, null);
-			((RadioButton)window.FindName("SceneMode")).IsChecked = true;
-			ListBox listBox = (ListBox)window.FindName("SceneSkinsList");
-			ListBox listBox2 = (ListBox)window.FindName("SceneEmotesList");
-			listBox.SelectedItems.Add(list[0]);
-			listBox.SelectedItems.Add(list[1]);
-			listBox2.SelectedItems.Add(list[2]);
-			listBox2.SelectedItems.Add(list[3]);
-			if (listBox.SelectedItems.Count != 2 || listBox2.SelectedItems.Count != 2)
-			{
-				throw new InvalidOperationException("Independent multi-selection failed.");
-			}
-			TextBox textBox = (TextBox)window.FindName("Search");
-			textBox.Text = "Emote";
-			if (listBox.SelectedItems.Count != 2 || listBox2.SelectedItems.Count != 2)
-			{
-				throw new InvalidOperationException("Searching cleared the skin/emote scene selections.");
-			}
-			ComboBox comboBox = (ComboBox)window.FindName("Category");
-			comboBox.SelectedItem = comboBox.Items.OfType<ComboBoxItem>().First((ComboBoxItem x) => (string)x.Content == "Animations");
-			if (listBox.SelectedItems.Count != 2 || listBox2.SelectedItems.Count != 2 || !((Button)window.FindName("ExportButton")).IsEnabled)
-			{
-				throw new InvalidOperationException("Switching categories lost the scene or disabled export.");
-			}
-			textBox.Text = "";
+            var cardList=(ListBox)window.FindName("CosmeticsGrid");cardList.SelectedItems.Add(list[0]);cardList.SelectedItems.Add(list[1]);
+            if(cardList.SelectedItems.Count!=2||!((Button)window.FindName("ExportButton")).IsEnabled)throw new Exception("Card batch selection failed.");
+            ((RadioButton)window.FindName("SceneMode")).IsChecked=true;
+            if(((RadioButton)window.FindName("SceneMode")).IsChecked==true)throw new Exception("Removed combined mode was re-enabled.");
+            TextBox textBox=(TextBox)window.FindName("Search");textBox.Text="Emote";
+            ComboBox comboBox=(ComboBox)window.FindName("Category");comboBox.SelectedItem=comboBox.Items.OfType<ComboBoxItem>().First(x=>(string)x.Content=="Animations");
+            cardList.SelectedItem=list[2];if(cardList.Items.Count!=2||!((Button)window.FindName("ExportButton")).IsEnabled)throw new Exception("Card filtering lost valid export state.");
+            textBox.Text="";
 			List<CosmeticStyleChannel> list2 = new List<CosmeticStyleChannel>
 			{
 				new CosmeticStyleChannel("body", "Armour", "0", new List<CosmeticStyleOption>(2)
@@ -328,7 +312,7 @@ internal static class UiDiagnostics
             var rocketCatalog=new List<Cosmetic>{new("RL-test","Test car","Cars","fixture.upk")};
             typeof(MainWindow).GetField("_cosmetics",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(window,rocketCatalog);
             typeof(MainWindow).GetMethod("RefreshFilter",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null);
-            ((DataGrid)window.FindName("CosmeticsGrid")).SelectedItem=rocketCatalog[0];
+            ((ListBox)window.FindName("CosmeticsGrid")).SelectedItem=rocketCatalog[0];
             var rocketStyles=(ComboBox)window.FindName("StyleSelector");
             if(rocketStyles.Items.Count!=2 || !rocketStyles.IsEnabled)throw new Exception("Compatible decal styles did not load for the selected car.");
             rocketStyles.SelectedIndex=1;
@@ -371,13 +355,13 @@ internal static class UiDiagnostics
             Save(window, Path.Combine(folder, "scan-navigation.png"));
             finishScan.SetResult(new List<Cosmetic> { new("scan-test", "Scan result", "Skins", "") });
             await runningScan;
-            if (((DataGrid)window.FindName("CosmeticsGrid")).Items.OfType<Cosmetic>().Any(x => x.Id == "scan-test"))
+            if (((ListBox)window.FindName("CosmeticsGrid")).Items.OfType<Cosmetic>().Any(x => x.Id == "scan-test"))
                 throw new Exception("Fortnite scan results leaked into PCBS2.");
             games.SelectedIndex = 0;
-            if (!((DataGrid)window.FindName("CosmeticsGrid")).Items.OfType<Cosmetic>().Any(x => x.Id == "scan-test"))
+            if (!((ListBox)window.FindName("CosmeticsGrid")).Items.OfType<Cosmetic>().Any(x => x.Id == "scan-test"))
                 throw new Exception("Completed scan was lost while viewing another game.");
             games.SelectedIndex = 1; games.SelectedIndex = 0;
-            if (((DataGrid)window.FindName("CosmeticsGrid")).Items.Count != 1)
+            if (((ListBox)window.FindName("CosmeticsGrid")).Items.Count != 1)
                 throw new Exception("Game switch lost cached catalogue.");
             var cancelledScan = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             Func<AppSettings, IProgress<string>, CancellationToken, Task<List<Cosmetic>>> cancellable = async (_, _, ct) =>
@@ -400,7 +384,7 @@ internal static class UiDiagnostics
             var websiteField = (TextBox)window.FindName("WebsiteId");
             websiteField.Text = " pcbs2:0123456789abcdefabcd ";
             await (Task)websiteLookup.Invoke(window, new object[] { false })!;
-            var websiteGrid = (DataGrid)window.FindName("CosmeticsGrid");
+            var websiteGrid = (ListBox)window.FindName("CosmeticsGrid");
             if (games.SelectedIndex != 1 || websiteGrid.Items.Count != 1 || (websiteGrid.SelectedItem as Cosmetic)?.Name != "Exact PC part")
                 throw new Exception("Website ID did not select exact PC part across games.");
             ((RadioButton)window.FindName("SceneMode")).IsChecked = true;
@@ -469,7 +453,8 @@ internal static class UiDiagnostics
 				DropdownRendered = true,
 				ManualUpdateNotice = true,
 				UpdatePreferenceSaved = true,
-				IndependentMultiSelection = true,
+				CardMultiSelection = true,
+                CombinedModeRemoved = true,
 				MinimumWindowSize = true,
 				IndependentStyleChannels = true,
 				DownloadProgress = true,

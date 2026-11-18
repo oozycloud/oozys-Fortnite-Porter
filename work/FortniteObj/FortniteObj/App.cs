@@ -17,6 +17,13 @@ public class App : Application
 	protected override async void OnStartup(StartupEventArgs e)
 	{
 		base.OnStartup(e);
+        if(e.Args.FirstOrDefault()=="--cards-check"){
+            ShutdownMode=ShutdownMode.OnExplicitShutdown;string folder=Path.GetFullPath(e.Args.ElementAtOrDefault(1)??"cards-check");Directory.CreateDirectory(folder);
+            string settingsFile=Path.Combine(AppSettings.DataFolder,"settings.json");byte[]? savedSettings=File.Exists(settingsFile)?File.ReadAllBytes(settingsFile):null;
+            var window=new MainWindow(checkUpdates:false){ShowInTaskbar=false};window.Show();
+            try{await window.CheckCardGallery(folder);window.Close();Shutdown(0);}catch(Exception ex){File.WriteAllText(Path.Combine(folder,"error.txt"),ex.ToString());window.Close();Shutdown(1);}
+            finally{if(savedSettings!=null)File.WriteAllBytes(settingsFile,savedSettings);else if(File.Exists(settingsFile))File.Delete(settingsFile);}return;
+        }
         if(e.Args.FirstOrDefault()=="--studio-check"){
             ShutdownMode=ShutdownMode.OnExplicitShutdown;
             string folder=Path.GetFullPath(e.Args.ElementAtOrDefault(1)??"studio-check");Directory.CreateDirectory(folder);

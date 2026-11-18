@@ -2,6 +2,7 @@ using System;
 namespace FortniteObj.Core;
 public sealed class RocketAppearance
 {
+ public bool RigWheels {get;set;}=true;
  public string DecalId {get;set;}="Default";
  public string Primary {get;set;}="#195CB8";
  public string Secondary {get;set;}="#EF8124";
