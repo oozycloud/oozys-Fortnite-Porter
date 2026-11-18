@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><AssemblyName>EmoteStudio</AssemblyName><ApplicationIcon>assets/app.ico</ApplicationIcon><Version>0.0.1</Version><FileVersion>0.0.1.0</FileVersion><InformationalVersion>beta 0.0.1</InformationalVersion><Product>oozy's Emote Studio</Product><Company>oozycloud</Company></PropertyGroup>
+  <ItemGroup><None Remove="assets/app.ico"/><Resource Include="assets/app.ico" LogicalName="assets/app.ico"/></ItemGroup>
+  <ItemGroup><PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" /></ItemGroup>
+  <ItemGroup><Content Include="ui/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/><Content Include="engine/**/*" Exclude="engine/**/__pycache__/**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/></ItemGroup>
+</Project>

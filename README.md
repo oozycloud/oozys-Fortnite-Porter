@@ -10,6 +10,10 @@ Bring Fortnite characters, animations and props into Blender, with packed textur
 
 > **Current build: beta 0.7.1.** Download the installer, portable app or source backup from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.7.1.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
+## Emote Studio companion
+
+[oozy’s Emote Studio](work/EmoteStudio/README.md) imports rigged `.blend` models, applies a library of exported emotes, and provides a textured 3D preview and timeline. Save `.blend`, `.glb`, `.fbx` or a portable Studio project. Its independent first version is **beta 0.0.1**; Blender runs in the background. [Release notes](docs/releases/emote-studio-beta-0.0.1.md).
+
 ## What it does
 
 The [website source](website/README.md) includes a dark 3D entrance, a textured Black & Gold Renegade Raider performing Scenario, with drag rotation and zoom, and a download button that checks the newest published beta installer. Run it locally with `python -m http.server 8080 --directory website`, then open `http://localhost:8080`. The catalogue has searchable cards with stable IDs, complete style combinations and source thumbnails. Paste an ID into the app to select and export that asset from your installed game files.

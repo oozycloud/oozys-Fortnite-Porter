@@ -9,3 +9,6 @@ recovery/rocketleague/
 *.blend
 *.upk
 *.tfc
+
+work/EmoteStudioInstaller/FortniteInstaller.payload.zip
+work/EmoteStudioLauncher/*.res
