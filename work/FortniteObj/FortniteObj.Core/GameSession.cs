@@ -61,6 +61,8 @@ public sealed partial class GameSession : IDisposable
 
 	public int FileCount => _provider?.Files.Count ?? 0;
 
+    internal void ResetPreviewCancellation(){if(_provider!=null){_provider.ExportCancellation=CancellationToken.None;_provider.Progress=null;}}
+
 	public static IReadOnlyList<Cosmetic> BuiltInSkyboxes { get; } = new string[5] { "Daylight", "Sunrise", "Sunset", "Overcast", "Night" }.Select((string name) => new Cosmetic("SKYBOX_" + name.ToUpperInvariant(), name + " sky", "Skyboxes", "__SKYBOX_" + name.ToUpperInvariant() + "__", "Built-in skybox")).ToArray();
 
 	public bool IsTraversalEmote(Cosmetic emote)

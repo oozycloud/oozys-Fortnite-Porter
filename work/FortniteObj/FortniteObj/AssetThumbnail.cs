@@ -22,13 +22,15 @@ public sealed class AssetThumbnail : Image {
  public static readonly DependencyProperty StatusProperty=DependencyProperty.Register(nameof(Status),typeof(string),typeof(AssetThumbnail),new PropertyMetadata("Loading preview…"));
  public static readonly DependencyProperty AllowRenderProperty=DependencyProperty.Register(nameof(AllowRender),typeof(bool),typeof(AssetThumbnail),new PropertyMetadata(false,Changed));
  public bool AllowRender{get=>(bool)GetValue(AllowRenderProperty);set=>SetValue(AllowRenderProperty,value);}
- public void Refresh()=>Load();
- public void SetPreview(BitmapSource image){request++;Source=image;Status="";}
+ bool customPreview;
+ public void SetPreviewState(string status){customPreview=true;request++;Source=null;Status=status;}
+ public void Refresh(){customPreview=false;Load();}
+ public void SetPreview(BitmapSource image){customPreview=true;request++;Source=image;Status="";}
  public Cosmetic? Asset{get=>(Cosmetic?)GetValue(AssetProperty);set=>SetValue(AssetProperty,value);}public string Status{get=>(string)GetValue(StatusProperty);private set=>SetValue(StatusProperty,value);}
  long request;
  public AssetThumbnail(){Stretch=Stretch.Uniform;Loaded+=(_,_)=>Load();Unloaded+=(_,_)=>{request++;};}
- static void Changed(DependencyObject value,DependencyPropertyChangedEventArgs e)=>((AssetThumbnail)value).Load();
- async void Load(){long revision=++request;Source=null;Status="Loading preview…";var asset=Asset;if(asset==null)return;try{var image=await AssetArtwork.Get(asset,AllowRender);if(revision!=request||Asset!=asset)return;Source=image;Status=image==null?"Source preview unavailable":"";}catch{if(revision==request)Status="Preview unavailable";}}
+ static void Changed(DependencyObject value,DependencyPropertyChangedEventArgs e){var thumbnail=(AssetThumbnail)value;if(e.Property==AssetProperty)thumbnail.customPreview=false;thumbnail.Load();}
+ async void Load(){if(customPreview)return;long revision=++request;Source=null;Status="Loading preview…";var asset=Asset;if(asset==null)return;try{var image=await AssetArtwork.Get(asset,AllowRender);if(revision!=request||Asset!=asset)return;Source=image;Status=image==null?"Source preview unavailable":"";}catch{if(revision==request)Status="Preview unavailable";}}
 }
 internal static class AssetArtwork {
  static readonly HttpClient http=new(){Timeout=TimeSpan.FromSeconds(20)};

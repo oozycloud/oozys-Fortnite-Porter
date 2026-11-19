@@ -153,7 +153,7 @@ public partial class MainWindow : Window, IComponentConnector
 			}
 			Status.Text = "Version beta 0.8.0 is ready.";
 			InstallButton.Content = "Update";
-			System.Windows.MessageBox.Show(this, "Open oozys-Porter-Studio (beta 0.13.0).exe from:\n\n" + Payload.Root(folder), "Installation complete", MessageBoxButton.OK, MessageBoxImage.Asterisk);
+			System.Windows.MessageBox.Show(this, "Open oozys-Porter-Studio (beta 0.13.1).exe from:\n\n" + Payload.Root(folder), "Installation complete", MessageBoxButton.OK, MessageBoxImage.Asterisk);
 		}
 		catch (Exception ex2)
 		{

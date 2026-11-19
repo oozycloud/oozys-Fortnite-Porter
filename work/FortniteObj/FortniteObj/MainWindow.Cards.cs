@@ -18,6 +18,7 @@ public partial class MainWindow {
   OverlayThumbnail.Asset=asset;OverlayAssetName.Text=asset?.Name??"No asset selected";OverlayAssetId.Text=asset?.Id??"";
   if(count>1)OverlayAssetName.Text=$"{count:N0} assets selected";
   if(asset==null)CloseAssetOverlay();
+  else if(AssetOverlay.Visibility==Visibility.Visible)QueueSkinPreview();
  }
  private void AssetCard_MouseUp(object sender,MouseButtonEventArgs e){if(Keyboard.Modifiers.HasFlag(ModifierKeys.Control)||Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))return;if(sender is ListBoxItem item&&item.DataContext is Cosmetic asset){if(!item.IsSelected)item.IsSelected=true;OpenAssetOverlay(asset);}}
  private void ReviewSelection_Click(object sender,RoutedEventArgs e){if(CosmeticsGrid.SelectedItems.OfType<Cosmetic>().LastOrDefault() is {} asset)OpenAssetOverlay(asset);}
@@ -27,9 +28,10 @@ public partial class MainWindow {
   OverlayThumbnail.AllowRender=true;AssetOverlay.Visibility=Visibility.Visible;PorterWorkspace.IsEnabled=false;
   Dispatcher.BeginInvoke(DispatcherPriority.Input,new Action(()=>CloseOverlayButton.Focus()));
   UiMotion.Reveal(InspectorShell,0,8);
+  QueueSkinPreview();
  }
  private void CloseAssetOverlay_Click(object sender,RoutedEventArgs e)=>CloseAssetOverlay();
  private void OverlayBackdrop_MouseDown(object sender,MouseButtonEventArgs e){if(ReferenceEquals(sender,e.OriginalSource))CloseAssetOverlay();}
- private void CloseAssetOverlay(){if(AssetOverlay==null||PorterWorkspace==null)return;bool visible=AssetOverlay.Visibility==Visibility.Visible;AssetOverlay.Visibility=Visibility.Collapsed;PorterWorkspace.IsEnabled=true;if(visible){foreach(var thumbnail in Descendants<AssetThumbnail>(CosmeticsGrid).Where(t=>t.Source==null))thumbnail.Refresh();if(_overlayReturnFocus!=null)Keyboard.Focus(_overlayReturnFocus);}}
+ private void CloseAssetOverlay(){CancelSkinPreview();if(AssetOverlay==null||PorterWorkspace==null)return;bool visible=AssetOverlay.Visibility==Visibility.Visible;AssetOverlay.Visibility=Visibility.Collapsed;PorterWorkspace.IsEnabled=true;if(visible){foreach(var thumbnail in Descendants<AssetThumbnail>(CosmeticsGrid).Where(t=>t.Source==null))thumbnail.Refresh();if(_overlayReturnFocus!=null)Keyboard.Focus(_overlayReturnFocus);}}
  private void GalleryKeys(object sender,KeyEventArgs e){if(e.Key==Key.Escape&&AssetOverlay.Visibility==Visibility.Visible){if(Descendants<ComboBox>(AssetOverlay).Any(c=>c.IsDropDownOpen))return;CloseAssetOverlay();e.Handled=true;}else if(e.Key==Key.Enter&&CosmeticsGrid.IsKeyboardFocusWithin&&CosmeticsGrid.SelectedItem is Cosmetic asset){OpenAssetOverlay(asset);e.Handled=true;}}
 }

@@ -348,6 +348,7 @@ public partial class MainWindow : Window, IComponentConnector
 		{
 			UpdateMaterialHint();
 			SaveAppearanceSettings();
+            if(ReferenceEquals(sender,MatteMaterials))QueueSkinPreview();
 		}
 	}
 
@@ -404,6 +405,7 @@ public partial class MainWindow : Window, IComponentConnector
 		SetBusy(busy: true);
 		try
 		{
+            await StopSkinPreviewAsync();
 			AppSettings appSettings = ReadSettings();
 			appSettings.Save();
 			await action(appSettings, new Progress<string>((string message) =>
@@ -438,6 +440,8 @@ public partial class MainWindow : Window, IComponentConnector
 			_operation.Dispose();
 			_operation = null;
 			SetBusy(busy: false);
+            RefreshStyles(CosmeticsGrid.SelectedItem as Cosmetic);
+            QueueSkinPreview();
 		}
 	}
 
@@ -804,8 +808,11 @@ public partial class MainWindow : Window, IComponentConnector
 		UiMotion.Reveal(SceneNamePanel, 40, 5.0);
 	}
 
-	private void RefreshStyles(Cosmetic? asset)
+	private async void RefreshStyles(Cosmetic? asset)
 	{
+        long refreshRevision=++_styleRefreshRevision;
+        await StopSkinPreviewAsync();
+        if(refreshRevision!=_styleRefreshRevision||_closingAfterPreview||_operation!=null)return;
         RocketAppearancePanel.Visibility = Visibility.Collapsed;
         if (IsRocketLeague) { RefreshRocketStyles(asset); return; }
         if (!IsFortnite)
@@ -884,6 +891,7 @@ public partial class MainWindow : Window, IComponentConnector
 		finally
 		{
 			_updatingStyles = false;
+            QueueSkinPreview();
 		}
 	}
 
@@ -893,6 +901,7 @@ public partial class MainWindow : Window, IComponentConnector
         if (!_updatingStyles && (object)_styleAsset != null && StyleSelector.SelectedItem is StyleChoice styleChoice)
 		{
 			_selectedStyles[_styleAsset.Id] = styleChoice.Name;
+            QueueSkinPreview();
 		}
 	}
 
@@ -920,6 +929,7 @@ public partial class MainWindow : Window, IComponentConnector
 				{
 					values[channel.Id] = cosmeticStyleOption.Id;
 					_selectedStyles[asset.Id] = StyleSelection.Encode(values);
+                    if(!_updatingStyles)QueueSkinPreview();
 				}
 			};
 			StackPanel stackPanel = new StackPanel();
@@ -1154,8 +1164,14 @@ public partial class MainWindow : Window, IComponentConnector
 			e.Cancel = true;
 			Report("Cancelling… close the window once the operation stops.");
 		}
+		else if(!_closingAfterPreview && _skinPreviewGate.CurrentCount==0)
+        {
+            e.Cancel=true;_closingAfterPreview=true;
+            _=CloseAfterSkinPreview();
+        }
 		else
 		{
+            CancelSkinPreview();
 			ReadSettings().Save();
 			_session.Dispose();
 		}

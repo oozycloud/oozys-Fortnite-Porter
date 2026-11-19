@@ -2,6 +2,14 @@
 
 Changes to **oozy's porter studio**, formerly **oozy's Fortnite Porter** and **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
 
+## beta 0.13.1 — 19 November 2026
+
+- Automatically render the full selected skin customization combination in the export overlay.
+- Debounce changes, cache completed previews and reject obsolete render results when selections change.
+- Keep rendering in the background with progress and error feedback.
+
+[Release notes](docs/releases/beta-0.13.1.md).
+
 ## beta 0.13.0 — 19 November 2026
 
 - Reconstruct Sabrina outfits using authored main/trim/secondary sequin gradients, masks and detail textures, with portable baked colour/roughness maps.

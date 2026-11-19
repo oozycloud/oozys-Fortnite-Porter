@@ -17,6 +17,14 @@ public class App : Application
 	protected override async void OnStartup(StartupEventArgs e)
 	{
 		base.OnStartup(e);
+        if(e.Args.FirstOrDefault()=="--customization-preview-check"){
+            ShutdownMode=ShutdownMode.OnExplicitShutdown;string folder=Path.GetFullPath(e.Args.ElementAtOrDefault(1)??"customization-preview-check");Directory.CreateDirectory(folder);
+            string settingsFile=Path.Combine(AppSettings.DataFolder,"settings.json");byte[]? savedSettings=File.Exists(settingsFile)?File.ReadAllBytes(settingsFile):null;
+            var window=new MainWindow(checkUpdates:false){ShowInTaskbar=false,ShowActivated=false,WindowStartupLocation=WindowStartupLocation.Manual,Left=-20000,Top=0};window.Show();
+            try{await window.CheckCustomizationPreview(folder,e.Args.ElementAtOrDefault(2)??"Tour-Ready Sabrina Carpenter");window.Close();Shutdown(0);}
+            catch(Exception ex){File.WriteAllText(Path.Combine(folder,"error.txt"),ex.ToString());await window.StopSkinPreviewAsync();window.Close();Shutdown(1);}
+            finally{if(savedSettings!=null)File.WriteAllBytes(settingsFile,savedSettings);else if(File.Exists(settingsFile))File.Delete(settingsFile);}return;
+        }
         if(e.Args.FirstOrDefault()=="--cards-check"){
             ShutdownMode=ShutdownMode.OnExplicitShutdown;string folder=Path.GetFullPath(e.Args.ElementAtOrDefault(1)??"cards-check");Directory.CreateDirectory(folder);
             string settingsFile=Path.Combine(AppSettings.DataFolder,"settings.json");byte[]? savedSettings=File.Exists(settingsFile)?File.ReadAllBytes(settingsFile):null;
