@@ -44,6 +44,8 @@ def apply(mat,shader,images,values,skinfile,shaderdata,q,primary,secondary,paint
  base=read(full_livery or diffuse);mask=read(maskpath,True)
  trim_data=read(blank,True) if blank and appearance.get('BodyPaint') in paints else None
  if base is None:base=np.ones((h,w,4),dtype=np.float32)
+ own_paint=any(o.get('Name')==shaderdata.get('Material') and any(v.get('ParameterName')=='PaintColor' for v in o.get('Properties',{}).get('VectorParameterValues',[])) for o in shaderdata.get('Objects',[]))
+ decal_paint_supported=bool(skinfile and not full_livery and own_paint and mask is not None and np.ptp(mask[:,:,3])>.5)
  rough1,metal1=FINISHES.get(appearance.get('PrimaryFinish','Glossy'),FINISHES['Glossy']);rough2,metal2=FINISHES.get(appearance.get('SecondaryFinish','Glossy'),FINISHES['Glossy'])
  # Car paint has a clear coat; matte finishes deliberately omit it.
  shader.inputs['Coat Weight'].default_value=0 if appearance.get('PrimaryFinish')=='Matte' else .35
@@ -51,6 +53,7 @@ def apply(mat,shader,images,values,skinfile,shaderdata,q,primary,secondary,paint
  output=np.ones((h,w,4),dtype=np.float32);surface=np.ones((h,w,4),dtype=np.float32)
  for start in range(0,h,128):
   stop=min(h,start+128);raw=base[start:stop,:,:3];linear=np.where(raw<=.04045,raw/12.92,((raw+.055)/1.055)**2.4);paint=linear.copy();detail=np.zeros(linear.shape[:2],dtype=np.float32)
+  packed=None
   if not full_livery:
    packed=mask[start:stop] if mask is not None else None
    if packed is None:paint=linear*first
@@ -60,6 +63,9 @@ def apply(mat,shader,images,values,skinfile,shaderdata,q,primary,secondary,paint
     if decal:
      paint=paint*(1-green)+linear*second*green;paint=paint*(1-blue)+linear*trim*blue;detail=green[:,:,0]
      if locked:paint=paint*(1-alpha)+linear*second*alpha;detail=np.maximum(detail,alpha[:,:,0])
+  if decal and appearance.get('DecalPaint') in paints and decal_paint_supported:
+   decal_region=packed[:,:,3:4]
+   paint=paint*(1-decal_region)+linear*np.array(colour(paints[appearance['DecalPaint']])[:3])*decal_region
   if trim_data is not None:
    trim_mask=trim_data[start:stop];region=np.clip(1-trim_mask[:,:,:1]-trim_mask[:,:,2:3],0,1)
    paint=paint*(1-region)+linear*np.array(colour(paints[appearance['BodyPaint']])[:3])*region
@@ -71,5 +77,8 @@ def apply(mat,shader,images,values,skinfile,shaderdata,q,primary,secondary,paint
  mat['RocketPaintBaked']=True;mat['RocketPaintMask']=str(maskpath.name) if maskpath else '';mat['RocketTeamColoursLocked']=locked
  if decal and (skinfile or full_livery):mat['RocketLeagueDecal']=decal['Name']
  if full_livery:mat['RocketLeagueLivery']=full_livery.name
+ if appearance.get('DecalPaint') in paints:
+  if decal_paint_supported:mat['RocketDecalPaint']=appearance['DecalPaint']
+  else:warnings.append(mat.name+': this decal has no supported painted-accent mask; its authored colours were retained.')
  if trim_data is not None:mat['PaintVariant']=appearance['BodyPaint']
  return None

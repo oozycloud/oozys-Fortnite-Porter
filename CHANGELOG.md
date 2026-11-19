@@ -2,6 +2,16 @@
 
 Changes to **oozy's porter studio**, formerly **oozy's Fortnite Porter** and **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
 
+## beta 0.12.1 — 19 November 2026
+
+- Apply Dune Racer’s actual alpha mask for painted decal accents, independently of car trim and secondary colour.
+- Restrict painted accents to decals with their own PaintColor parameter and a varying alpha mask; unsupported decals retain authored colours and report a warning.
+- Tie cached Rocket League previews to the current app version so obsolete grey renders are regenerated.
+- Verified six source-driven decal cases: Dune Racer default/Titanium White/changed secondary, Dignitas legacy/2024 and NRG.
+- Pixel comparisons verified secondary and painted-accent changes remain inside their respective masks.
+
+[Release notes](docs/releases/beta-0.12.1.md).
+
 ## beta 0.12.0 — 19 November 2026
 
 - Separate tyre and rim materials to keep Zomba rubber dark in Studio and exchange formats; retain painted rims.

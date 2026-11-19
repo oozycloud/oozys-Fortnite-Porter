@@ -38,6 +38,7 @@ public partial class MainWindow
    var chosenDecal=_rocketSession.GetDecals(asset).FirstOrDefault(d=>d.Id==_selectedStyles.GetValueOrDefault(asset.Id,"Default"));
    if(chosenDecal?.FixedColours==true){for(int i=colourStart;i<RocketAppearancePanel.Children.Count;i++)if(RocketAppearancePanel.Children[i] is ComboBox or TextBox)RocketAppearancePanel.Children[i].IsEnabled=false;RocketAppearancePanel.Children.Add(new TextBlock{Text="This team decal uses its authored colours. Wheel paint remains editable.",TextWrapping=TextWrapping.Wrap,Foreground=(Brush)FindResource("Muted"),FontSize=12,Margin=new Thickness(0,8,0,0)});}
 
+   var decalPaint=combo("PAINTED DECAL ACCENTS",RocketAppearance.Paints,appearance.DecalPaint,x=>appearance.DecalPaint=x);decalPaint.IsEnabled=chosenDecal!=null && !chosenDecal.FixedColours;decalPaint.ToolTip="Changes only the decal’s authored paint mask. Separate from car trim and secondary colour. Unsupported decals report a warning.";
    combo("CAR FINISH",RocketAppearance.Finishes,appearance.PrimaryFinish,x=>appearance.PrimaryFinish=x);combo("DECAL FINISH",RocketAppearance.Finishes,appearance.SecondaryFinish,x=>appearance.SecondaryFinish=x);
   }
   if(asset.Category is "Cars" or "Wheels"){
@@ -66,10 +67,10 @@ public partial class MainWindow
   await Run(async(_,progress,ct)=>{
    if(status!=null)status.Text="Rendering selected appearance…";
    string cacheRoot=Path.Combine(AppSettings.DataFolder,"rl-previews");Directory.CreateDirectory(cacheRoot);
-   string key=System.Text.Json.JsonSerializer.Serialize(new{asset.Id,asset.ObjectPath,Appearance=appearance,Style=_selectedStyles.GetValueOrDefault(asset.Id,"Default"),Version="0.10.0",Stamp=File.Exists(asset.ObjectPath.Split('|')[0])?File.GetLastWriteTimeUtc(asset.ObjectPath.Split('|')[0]).Ticks:0});
+   string key=System.Text.Json.JsonSerializer.Serialize(new{asset.Id,asset.ObjectPath,Appearance=appearance,Style=_selectedStyles.GetValueOrDefault(asset.Id,"Default"),Version=PorterRelease.ProductInfo.Version,Stamp=File.Exists(asset.ObjectPath.Split('|')[0])?File.GetLastWriteTimeUtc(asset.ObjectPath.Split('|')[0]).Ticks:0});
    string cached=Path.Combine(cacheRoot,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(key)))+".png");
    if(File.Exists(cached)){var saved=new BitmapImage();saved.BeginInit();saved.CacheOption=BitmapCacheOption.OnLoad;saved.UriSource=new Uri(cached);saved.EndInit();saved.Freeze();if(image!=null)image.Source=saved;if(OverlayThumbnail.Asset?.Id==asset.Id)OverlayThumbnail.SetPreview(saved);if(status!=null)status.Text="Preview of the selected appearance.";return;}
-   var settings=new AppSettings{ExportFolder=cacheRoot,ExportFormat="BLEND"};
+   var settings=new AppSettings{ExportFolder=cacheRoot,ExportFormat="BLEND",VehicleTemplates=false};
    var result=await _rocketSession.Export(asset,_selectedStyles.GetValueOrDefault(asset.Id,"Default"),settings,progress,ct,appearance,true);
    string path=Path.Combine(result.Folder,"preview.png");
    if(File.Exists(path)){File.Copy(path,cached,true);path=cached;}

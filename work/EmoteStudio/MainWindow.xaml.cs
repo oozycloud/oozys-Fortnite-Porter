@@ -13,7 +13,7 @@ public sealed class ClipInfo {public string name {get;set;}="";public int frames
 public sealed class EmoteInfo {public string id{get;set;}=Guid.NewGuid().ToString("N");public string name{get;set;}="";public string path{get;set;}="";public string payload{get;set;}="";public List<ClipInfo> clips{get;set;}=[];public string[] warnings{get;set;}=[];}
 public sealed class StudioProject {public int schema{get;set;}=1;public string projectName{get;set;}="Untitled project";public string id{get;set;}=Guid.NewGuid().ToString("N");public JsonObject? model{get;set;}public string rig{get;set;}="";public List<EmoteInfo> emotes{get;set;}=[];public string? selectedEmote{get;set;}public int selectedClip{get;set;}public Dictionary<string,string> boneMap{get;set;}=[];public Dictionary<string,double> wheelPose{get;set;}=[];}
 public partial class MainWindow:Window {
- const string Version="beta 0.12.0";
+ const string Version="beta 0.12.1";
  readonly string root=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"oozycloud","EmoteStudio");
  string Projects=>Path.Combine(root,"projects");string Folder=>Path.Combine(Projects,project.id);string BaseBlend=>Path.Combine(Folder,"base.blend");string SessionBlend=>Path.Combine(Folder,"session.blend");
  readonly string[] args;StudioProject project=new();JsonObject manifest=new();bool initialized,busy;string message="Import a .blend model to begin.",error="",previewUrl="",exportPath="";double progress;long revision;List<string>warnings=[];string blender="";CancellationTokenSource? operation;Process? worker;
