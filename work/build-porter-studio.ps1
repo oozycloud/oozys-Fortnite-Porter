@@ -24,12 +24,15 @@ try {
  [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($helperZip,(Join-Path $PSScriptRoot 'FortniteObj/FortniteObj.blender_emote_tools.py'),'porter_emote_tools/__init__.py') | Out-Null
  [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($helperZip,(Join-Path $PSScriptRoot 'FortniteObj/FortniteObj.blender_animation.py'),'porter_emote_tools/blender_animation.py') | Out-Null
 }finally{$helperZip.Dispose()}
-$managed=@(Get-ChildItem -LiteralPath $package -Recurse -File | ForEach-Object {[IO.Path]::GetRelativePath($package,$_.FullName).Replace('\','/')})
+$managed=@(Get-ChildItem -LiteralPath $package -Recurse -File | ForEach-Object {[IO.Path]::GetRelativePath($package,$_.FullName).Replace('\','/')} | Where-Object {$_ -notmatch '(^|/)__pycache__(/|$)|\.py[co]$'})
 $managed=@($managed+'app/installation.json' | Sort-Object -Unique)
 @{ProductId='oozycloud.fortnite-porter';Version='beta 0.13.0';Launcher='oozys-Porter-Studio (beta 0.13.0).exe';Files=$managed} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $package 'app/installation.json') -Encoding utf8
 $payload=Join-Path $PSScriptRoot 'Installer/FortniteInstaller.payload.zip'
 if(Test-Path -LiteralPath $payload){Remove-Item -LiteralPath $payload}
-[IO.Compression.ZipFile]::CreateFromDirectory($package,$payload)
+$payloadZip=[IO.Compression.ZipFile]::Open($payload,[IO.Compression.ZipArchiveMode]::Create)
+try {
+ foreach($relative in $managed){[IO.Compression.ZipFileExtensions]::CreateEntryFromFile($payloadZip,(Join-Path $package $relative),$relative) | Out-Null}
+}finally{$payloadZip.Dispose()}
 dotnet publish (Join-Path $PSScriptRoot 'Installer/Installer.csproj') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o (Join-Path $OutputRoot 'installer')
 if($LASTEXITCODE){throw 'Installer publish failed.'}
 Write-Host "Built oozy's porter studio beta 0.13.0 in $OutputRoot"

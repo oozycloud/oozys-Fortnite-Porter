@@ -1,6 +1,7 @@
 """Rocket League disk catalogue and UEViewer extraction bridge. No game files are modified."""
 import csv,json,re,subprocess,sys,urllib.request,base64,time,shutil
 from pathlib import Path
+sys.dont_write_bytecode=True
 BASE=Path(__file__).resolve().parent
 sys.path.insert(0,str(BASE))
 TOOLS=BASE/'rocketleague'

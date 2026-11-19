@@ -1,6 +1,7 @@
 """Build an editable packed Blender scene from extracted UE3 glTF meshes and material references."""
 import bpy,json,re,sys,math
 from pathlib import Path
+sys.dont_write_bytecode=True
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from mathutils import Matrix,Vector
 q=json.loads(Path(sys.argv[sys.argv.index('--')+1]).read_text(encoding='utf-8-sig'));folder=Path(q['Output']);asset=q['Asset'];warnings=[]

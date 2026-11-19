@@ -2,6 +2,7 @@
 import bpy,json,sys,os,math,traceback,re,copy,faulthandler,gzip,base64,textwrap
 faulthandler.enable()
 from pathlib import Path
+sys.dont_write_bytecode=True
 from mathutils import Matrix,Quaternion,Vector
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 source_tools=Path(__file__).resolve().parents[2]/'FortniteObj'

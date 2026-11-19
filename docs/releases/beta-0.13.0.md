@@ -9,3 +9,5 @@
 Midnight Sun verified: stereo 48kHz intro (0.3667s) and loop (50.8s), loaded and playing in native WebView2, preserved after project save/reopen.
 
 Newer RADA audio uses a separately installed local RADADecoder v1.0 (Settings → Choose RAD audio decoder). It is configured on the test computer; see audio-tools/DEPENDENCIES.md for the official release and integrity hash. The decoder is not bundled or downloaded automatically. Other supported codecs use bundled vgmstream with its notices.
+
+- Exclude generated Python bytecode caches from installer payloads and suppress new bytecode in the Studio/Rocket League entry points, preventing update conflicts after exporting.
