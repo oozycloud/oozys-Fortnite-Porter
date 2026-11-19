@@ -49,6 +49,14 @@ public class App : Application
 				return;
 			}
 		}
+        if(e.Args.FirstOrDefault()=="--template-check"){
+            ShutdownMode=ShutdownMode.OnExplicitShutdown;string folder=Path.GetFullPath(e.Args[1]);Directory.CreateDirectory(folder);
+            try{
+                File.Copy(e.Args[2],Path.Combine(folder,Path.GetFileName(e.Args[2])),true);
+                var result=await VehicleTextureTemplates.Create(new ExportResult(folder,0,0,[]),new DirectProgress(_=>{}),CancellationToken.None);
+                File.WriteAllText(Path.Combine(folder,"template-result.json"),JsonSerializer.Serialize(result));Shutdown(0);
+            }catch(Exception ex){File.WriteAllText(Path.Combine(folder,"error.txt"),ex.ToString());Shutdown(1);}return;
+        }
 		if (e.Args.FirstOrDefault() == "--diagnose")
 		{
 			ShutdownMode = ShutdownMode.OnExplicitShutdown;

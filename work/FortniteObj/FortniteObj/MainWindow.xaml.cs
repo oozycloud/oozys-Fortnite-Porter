@@ -120,6 +120,7 @@ public partial class MainWindow : Window, IComponentConnector
         Triangulate.IsChecked = appSettings.TriangulateMeshes;
         TextureLimit.SelectedIndex = Math.Max(0, Array.IndexOf(new[] {0,512,1024,2048,4096}, appSettings.TextureSizeLimit));
 		MatteMaterials.IsChecked = appSettings.MatteMaterials;
+        VehicleTemplates.IsChecked = appSettings.VehicleTemplates;
 		ReduceMotion.IsChecked = appSettings.ReduceMotion;
 		AutoUpdateCheck.IsChecked = appSettings.CheckForUpdatesAutomatically;
 		AnimatedTheme.ItemsSource = new string[4] { "Embers", "Orbit", "Rain", "Still" };
@@ -168,6 +169,7 @@ public partial class MainWindow : Window, IComponentConnector
             TextureSizeLimit = new[] {0,512,1024,2048,4096}[Math.Max(0, TextureLimit.SelectedIndex)],
 			MatteMaterials = (MatteMaterials.IsChecked == true),
             MaterialDefaultsVersion = 1,
+            VehicleTemplates = VehicleTemplates.IsChecked == true,
 			ReduceMotion = (ReduceMotion.IsChecked == true),
 			CheckForUpdatesAutomatically = (AutoUpdateCheck.IsChecked == true),
 			AnimatedTheme = ((AnimatedTheme.SelectedItem as string) ?? "Embers"),
@@ -527,6 +529,7 @@ public partial class MainWindow : Window, IComponentConnector
             foreach(var asset in assets){ct.ThrowIfCancellationRequested();string style=styles.GetValueOrDefault(asset.Id,"Default");
                 var result=await Task.Run(()=>_session.Export(asset,settings.ExportFolder,progress,ct,style,settings.OnlyBlend,settings.MatteMaterials,settings.AnimationFps),ct);
                 if(savePng)result=await Task.Run(()=>_session.AddPreviewPng(asset,style,result,ct),ct);
+                if(settings.VehicleTemplates && asset.Category=="Vehicles")result=await VehicleTextureTemplates.Create(result,progress,ct);
                 results.Add(await ExchangeExport.Create(result,settings,progress,ct));
             }
             var last=results.Last();_lastExport=last.Folder;Report($"Exported {results.Count} asset(s).");

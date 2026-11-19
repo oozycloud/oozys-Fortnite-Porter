@@ -8,15 +8,15 @@ Export game assets and add emotes to rigged Blender models in one desktop app. S
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current tested build: beta 0.11.0.** This build adds real-time Zomba wheel playback, FPS selection and wheel posing in Studio, plus source material fixes. Local installer, portable package and source backup are available; published older versions remain in [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.11.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
+> **Current tested build: beta 0.12.0.** This build adds dark Zomba tyres in Studio/exchange formats and labelled vehicle texture-template PNGs. It includes real-time wheel playback, FPS selection and wheel posing. Local installer, portable package and source backup are available; published older versions remain in [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.12.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
 ## Two tools, one window
 
 **Porter** browses supported game files and exports models, textures and animations. **Emote Studio** imports a rigged `.blend`, keeps a library of exported emotes, and previews the selected move with a timeline. Save `.blend`, `.glb`, `.fbx` or a portable Studio project. Each tab retains its state while you switch. In Porter, click a model card to open its export overlay; Ctrl-click selects a batch. The old combined skin + emote mode has been removed. Apply emotes through the Emote Studio tab.
 
-Install **oozys-Porter-Studio-Installer (beta 0.11.0).exe**, then run **oozys-Porter-Studio (beta 0.11.0).exe**. Supporting files live in `app`. The installer recognizes earlier Porter installations for Update and preserves existing settings. Blender runs in the background for Studio processing; WebView2 powers the preview. .NET is included.
+Install **oozys-Porter-Studio-Installer (beta 0.12.0).exe**, then run **oozys-Porter-Studio (beta 0.12.0).exe**. Supporting files live in `app`. The installer recognizes earlier Porter installations for Update and preserves existing settings. Blender runs in the background for Studio processing; WebView2 powers the preview. .NET is included.
 
-[Studio workflow and rig compatibility](work/EmoteStudio/README.md) · [Merged release notes](docs/releases/beta-0.11.0.md)
+[Studio workflow and rig compatibility](work/EmoteStudio/README.md) · [Merged release notes](docs/releases/beta-0.12.0.md)
 
 ## What it does
 
@@ -146,7 +146,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.11.0.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.12.0.md) for tested examples and outstanding work.
 
 ## Update checks
 

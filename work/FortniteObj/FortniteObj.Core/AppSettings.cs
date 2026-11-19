@@ -34,6 +34,8 @@ public sealed class AppSettings
 
 	public bool ExportAnimations { get; set; } = true;
 
+    public bool VehicleTemplates { get; set; } = true;
+
     public bool TriangulateMeshes { get; set; }
 
     public int TextureSizeLimit { get; set; }

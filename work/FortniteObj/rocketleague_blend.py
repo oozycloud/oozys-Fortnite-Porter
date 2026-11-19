@@ -171,6 +171,8 @@ for mat in list(bpy.data.materials):
  # Preserve unmapped images in an editable node group on the material.
  for value in values.values():
   if value.casefold() in images and value not in [values.get('Diffuse'),values.get('Normal')]:tex(value)
+from rocketleague_wheel_materials import separate as separate_wheel_surfaces
+separate_wheel_surfaces(bpy)
 if q.get('Decal'):
  warnings.append('Decal paint/shader reconstruction is simplified; source textures and parameter properties are retained.')
  if not any(m.get('RocketLeagueDecal') for m in bpy.data.materials):warnings.append('This decal uses a custom shader without a supported Skin mask. Its source resources are included; appearance is not reproduced.')

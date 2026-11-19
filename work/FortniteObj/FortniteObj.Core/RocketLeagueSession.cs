@@ -98,6 +98,7 @@ public sealed class RocketLeagueSession
             }
             using var final=JsonDocument.Parse(await File.ReadAllTextAsync(resultPath,ct));
             var result=new ExportResult(stage,final.RootElement.GetProperty("Meshes").GetInt32(),final.RootElement.GetProperty("Textures").GetInt32(),final.RootElement.GetProperty("Warnings").EnumerateArray().Select(x=>x.GetString()!).ToArray());
+            if(result.Meshes>0 && asset.Category=="Cars" && settings.VehicleTemplates)result=await VehicleTextureTemplates.Create(result,progress,ct);
             if(result.Meshes>0)result=await ExchangeExport.Create(result,settings,progress,ct);
             File.Delete(request);ct.ThrowIfCancellationRequested();Directory.Move(stage,destination);return result with {Folder=destination};
         } finally {if(Directory.Exists(stage))Directory.Delete(stage,true);}

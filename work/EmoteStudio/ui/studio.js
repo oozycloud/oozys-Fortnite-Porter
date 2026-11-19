@@ -1,7 +1,7 @@
 import {StudioPreview} from './preview.js';
 const $=id=>document.getElementById(id);
 const native=Boolean(window.chrome?.webview);
-const initial={version:'beta 0.11.0',busy:false,progress:0,message:'Import a model to begin.',error:null,blender:null,projectName:'untitled project',model:null,emotes:[],selectedEmote:null,selectedClip:0,previewUrl:null,previewRevision:0,warnings:[],mappingNeeded:false,boneMap:{},sourceBones:[]};
+const initial={version:'beta 0.12.0',busy:false,progress:0,message:'Import a model to begin.',error:null,blender:null,projectName:'untitled project',model:null,emotes:[],selectedEmote:null,selectedClip:0,previewUrl:null,previewRevision:0,warnings:[],mappingNeeded:false,boneMap:{},sourceBones:[]};
 let state={...initial},loadedPreviewKey='',loadingPreviewKey='',filter='',dismissedError=null;
 let wheelControlsKey='',wheelPoseContext='',wheelPoseAppliedKey='',wheelPoseObservedKey='',wheelPoseLocalKey=null,wheelPoseTimer=0,wheelPosePending=null,applyingWheelPose=false;
 let wheelCorner='FL',wheelMode='steer';
@@ -70,7 +70,7 @@ function renderWarnings(){
  const warnings=[...(state.warnings||[]),...(selectedEmote()?.warnings||[])].filter(Boolean);const unique=[...new Set(warnings.map(String))];$('warnings-section').hidden=!unique.length;$('warning-count').textContent=String(unique.length);$('warnings').replaceChildren();for(const message of unique){const item=document.createElement('li');item.textContent=message;$('warnings').append(item);}
 }
 function render(){
- $('version').textContent=name(state.version,'beta 0.11.0');$('project-name').textContent=name(state.projectName,'untitled project');
+ $('version').textContent=name(state.version,'beta 0.12.0');$('project-name').textContent=name(state.projectName,'untitled project');
  const model=state.model;$('model-empty').hidden=Boolean(model);$('model-details').hidden=!model;$('replace-model').hidden=!model;$('import-model').hidden=Boolean(model);
  if(model){$('model-name').textContent=name(model.name,'Untitled model');$('model-path').textContent=name(model.path);$('model-path').title=name(model.path);$('mesh-stat').textContent=`${model.meshCount??0} meshes`;$('texture-stat').textContent=`${model.textureCount??0} textures`;$('rig-select').replaceChildren();
   const rigs=model.rigs||[];if(!rigs.length)$('rig-select').append(option('','No armature found'));for(const rig of rigs)$('rig-select').append(option(rig.name,`${rig.name} · ${rig.bones} bones`));$('rig-select').value=model.rig||rigs[0]?.name||'';$('rig-warning').hidden=rigs.length>0;$('rig-warning').textContent=model.nativeAnimation?'This wheel uses material animation; an armature is only needed for emotes.':'This model has no armature. Choose a rigged .blend to add emotes.';}

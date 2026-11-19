@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>oozys-Porter-Studio-Installer (beta 0.11.0)</AssemblyName>
+    <AssemblyName>oozys-Porter-Studio-Installer (beta 0.12.0)</AssemblyName>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <OutputType>WinExe</OutputType>
     <UseWPF>True</UseWPF>

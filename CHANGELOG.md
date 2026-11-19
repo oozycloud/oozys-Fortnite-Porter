@@ -2,6 +2,16 @@
 
 Changes to **oozy's porter studio**, formerly **oozy's Fortnite Porter** and **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
 
+## beta 0.12.0 — 19 November 2026
+
+- Separate tyre and rim materials to keep Zomba rubber dark in Studio and exchange formats; retain painted rims.
+- Repair older Porter wheel scenes while converting their previews.
+- Export labelled 2048px UV template PNGs for Fortnite vehicles and Rocket League cars, enabled by default in vehicle export options.
+- Include transparent wire guides, material/UV-tile labels, island numbers, mesh names, an index and painting instructions.
+- Preserve original UVs and report surfaces without usable UV maps.
+
+[Release notes](docs/releases/beta-0.12.0.md).
+
 ## beta 0.11.0 — 19 November 2026
 
 - Preview Zomba wheel materials on the GPU with independent frame rate and animation speed controls.

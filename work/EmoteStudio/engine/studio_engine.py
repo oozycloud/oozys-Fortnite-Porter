@@ -4,6 +4,8 @@ faulthandler.enable()
 from pathlib import Path
 from mathutils import Matrix,Quaternion,Vector
 sys.path.insert(0,str(Path(__file__).resolve().parent))
+source_tools=Path(__file__).resolve().parents[2]/'FortniteObj'
+if source_tools.is_dir():sys.path.append(str(source_tools))
 from porter_emote_tools import legacy_payload,unreal_transform
 from porter_emote_tools.blender_animation import apply_animation,local_matrix
 
@@ -185,6 +187,8 @@ def apply_wheel_pose(rig,pose):
 
 def export_preview(output,rig,item):
  progress('Preparing the 3D preview…',.8);object_mode();scene=bpy.context.scene
+ from rocketleague_wheel_materials import separate
+ separate(bpy)
  bpy.ops.object.select_all(action='DESELECT')
  def attached(o):
   if rig is None:return True
@@ -274,6 +278,8 @@ def run(cfg):
   progress('Saving '+cfg['format']+'…',.6);apply_wheel_pose(rig,cfg.get('wheelPose',{}));object_mode();kind=cfg['format'];output=cfg['output'];warnings+=pack()
   if kind=='BLEND':bpy.ops.wm.save_as_mainfile(filepath=output)
   else:
+   from rocketleague_wheel_materials import separate
+   separate(bpy)
    bpy.ops.object.select_all(action='DESELECT')
    selected={o for o in bpy.context.scene.objects if o.type in {'MESH','ARMATURE'} and not o.hide_render}
    for o in list(selected):

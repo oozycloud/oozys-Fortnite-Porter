@@ -11,6 +11,7 @@ namespace FortniteObj;
 public partial class MainWindow {
  IInputElement? _overlayReturnFocus;
  private void UpdateCardSelection(Cosmetic? asset,int count){
+  VehicleTemplates.Visibility=asset?.Category is "Vehicles" or "Cars"?Visibility.Visible:Visibility.Collapsed;
   ReviewSelectionButton.Visibility=count>0?Visibility.Visible:Visibility.Collapsed;
   ReviewSelectionButton.Content=count>1?$"Review {count:N0} assets →":"Review asset →";
   ModeHint.Text=count>1?"Choose an output format and export the selected assets.":"Choose a style and output format, then export your model.";
