@@ -38,7 +38,9 @@ public sealed class AppSettings
 
     public int TextureSizeLimit { get; set; }
 
-	public bool MatteMaterials { get; set; } = true;
+	public bool MatteMaterials { get; set; }
+
+    public int MaterialDefaultsVersion { get; set; }
 
 	public string AnimatedTheme { get; set; } = "Embers";
 
@@ -54,7 +56,9 @@ public sealed class AppSettings
 	{
 		try
 		{
-			return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(Path.Combine(DataFolder, "settings.json"))) ?? new AppSettings();
+			var settings=JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(Path.Combine(DataFolder, "settings.json"))) ?? new AppSettings();
+            if(settings.MaterialDefaultsVersion<1){settings.MatteMaterials=false;settings.MaterialDefaultsVersion=1;}
+            return settings;
 		}
 		catch
 		{

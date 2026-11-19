@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window x:Class="FortniteObj.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:FortniteObj" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework" WindowStyle="None" Title="oozy's porter studio beta 0.10.0" Icon="Assets/porter.ico" Width="1500" Height="960" MinWidth="1220" MinHeight="760" Background="#121212" Foreground="#DEDBD5" FontFamily="pack://application:,,,/assets/#Manrope" FontSize="14" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+<Window x:Class="FortniteObj.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:FortniteObj" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework" WindowStyle="None" Title="oozy's porter studio beta 0.11.0" Icon="Assets/porter.ico" Width="1500" Height="960" MinWidth="1220" MinHeight="760" Background="#121212" Foreground="#DEDBD5" FontFamily="pack://application:,,,/assets/#Manrope" FontSize="14" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
   <shell:WindowChrome.WindowChrome>
     <shell:WindowChrome CaptionHeight="78" ResizeBorderThickness="6" CornerRadius="12" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
   </shell:WindowChrome.WindowChrome>
@@ -500,7 +500,7 @@
         </StackPanel>
         <Button shell:WindowChrome.IsHitTestVisibleInChrome="True" Name="UpdateNotice" Grid.ColumnSpan="4" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Bottom" MaxWidth="290" Height="23" FontSize="10" Padding="10,2" Margin="0,0,0,4" Click="OpenRelease_Click" />
         <Border Grid.Column="2" Background="#29261F" BorderBrush="#62563C" BorderThickness="1" CornerRadius="10" Padding="12,7" VerticalAlignment="Center">
-          <TextBlock Text="beta 0.10.0" FontSize="11" FontWeight="SemiBold" Foreground="#CDBB92" />
+          <TextBlock Text="beta 0.11.0" FontSize="11" FontWeight="SemiBold" Foreground="#CDBB92" />
         </Border>
         <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
           <Button Name="MinimizeButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" ToolTip="Minimize" AutomationProperties.Name="Minimize window" Click="Minimize_Click" />
@@ -612,7 +612,7 @@
                   <Button Content="Install Blender emote tools" Margin="0,14,0,0" ToolTip="Adds Apply exported emote to Blender's Porter sidebar. Select an existing skin, then choose a standalone emote .blend. Restart Blender after installation." Click="InstallBlenderTools_Click" />
                   <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Margin="0,22,0,18" />
                   <TextBlock Text="MATERIALS" Style="{StaticResource Eyebrow}" />
-                  <CheckBox Name="MatteMaterials" Margin="0,5,0,0" Checked="Appearance_Changed" Unchecked="Appearance_Changed">
+                  <CheckBox Name="MatteMaterials" ToolTip="Optional flat finish. Leave off to keep source metallic and roughness maps; toon shading is detected separately." Margin="0,5,0,0" Checked="Appearance_Changed" Unchecked="Appearance_Changed">
                     <TextBlock Text="Matte materials" />
                   </CheckBox>
                   <TextBlock Name="MaterialLookHint" Text="Source materials" Foreground="{StaticResource OrangeLight}" FontSize="12" />
@@ -644,7 +644,7 @@
           </TabControl>
           <StackPanel Grid.Row="2" Margin="18">
             <Button Name="ScanButton" Content="Scan Fortnite files" Style="{StaticResource PrimaryButton}" Click="Scan_Click" />
-            <TextBlock Text="Run another scan after a game update." Foreground="#A29B92" FontSize="11" Margin="0,10,0,0" TextAlignment="Center" />
+            <TextBlock Text="Run another scan after a game update." Foreground="#A29B92" FontSize="11" Margin="0,11,0,0" TextAlignment="Center" />
           </StackPanel>
         </Grid>
       </Border>
@@ -769,7 +769,7 @@
             </StackPanel>
           </Grid>
         </Border>
-        <Grid Row="3" Margin="0,10,0,0">
+        <Grid Row="3" Margin="0,11,0,0">
           <Grid.ColumnDefinitions>
             <ColumnDefinition />
             <ColumnDefinition Width="Auto" />
@@ -924,7 +924,7 @@
                 <RadioButton Name="SceneMode" Content="Skin + emote" GroupName="ExportMode" FontSize="13" Checked="Mode_Changed" />
                 <Button Content="i" Style="{StaticResource InfoButton}" ToolTip="Select a model card to configure its export." />
               </StackPanel>
-<StackPanel Name="SceneSlots" Visibility="Collapsed" Margin="0,10,0,0">
+<StackPanel Name="SceneSlots" Visibility="Collapsed" Margin="0,11,0,0">
                 <Border Background="#1A1A19" BorderBrush="#494135" BorderThickness="1" Padding="12" CornerRadius="9">
                   <StackPanel>
                     <Grid>

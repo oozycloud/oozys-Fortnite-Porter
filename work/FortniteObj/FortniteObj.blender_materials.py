@@ -182,9 +182,15 @@ for spec in data['Materials']:
         if role == 'Emission' or matte and role in ('Metallic', 'Specular'):
             continue
         tex = tree.nodes.new('ShaderNodeTexImage'); tex.label = role; tex.location = (-700, 400 - index * 290)
-        tex.image = bpy.data.images.load(os.path.join(folder, relative), check_existing=True)
+        image = bpy.data.images.load(os.path.join(folder, relative), check_existing=True)
+        colour_space = 'sRGB' if role.startswith('BaseColor') or role in ('ShadedColor', 'LineColor', 'Galaxy', 'PlanetColor') else 'Non-Color'
+        # One file may be used for both colour and packed data. Colour space is
+        # an image setting, so changing a shared image corrupts its other uses.
+        if image.users and image.colorspace_settings.name != colour_space:
+            image = image.copy()
+        image.colorspace_settings.name = colour_space
+        tex.image = image
         textures[role] = tex
-        tex.image.colorspace_settings.name = 'sRGB' if role.startswith('BaseColor') or role in ('ShadedColor', 'LineColor', 'Galaxy', 'PlanetColor') else 'Non-Color'
         if role == 'Normal':
             normal = tree.nodes.new('ShaderNodeNormalMap'); normal.location = (-200, 100)
             tree.links.new(tex.outputs['Color'], normal.inputs['Color'])

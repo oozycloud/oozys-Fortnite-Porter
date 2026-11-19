@@ -157,7 +157,7 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 		});
 		UUnrealMaterial uUnrealMaterial = (flag2 ? Texture(new string[3] { "Color_Lit_Map", "LitDiffuse", "Lit_Diffuse" }) : null);
 		info.CartoonColor = flag2 || uUnrealMaterial != null;
-		UUnrealMaterial uUnrealMaterial2 = uUnrealMaterial ?? Texture(new string[10] { "PM_Diffuse", "Diffuse", "BaseColor", "Base Colour", "Albedo", "DiffuseTexture", "Diffuse Map", "Base Color Texture", "Trunk_BaseColor", "LitDiffuse" }) ?? cMaterialParams.Diffuse?.Load<UUnrealMaterial>();
+		UUnrealMaterial uUnrealMaterial2 = uUnrealMaterial ?? Texture(new string[] { "PM_Diffuse", "Diffuse", "BaseColor", "Base Colour", "Albedo", "DiffuseTexture", "Diffuse_Texture", "Diffuse_Texture_1", "BaseColor_Texture", "Diffuse Map", "Base Color Texture", "Trunk_BaseColor", "LitDiffuse" }) ?? cMaterialParams.Diffuse?.Load<UUnrealMaterial>();
 		Map("BaseColor", "map_Kd", uUnrealMaterial2);
 		if (p.Colors.ContainsKey("Primary Color") && p.Colors.ContainsKey("Secondary Color") && p.Colors.ContainsKey("Accent Color"))
 		{
@@ -195,7 +195,7 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 			Map("LineMask", "# line_mask", Texture(new string[3] { "DFL_Map", "DistanceField_InkLines", "DistanceFieldInkLines" }));
 			Map("LineColor", "# line_color", Texture(new string[2] { "DFL_Color_Map", "DistanceField_InkLines_Color" }));
 		}
-		Map("Normal", "map_Bump", Texture(new string[5] { "PM_Normals", "Normals", "Normal", "NormalMap", "NormalTexture" }) ?? cMaterialParams.Normal?.Load<UUnrealMaterial>());
+		Map("Normal", "map_Bump", Texture(new string[] { "PM_Normals", "Normals", "Normal", "NormalMap", "NormalTexture", "Normals_Texture", "Normals_Texture_1" }) ?? cMaterialParams.Normal?.Load<UUnrealMaterial>());
 		KeyValuePair<string, FLinearColor>? keyValuePair = parameters?.Colors.FirstOrDefault((KeyValuePair<string, FLinearColor> x) => Normalize(x.Key) == "EMISSIVECOLOR");
 		if (keyValuePair.HasValue)
 		{
@@ -212,7 +212,7 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 				Map("StyleLightMask", "# selected_light_mask", Texture(new string[1] { "Emissive" }));
 			}
 		}
-		if (Texture(new string[3] { "PM_SpecularMasks", "SpecularMasks", "SRM" }) is UTexture value2)
+		if (Texture(new string[] { "PM_SpecularMasks", "SpecularMasks", "SpecularMasks_1", "SRM" }) is UTexture value2)
 		{
 			if (Texture("SRM")?.GetPathName() == value2.GetPathName()) info.SurfaceMaskPacking = "SRM";
 			if (!matteMaterials)

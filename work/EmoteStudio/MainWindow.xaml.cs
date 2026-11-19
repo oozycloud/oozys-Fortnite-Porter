@@ -11,9 +11,9 @@ using Microsoft.Win32;
 namespace EmoteStudio;
 public sealed class ClipInfo {public string name {get;set;}="";public int frames{get;set;}public double fps{get;set;}public double duration{get;set;}public bool loop{get;set;}}
 public sealed class EmoteInfo {public string id{get;set;}=Guid.NewGuid().ToString("N");public string name{get;set;}="";public string path{get;set;}="";public string payload{get;set;}="";public List<ClipInfo> clips{get;set;}=[];public string[] warnings{get;set;}=[];}
-public sealed class StudioProject {public int schema{get;set;}=1;public string projectName{get;set;}="Untitled project";public string id{get;set;}=Guid.NewGuid().ToString("N");public JsonObject? model{get;set;}public string rig{get;set;}="";public List<EmoteInfo> emotes{get;set;}=[];public string? selectedEmote{get;set;}public int selectedClip{get;set;}public Dictionary<string,string> boneMap{get;set;}=[];}
+public sealed class StudioProject {public int schema{get;set;}=1;public string projectName{get;set;}="Untitled project";public string id{get;set;}=Guid.NewGuid().ToString("N");public JsonObject? model{get;set;}public string rig{get;set;}="";public List<EmoteInfo> emotes{get;set;}=[];public string? selectedEmote{get;set;}public int selectedClip{get;set;}public Dictionary<string,string> boneMap{get;set;}=[];public Dictionary<string,double> wheelPose{get;set;}=[];}
 public partial class MainWindow:Window {
- const string Version="beta 0.10.0";
+ const string Version="beta 0.11.0";
  readonly string root=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"oozycloud","EmoteStudio");
  string Projects=>Path.Combine(root,"projects");string Folder=>Path.Combine(Projects,project.id);string BaseBlend=>Path.Combine(Folder,"base.blend");string SessionBlend=>Path.Combine(Folder,"session.blend");
  readonly string[] args;StudioProject project=new();JsonObject manifest=new();bool initialized,busy;string message="Import a .blend model to begin.",error="",previewUrl="",exportPath="";double progress;long revision;List<string>warnings=[];string blender="";CancellationTokenSource? operation;Process? worker;
@@ -49,7 +49,7 @@ public partial class MainWindow:Window {
   string settings=Path.Combine(root,"settings.json");if(File.Exists(settings)){try{var saved=JsonNode.Parse(File.ReadAllText(settings))?["blender"]?.GetValue<string>();if(File.Exists(saved))return saved!;}catch(JsonException){}}
   string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"Blender Foundation");return Directory.Exists(folder)?Directory.EnumerateFiles(folder,"blender.exe",SearchOption.AllDirectories).OrderDescending().FirstOrDefault()??"":"";
  }
- void SendState(){if(!initialized)return;var state=new {version=Version,busy,progress,message,error,blender,project.projectName,model=project.model,project.emotes,project.selectedEmote,project.selectedClip,previewUrl,previewRevision=revision,warnings,mappingNeeded=manifest["mappingNeeded"]?.GetValue<bool>()??false,boneMap=manifest["boneMap"],sourceBones=manifest["sourceBones"],exportPath};Web.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new{type="state",state}));}
+ void SendState(){if(!initialized)return;var state=new {version=Version,busy,progress,message,error,blender,project.projectName,model=project.model,project.emotes,project.selectedEmote,project.selectedClip,project.wheelPose,previewUrl,previewRevision=revision,warnings,mappingNeeded=manifest["mappingNeeded"]?.GetValue<bool>()??false,boneMap=manifest["boneMap"],sourceBones=manifest["sourceBones"],exportPath};Web.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new{type="state",state}));}
  async void Receive(object? sender,CoreWebView2WebMessageReceivedEventArgs e){
   if(!e.Source.StartsWith("https://studio.local/",StringComparison.Ordinal))return;
   try {
@@ -59,13 +59,16 @@ public partial class MainWindow:Window {
    if(type=="cancel"){operation?.Cancel();return;}if(busy)return;
    switch(type){
     case "chooseBlender":var exe=new OpenFileDialog{Title="Choose blender.exe",Filter="Blender executable|blender.exe"};if(exe.ShowDialog(DialogOwner)==true){blender=exe.FileName;File.WriteAllText(Path.Combine(root,"settings.json"),JsonSerializer.Serialize(new{blender}));SendState();}break;
-    case "chooseModel":var model=new OpenFileDialog{Title="Import a rigged model",Filter="Blender model|*.blend",Multiselect=false};if(model.ShowDialog(DialogOwner)==true)await Job(()=>ImportModel(model.FileName));break;
+    case "chooseModel":var model=new OpenFileDialog{Title="Import a Blender model",Filter="Blender model|*.blend",Multiselect=false};if(model.ShowDialog(DialogOwner)==true)await Job(()=>ImportModel(model.FileName));break;
     case "addEmotes":RequireModel();var files=new OpenFileDialog{Title="Add one or more exported emotes",Filter="Exported emotes|*.blend;*.json|Blender emotes|*.blend|Porter animation data|*.json",Multiselect=true};if(files.ShowDialog(DialogOwner)==true)await Job(()=>AddEmotes(files.FileNames));break;
     case "selectEmote":RequireModel();project.selectedEmote=m["id"]?.GetValue<string>();project.selectedClip=m["clipIndex"]?.GetValue<int>()??0;await Job(Preview);break;
     case "removeEmote":var id=m["id"]?.GetValue<string>();project.emotes.RemoveAll(x=>x.id==id);if(project.selectedEmote==id){project.selectedEmote=project.emotes.FirstOrDefault()?.id;project.selectedClip=0;}await Job(Compose);break;
     case "selectRig":RequireModel();project.rig=m["name"]!.GetValue<string>();project.model!["rig"]=project.rig;project.boneMap.Clear();await Job(Compose);break;
     case "mapBones":RequireModel();project.boneMap=m["mapping"]?.Deserialize<Dictionary<string,string>>()??[];await Job(Compose);break;
     case "export":RequireModel();string format=m["format"]?.GetValue<string>()??"BLEND";if(!new[]{"BLEND","GLB","FBX"}.Contains(format))throw new IOException("Choose .blend, .glb or .fbx.");var save=new SaveFileDialog{Title="Save animated model",Filter=format+" file|*."+format.ToLowerInvariant(),DefaultExt=format.ToLowerInvariant(),FileName=project.projectName+"."+format.ToLowerInvariant(),OverwritePrompt=true};if(save.ShowDialog(DialogOwner)==true)await Job(()=>Export(save.FileName,format));break;
+    case "setWheelPose":RequireModel();var requested=m["pose"]?.Deserialize<Dictionary<string,double>>()??[];var bones=project.model?["bones"]?.Deserialize<string[]>()??[];
+      if(requested.Count>8||requested.Any(p=>!System.Text.RegularExpressions.Regex.IsMatch(p.Key,@"^wheel_(FL|FR|RL|RR)_(steer|roll)$")||!bones.Contains(p.Key)||!double.IsFinite(p.Value)))throw new IOException("Invalid wheel pose.");
+      project.wheelPose=requested.ToDictionary(p=>p.Key,p=>Math.Clamp(p.Value,p.Key.EndsWith("steer")?-Math.PI/2:-Math.PI*20,p.Key.EndsWith("steer")?Math.PI/2:Math.PI*20));Persist();SendState();break;
     case "saveProject":RequireModel();var projectFile=new SaveFileDialog{Title="Save Emote Studio project",Filter="Emote Studio project|*.oozy-emotes",DefaultExt="oozy-emotes",FileName=project.projectName+".oozy-emotes",OverwritePrompt=true};if(projectFile.ShowDialog(DialogOwner)==true)await Job(()=>SaveProject(projectFile.FileName));break;
     case "openProject":var open=new OpenFileDialog{Title="Open Emote Studio project",Filter="Emote Studio project|*.oozy-emotes"};if(open.ShowDialog(DialogOwner)==true)await Job(()=>OpenProject(open.FileName));break;
    }
@@ -113,7 +116,7 @@ public partial class MainWindow:Window {
  async Task Export(string path,string format){
   if(project.selectedEmote!=null && manifest["actions"]?.AsArray().Any(a=>a?["emoteId"]?.GetValue<string>()==project.selectedEmote&&a?["clipIndex"]?.GetValue<int>()==project.selectedClip)!=true)throw new IOException("Map the model's bones before saving this emote.");
   string directory=Path.Combine(Folder,"exports",Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);string staging=Path.Combine(directory,"export."+format.ToLowerInvariant());
-  await Run(new(){["action"]="export",["blend"]=SessionBlend,["rig"]=project.rig,["selectedEmote"]=project.selectedEmote,["clipIndex"]=project.selectedClip,["format"]=format,["output"]=staging});File.Move(staging,path,true);exportPath=path;Persist();
+  await Run(new(){["action"]="export",["blend"]=SessionBlend,["rig"]=project.rig,["selectedEmote"]=project.selectedEmote,["clipIndex"]=project.selectedClip,["format"]=format,["wheelPose"]=JsonSerializer.SerializeToNode(project.wheelPose),["output"]=staging});File.Move(staging,path,true);exportPath=path;Persist();
  }
  void Persist(){Directory.CreateDirectory(Folder);File.WriteAllText(Path.Combine(Folder,"project.json"),JsonSerializer.Serialize(project,json));File.WriteAllText(Path.Combine(Folder,"manifest.json"),manifest.ToJsonString());}
  async Task SaveProject(string path){
@@ -142,6 +145,16 @@ public partial class MainWindow:Window {
    await Web.CoreWebView2.ExecuteScriptAsync("document.getElementById('step-forward').click();");
    await Task.Delay(100);
    if(JsonNode.Parse(JsonSerializer.Deserialize<string>(await Web.CoreWebView2.ExecuteScriptAsync("JSON.stringify(window.EmoteStudioPreview)"))??"{}")?["frame"]?.GetValue<int>()!=16)throw new Exception("Frame stepping failed.");
+   var wheelState=JsonNode.Parse(previewState);
+   if(wheelState?["procedural"]?.GetValue<bool>()==true){
+    if(wheelState["proceduralMeshes"]?.GetValue<int>()!=8)throw new Exception("Expected eight animated wheel faces.");
+    await Web.CoreWebView2.ExecuteScriptAsync("document.getElementById('wheel-corner').value='FL';document.getElementById('wheel-corner').dispatchEvent(new Event('change'));document.getElementById('wheel-mode').value='steer';document.getElementById('wheel-mode').dispatchEvent(new Event('change'));document.getElementById('wheel-angle').value='30';document.getElementById('wheel-angle').dispatchEvent(new Event('input'));");
+    await Task.Delay(500);
+    if(!project.wheelPose.TryGetValue("wheel_FL_steer",out double angle)||Math.Abs(angle-Math.PI/6)>.001)throw new Exception("Wheel pose did not persist.");
+    await Job(()=>Export(Path.Combine(output,"posed-wheel.blend"),"BLEND"));if(error!="")throw new Exception(error);
+    await SaveProject(Path.Combine(output,"posed-project.oozy-emotes"));await OpenProject(Path.Combine(output,"posed-project.oozy-emotes"));SendState();await Task.Delay(1500);
+    if(!project.wheelPose.TryGetValue("wheel_FL_steer",out angle)||Math.Abs(angle-Math.PI/6)>.001)throw new Exception("Wheel pose did not reopen.");
+   }
    await Web.CoreWebView2.ExecuteScriptAsync("document.getElementById('play').click();");await Task.Delay(400);
    using(var shot=File.Create(Path.Combine(output,"studio.png")))await Web.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png,shot);
    File.WriteAllText(Path.Combine(output,"result.json"),JsonSerializer.Serialize(new{Success=true,Project=project,Manifest=manifest,Preview=previewUrl}));Environment.ExitCode=0;

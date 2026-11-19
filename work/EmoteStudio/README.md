@@ -4,8 +4,8 @@ The animation editor inside oozy’s porter studio. Import a rigged Blender mode
 
 ## Getting started
 
-1. Run **oozys-Porter-Studio-Installer (beta 0.10.0).exe** and choose an installation folder. The installer offers Repair for an existing copy and Update for an older version.
-2. Open **oozys-Porter-Studio (beta 0.10.0).exe** and choose **Emote Studio** at the top.
+1. Run **oozys-Porter-Studio-Installer (beta 0.11.0).exe** and choose an installation folder. The installer offers Repair for an existing copy and Update for an older version.
+2. Open **oozys-Porter-Studio (beta 0.11.0).exe** and choose **Emote Studio** at the top.
 3. Choose your rigged **.blend** model. Its textures should already be packed or available at the paths stored in the Blender file.
 4. Click **Add emotes** and select one or several Porter `.blend` emotes or Porter animation JSON files.
 5. Select an emote in the library. Use the timeline to scrub, play, pause, stop, or move one frame at a time. Drag the preview to orbit; scroll to zoom.
@@ -48,3 +48,9 @@ Projects and logs are stored in `%LOCALAPPDATA%\oozycloud\EmoteStudio`. The laun
 ## Source and notices
 
 Source belongs in the companion directories of the [porter repository](https://github.com/oozycloud/oozys-Fortnite-Porter). The build contains Microsoft WebView2 integration, Three.js and Manrope; included notices apply. Blender is a separate dependency. No game models or emotes are included. Use assets you have permission to use.
+
+## Wheel animation and posing
+
+Import a Porter car with its wheel rig. Select a corner and Steer or Roll, then drag the rotation ring or adjust the angle slider. Reset wheel clears both offsets on that corner; Reset all clears every corner. Studio project files and exported models retain the pose.
+
+Zomba material animation runs directly on the GPU. Preview FPS offers Display, 60, 120, 144 and 240 caps independently of playback speed. The achieved frame rate depends on the display and GPU. Blender retains the original material drivers; GLB and FBX do not preserve the procedural material animation.

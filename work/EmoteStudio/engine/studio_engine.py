@@ -32,9 +32,33 @@ def target_rig(name=None):
  choice=next((x for x in candidates if x['name']==name),None) if name else max(candidates,key=lambda r:(r['meshes'],r['bones']))
  if not choice:raise ValueError('The selected armature is no longer in this model.')
  return bpy.data.objects[choice['name']]
+def wheel_materials():
+ return [m for m in bpy.data.materials if m.get('SourceShaderPort') and m.get('SourceShaderGuid')=='f989e447-37b1-4565-88bd-03224d48e241']
+
+def preview_wheel_metadata(material):
+ textures=[n.image for n in material.node_tree.nodes if n.type=='TEX_IMAGE' and n.image]
+ def encoded(prefix):
+  image=next((i for i in textures if i.name.casefold().startswith(prefix.casefold())),None)
+  if image is None:raise ValueError('Missing wheel shader texture '+prefix)
+  if image.packed_file:raw=bytes(image.packed_file.data)
+  else:raw=Path(bpy.path.abspath(image.filepath)).read_bytes()
+  return 'data:image/png;base64,'+base64.b64encode(raw).decode('ascii')
+ emission=next((n for n in material.node_tree.nodes if n.type=='EMISSION'),None);paint=None
+ if emission and emission.inputs['Color'].is_linked:
+  node=emission.inputs['Color'].links[0].from_node
+  if node.type=='COMBXYZ' and not any(v.is_linked for v in node.inputs):paint=[float(v.default_value) for v in node.inputs]
+ value={'version':1,'kind':'zomba','pattern':encoded('Twirl_RGB_T'),'ramp':encoded('Curve_Rainbow'),'timeScale':float(bpy.context.scene.get('ZombaTimeScale',1))}
+ if paint is not None:value['paint']=paint
+ return value
+
 def model_info(path,rig=None):
+ procedural=bool(wheel_materials());native=bool(rig and rig.get('PorterWheelRig') and rig.animation_data and rig.animation_data.action)
+ clip=None
+ if procedural:clip={'name':'Wheel animation','fps':60,'frames':3600,'duration':60,'loop':False,'procedural':True}
+ elif native:
+  action=rig.animation_data.action;fps=bpy.context.scene.render.fps/bpy.context.scene.render.fps_base;frames=max(1,round(action.frame_range[1]-action.frame_range[0]+1));clip={'name':action.name,'fps':fps,'frames':frames,'duration':(frames-1)/fps,'loop':False}
  allrigs=rigs();visible=[o for o in bpy.context.scene.objects if o.type=='MESH' and not o.hide_render]
- return {'name':Path(path).stem,'path':str(path),'rig':rig.name if rig else '', 'rigs':allrigs,'meshCount':len(visible),'textureCount':sum(bool(i.has_data or i.packed_file or i.packed_files) for i in bpy.data.images if i.type=='IMAGE'),'bones':[b.name for b in rig.data.bones] if rig else []}
+ return {'name':Path(path).stem,'path':str(path),'rig':rig.name if rig else '', 'rigs':allrigs,'meshCount':len(visible),'nativeAnimation':procedural or native,'nativeClip':clip,'textureCount':sum(bool(i.has_data or i.packed_file or i.packed_files) for i in bpy.data.images if i.type=='IMAGE'),'bones':[b.name for b in rig.data.bones] if rig else []}
 
 def read_emote(path):
  path=Path(path)
@@ -124,7 +148,7 @@ def adapt_foreign(data,rig,mapping):
 def selected_action(cfg,manifest):
  entries=manifest.get('actions',[]);id=cfg.get('selectedEmote');index=int(cfg.get('clipIndex',0))
  item=next((a for a in entries if a['emoteId']==id and a['clipIndex']==index),None)
- rig=target_rig(cfg.get('rig') or manifest.get('rig'))
+ rig=target_rig(cfg.get('rig') or manifest.get('rig')) if rigs() else None
  if item:
   action=bpy.data.actions[item['action']];rig.animation_data_create();rig.animation_data.action=action
   if action.slots:rig.animation_data.action_slot=action.slots[0]
@@ -137,12 +161,47 @@ def selected_action(cfg,manifest):
    text=bpy.data.texts.get('Porter Emote.json') or bpy.data.texts.new('Porter Emote.json');text.from_string(json.dumps(payload,indent=1))
  return rig,item
 
+def apply_wheel_pose(rig,pose):
+ if not pose:return
+ if rig is None:raise ValueError('This model has no editable wheel rig.')
+ validated={}
+ for name,angle in pose.items():
+  if not re.fullmatch(r'wheel_(FL|FR|RL|RR)_(steer|roll)',name) or name not in rig.data.bones or not isinstance(angle,(int,float)) or not math.isfinite(angle):raise ValueError('Invalid wheel control.')
+  validated[name]=max(-math.pi/2,min(math.pi/2,angle)) if name.endswith('steer') else max(-math.pi*20,min(math.pi*20,angle))
+ object_mode();rig.hide_set(False);bpy.context.view_layer.objects.active=rig;rig.select_set(True);bpy.ops.object.mode_set(mode='EDIT')
+ for name in validated:
+  bone=rig.data.edit_bones[name];matrix=bone.matrix.copy();length=bone.length;offset_name='studio_pose_'+name;offset=rig.data.edit_bones.get(offset_name)
+  if offset is None:
+   offset=rig.data.edit_bones.new(offset_name);offset.head=bone.head;offset.tail=bone.tail;offset.parent=bone.parent;offset.matrix=matrix;offset.length=length;offset.use_deform=False;bone.parent=offset;bone.matrix=matrix;bone.length=length
+ bpy.ops.object.mode_set(mode='OBJECT')
+ source=rig.data.collections.get('Source skeleton')
+ for name,angle in validated.items():
+  offset_name='studio_pose_'+name;bone=rig.data.bones[offset_name]
+  if source:
+   for collection in list(bone.collections):collection.unassign(bone)
+   source.assign(bone)
+  pb=rig.pose.bones[offset_name];pb.rotation_mode='XYZ';pb.rotation_euler.y=angle
+ bpy.context.scene['StudioWheelPose']=json.dumps(validated);bpy.context.view_layer.update()
+
 def export_preview(output,rig,item):
  progress('Preparing the 3D preview…',.8);object_mode();scene=bpy.context.scene
  bpy.ops.object.select_all(action='DESELECT')
- objects=[o for o in scene.objects if o.type=='MESH' and not o.hide_render and (o.find_armature()==rig or o.parent==rig)]
+ def attached(o):
+  if rig is None:return True
+  if o.find_armature()==rig:return True
+  parent=o.parent
+  while parent:
+   if parent==rig:return True
+   parent=parent.parent
+  return False
+ objects=[o for o in scene.objects if o.type=='MESH' and not o.hide_render and attached(o)]
  if not objects:objects=[o for o in scene.objects if o.type=='MESH' and not o.hide_render]
- for o in objects+[rig]:o.hide_set(False);o.select_set(True)
+ selected=set(objects)
+ for obj in objects:
+  parent=obj.parent
+  while parent:selected.add(parent);parent=parent.parent
+ if rig:selected.add(rig)
+ for o in selected:o.hide_set(False);o.hide_viewport=False;o.select_set(True)
  bpy.context.view_layer.objects.active=rig
  for o in objects:
   for mod in list(o.modifiers):
@@ -153,13 +212,18 @@ def export_preview(output,rig,item):
    except Exception:pass
   if i.has_data and max(i.size)>1024:
    factor=1024/max(i.size);i.scale(max(1,round(i.size[0]*factor)),max(1,round(i.size[1]*factor)))
- bpy.ops.export_scene.gltf(filepath=output,export_format='GLB',use_selection=True,export_animations=bool(item),export_animation_mode='ACTIVE_ACTIONS',export_frame_range=False,export_anim_slide_to_zero=True,export_extras=True,export_cameras=False,export_lights=False,export_apply=False)
+ for material in wheel_materials():material['StudioWheelShader']=preview_wheel_metadata(material)
+ native=bool(rig and rig.get('PorterWheelRig') and rig.animation_data and rig.animation_data.action)
+ bpy.ops.export_scene.gltf(filepath=output,export_format='GLB',use_selection=True,export_animations=bool(item) or native,export_animation_mode='ACTIVE_ACTIONS',export_frame_range=False,export_anim_slide_to_zero=True,export_extras=True,export_cameras=False,export_lights=False,export_apply=False)
 
 def run(cfg):
  action=cfg['action'];warnings=[]
  if action=='inspectModel':
-  progress('Reading model and rig…',.1);load(cfg['source']);object_mode();rig=target_rig(cfg.get('rig'));info=model_info(cfg['source'],rig)
+  progress('Reading model and rig…',.1);load(cfg['source']);object_mode();rig=target_rig(cfg.get('rig')) if rigs() else None
+  if rig is None and not wheel_materials():raise ValueError('Import a rigged .blend model, or a wheel with supported material animation.')
+  info=model_info(cfg['source'],rig)
   for r in [o for o in bpy.context.scene.objects if o.type=='ARMATURE']:
+   if r.get('PorterWheelRig'):continue
    if r.animation_data:
     r.animation_data.action=None
     for track in r.animation_data.nla_tracks:track.mute=True
@@ -197,7 +261,7 @@ def run(cfg):
     a=bpy.data.actions[r['Name']];a.use_fake_user=True
     actions.append({'emoteId':emote['id'],'clipIndex':index,'action':a.name,'name':emote['clips'][index]['name'],'frames':r.get('PlaybackFrames',r['Frames']),'fps':r['Fps'],'duration':r['Duration'],'loop':r.get('Loop',False)})
   progress('Keeping imported animation actions…',.68)
-  manifest={'rig':rig.name,'actions':actions,'mappingNeeded':mapping_needed,'sourceBones':source_bones,'boneMap':map_result,'warnings':warnings,'targetBones':[b.name for b in rig.data.bones]}
+  manifest={'rig':rig.name,'actions':actions,'mappingNeeded':mapping_needed,'sourceBones':source_bones,'boneMap':map_result,'warnings':warnings,'targetBones':[b.name for b in rig.data.bones] if rig else []}
   text=bpy.data.texts.get('Emote Studio.json') or bpy.data.texts.new('Emote Studio.json');text.clear();text.write(json.dumps(manifest))
   progress('Storing emote source data…',.7)
   source_text=bpy.data.texts.get('Emote Studio sources.json.gz.b64') or bpy.data.texts.new('Emote Studio sources.json.gz.b64');source_text.from_string('\n'.join(textwrap.wrap(base64.b64encode(gzip.compress(json.dumps(source_payloads).encode(),compresslevel=1)).decode(),120)))
@@ -206,21 +270,25 @@ def run(cfg):
   return manifest
  if action in {'preview','export'}:
   load(cfg['blend']);manifest=json.loads(bpy.data.texts['Emote Studio.json'].as_string()) if bpy.data.texts.get('Emote Studio.json') else {'rig':cfg.get('rig'),'actions':[]};rig,item=selected_action(cfg,manifest)
-  if action=='preview':export_preview(cfg['output'],rig,item);return {'action':item,'warnings':manifest.get('warnings',[]),'targetBones':[b.name for b in rig.data.bones]}
-  progress('Saving '+cfg['format']+'…',.6);object_mode();kind=cfg['format'];output=cfg['output'];warnings+=pack()
+  if action=='preview':export_preview(cfg['output'],rig,item);return {'action':item,'warnings':manifest.get('warnings',[]),'targetBones':[b.name for b in rig.data.bones] if rig else []}
+  progress('Saving '+cfg['format']+'…',.6);apply_wheel_pose(rig,cfg.get('wheelPose',{}));object_mode();kind=cfg['format'];output=cfg['output'];warnings+=pack()
   if kind=='BLEND':bpy.ops.wm.save_as_mainfile(filepath=output)
   else:
    bpy.ops.object.select_all(action='DESELECT')
-   for o in bpy.context.scene.objects:
-    if o.type in {'MESH','ARMATURE'} and not o.hide_render:o.hide_set(False);o.select_set(True)
+   selected={o for o in bpy.context.scene.objects if o.type in {'MESH','ARMATURE'} and not o.hide_render}
+   for o in list(selected):
+    parent=o.parent
+    while parent:selected.add(parent);parent=parent.parent
+   for o in selected:o.hide_set(False);o.hide_viewport=False;o.select_set(True)
+   native=bool(rig and rig.get('PorterWheelRig') and rig.animation_data and rig.animation_data.action)
    bpy.context.view_layer.objects.active=rig
-   if kind=='GLB':bpy.ops.export_scene.gltf(filepath=output,export_format='GLB',use_selection=True,export_animations=bool(item),export_animation_mode='ACTIVE_ACTIONS',export_frame_range=False,export_anim_slide_to_zero=True,export_extras=True,export_cameras=False,export_lights=False)
+   if kind=='GLB':bpy.ops.export_scene.gltf(filepath=output,export_format='GLB',use_selection=True,export_animations=bool(item) or native,export_animation_mode='ACTIVE_ACTIONS',export_frame_range=False,export_anim_slide_to_zero=True,export_extras=True,export_cameras=False,export_lights=False)
    elif kind=='FBX':
     if item:bpy.context.scene.frame_end=math.ceil(rig.animation_data.action.frame_range[1])
     for image in bpy.data.images:
      if image.packed_file and image.has_data:
       image.filepath_raw=str(Path(output).parent/('studio-texture-'+str(list(bpy.data.images).index(image))+'.png'));image.file_format='PNG';image.save()
-    bpy.ops.export_scene.fbx(filepath=output,use_selection=True,object_types={'MESH','ARMATURE'},add_leaf_bones=False,bake_anim=bool(item),bake_anim_use_all_actions=False,bake_anim_use_nla_strips=False,bake_anim_simplify_factor=0,path_mode='COPY',embed_textures=True)
+    bpy.ops.export_scene.fbx(filepath=output,use_selection=True,object_types={'MESH','ARMATURE','EMPTY'},add_leaf_bones=False,bake_anim=bool(item) or native,bake_anim_use_all_actions=False,bake_anim_use_nla_strips=False,bake_anim_simplify_factor=0,path_mode='COPY',embed_textures=True)
    else:raise ValueError('Unsupported export format.')
   return {'output':output,'warnings':warnings,'action':item}
  raise ValueError('Unknown worker action.')

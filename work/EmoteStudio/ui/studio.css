@@ -32,3 +32,38 @@ body.embedded .workspace{padding-top:18px}
 .library-tools>span{color:#b6aa93;font-size:12px;white-space:nowrap}
 .library-tools .subtle{margin:0;font-size:12px;padding:7px 9px;min-height:32px;white-space:nowrap}
 @media(max-width:1180px){.library-tools{align-items:flex-start;flex-direction:column;gap:10px;margin-bottom:18px;padding-bottom:14px}.library-tools .subtle{width:100%;text-align:left}}
+
+/* Playback cadence is independent of the clip speed. */
+.timeline-top{flex-wrap:wrap}
+.playback-settings{display:flex;align-items:center;gap:12px;margin-left:auto}
+.fps-label{display:flex;align-items:center;gap:8px;font-size:12px;color:#9e9585;white-space:nowrap}
+.fps-label select{font-size:13px;padding:6px 7px;background:#1b1a18;border-color:#494135;min-width:78px}
+@media(max-width:1180px){.playback-settings{gap:8px}.fps-label>span{display:none}.fps-label select{padding:6px;min-width:74px}}
+
+/* Wheel posing stays inside the scrollable inspector, above the fixed save area. */
+.wheel-posing .quiet-note{margin-top:9px}
+.wheel-selectors{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:14px}
+.wheel-selectors .field{margin:0;min-width:0}
+.wheel-selectors select{width:100%;min-width:0;padding:8px 7px;font-size:12px}
+.wheel-angle-label{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:15px;color:#a99f8d;font-size:12px}
+.wheel-angle-label output{color:#dac9a4;font-size:14px;font-variant-numeric:tabular-nums}
+.wheel-angle{width:100%;height:26px;margin:6px 0 0;padding:0;accent-color:#bba16a;cursor:pointer}
+.wheel-reset{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px}
+.wheel-reset .secondary{font-size:12px;padding:7px 10px}
+
+.wheel-angle{appearance:none;-webkit-appearance:none;background:transparent;border:0}
+.wheel-angle::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:#4a4235}
+.wheel-angle::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:10px;height:16px;border:1px solid #d5c397;border-radius:3px;background:#c4ad7b;margin-top:-6px}
+
+/* Put the active wheel task first, leaving its controls visible above saving. */
+.inspector.wheel-focused .wheel-posing{margin-top:0;border-top:0;padding-top:0}
+.inspector.wheel-focused .wheel-posing .section-head{margin-bottom:8px}
+.inspector.wheel-focused .wheel-posing .quiet-note{margin-top:0;line-height:1.65}
+.inspector.wheel-focused .wheel-selectors{margin-top:12px}
+.inspector.wheel-focused .save-section .field{margin-top:12px}
+.inspector.wheel-focused .save-section .quiet-note.small{display:none}
+.inspector.wheel-focused .save-section .secondary{margin-top:12px}
+@media(max-height:800px){.inspector.wheel-focused{gap:10px;padding-top:14px;padding-bottom:14px}.inspector.wheel-focused .save-section{padding-top:12px}.inspector.wheel-focused .export-note{line-height:1.5;margin-top:8px}.inspector.wheel-focused .wheel-angle-label{margin-top:10px}.inspector.wheel-focused .wheel-reset{margin-top:2px}.inspector.wheel-focused .engine-section{padding-top:8px}}
+
+/* Empty library guidance must not overlap the fixed replace-model action. */
+@media(max-height:800px){.library-empty{padding:16px 0;min-height:0}.library-empty>span{font-size:24px}.library-empty small{display:none}.library #replace-model{flex-shrink:0;margin-top:12px}}

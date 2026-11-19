@@ -2,6 +2,18 @@
 
 Changes to **oozy's porter studio**, formerly **oozy's Fortnite Porter** and **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
 
+## beta 0.11.0 — 19 November 2026
+
+- Preview Zomba wheel materials on the GPU with independent frame rate and animation speed controls.
+- Steer or roll each rigged wheel with a rotation handle or angle slider; save poses in projects and model exports.
+- Preserve hidden wheel attachment hierarchy and native rig actions in exchange exports.
+- Use source Fortnite surfaces by default, expand material texture aliases, and separate colour/data image colour spaces.
+- Add Rocket League paint clear coat and prevent normal placeholders from colouring lenses.
+- Fix card rendering for Blender files saved in Pose mode.
+- Verified wheel pose export/reopen, timeline seeking and six fresh Fortnite material exports. Custom Unreal shaders remain approximations.
+
+[Release notes](docs/releases/beta-0.11.0.md).
+
 ## beta 0.10.0 — 18 November 2026
 
 - Replaced library rows with a virtualized image-card gallery and two-line model names.

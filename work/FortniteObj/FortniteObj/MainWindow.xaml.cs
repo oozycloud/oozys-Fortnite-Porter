@@ -167,6 +167,7 @@ public partial class MainWindow : Window, IComponentConnector
             TriangulateMeshes = Triangulate.IsChecked == true,
             TextureSizeLimit = new[] {0,512,1024,2048,4096}[Math.Max(0, TextureLimit.SelectedIndex)],
 			MatteMaterials = (MatteMaterials.IsChecked == true),
+            MaterialDefaultsVersion = 1,
 			ReduceMotion = (ReduceMotion.IsChecked == true),
 			CheckForUpdatesAutomatically = (AutoUpdateCheck.IsChecked == true),
 			AnimatedTheme = ((AnimatedTheme.SelectedItem as string) ?? "Embers"),

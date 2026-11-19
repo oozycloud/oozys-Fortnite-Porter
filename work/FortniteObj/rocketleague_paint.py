@@ -45,6 +45,9 @@ def apply(mat,shader,images,values,skinfile,shaderdata,q,primary,secondary,paint
  trim_data=read(blank,True) if blank and appearance.get('BodyPaint') in paints else None
  if base is None:base=np.ones((h,w,4),dtype=np.float32)
  rough1,metal1=FINISHES.get(appearance.get('PrimaryFinish','Glossy'),FINISHES['Glossy']);rough2,metal2=FINISHES.get(appearance.get('SecondaryFinish','Glossy'),FINISHES['Glossy'])
+ # Car paint has a clear coat; matte finishes deliberately omit it.
+ shader.inputs['Coat Weight'].default_value=0 if appearance.get('PrimaryFinish')=='Matte' else .35
+ shader.inputs['Coat Roughness'].default_value=.14
  output=np.ones((h,w,4),dtype=np.float32);surface=np.ones((h,w,4),dtype=np.float32)
  for start in range(0,h,128):
   stop=min(h,start+128);raw=base[start:stop,:,:3];linear=np.where(raw<=.04045,raw/12.92,((raw+.055)/1.055)**2.4);paint=linear.copy();detail=np.zeros(linear.shape[:2],dtype=np.float32)

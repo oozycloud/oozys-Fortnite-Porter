@@ -81,6 +81,14 @@ public class App : Application
 						session.InspectDefinitions(folder2, list.Where((Cosmetic x) => e.Args[inspectArg + 1].Split('|').Contains(x.Name)));
 					}
 					session.Inspect(folder2, list.Where((Cosmetic x) => x.Category == "Skins").Take(1).Concat(list.Where((Cosmetic x) => x.Category == "Pickaxes").Take(1)));
+                    int auditArg=Array.IndexOf(e.Args,"--audit-items");
+                    if(auditArg>=0 && auditArg+1<e.Args.Length){
+                        foreach(string auditName in e.Args[auditArg+1].Split('|')){
+                            Cosmetic candidate=list.First(x=>x.Category=="Skins" && x.Name.Equals(auditName,StringComparison.OrdinalIgnoreCase));
+                            var result=await Task.Run(()=>session.Export(candidate,folder2,progress,CancellationToken.None,"Default",false,false,0,false));
+                            progress.Report(JsonSerializer.Serialize(result));
+                        }
+                    }
 					int itemArg = Array.IndexOf(e.Args, "--item");
 					int sceneSkinArg = Array.IndexOf(e.Args, "--scene-skin");
 					int sceneEmoteArg = Array.IndexOf(e.Args, "--scene-emote");

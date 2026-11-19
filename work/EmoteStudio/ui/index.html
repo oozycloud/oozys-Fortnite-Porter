@@ -10,7 +10,7 @@
 <body>
 <header class="titlebar" id="titlebar">
   <div class="brand" data-native-drag><span class="brand-mark" aria-hidden="true">o</span><div><h1>oozy's porter studio</h1><p>assets &amp; animation.</p></div></div>
-  <div class="title-actions"><span class="version" id="version">beta 0.10.0</span><button class="caption" data-command="minimize" aria-label="Minimize">−</button><button class="caption" data-command="maximize" aria-label="Maximize or restore">□</button><button class="caption close" data-command="close" aria-label="Close">×</button></div>
+  <div class="title-actions"><span class="version" id="version">beta 0.11.0</span><button class="caption" data-command="minimize" aria-label="Minimize">−</button><button class="caption" data-command="maximize" aria-label="Maximize or restore">□</button><button class="caption close" data-command="close" aria-label="Close">×</button></div>
 </header>
 <div id="browser-note" class="browser-note" hidden>Open oozy's porter studio on your desktop to import files.</div>
 <div class="error-banner" id="error-banner" role="alert" hidden><span id="error-text"></span><button id="dismiss-error" aria-label="Dismiss error">×</button></div>
@@ -49,14 +49,22 @@
       <p class="viewport-help" id="viewport-help">drag to rotate · scroll to zoom</p>
     </div>
     <section class="timeline panel" aria-label="Playback timeline">
-      <div class="timeline-top"><div class="transport"><button id="step-back" aria-label="Previous frame" title="Previous frame">|‹</button><button id="play" class="play" aria-label="Play" title="Play or pause (space)">▶</button><button id="step-forward" aria-label="Next frame" title="Next frame">›|</button><button id="stop" aria-label="Stop and return to first frame" title="Stop">■</button></div><div class="frame-readout"><strong id="frame-now">1</strong><span>/</span><span id="frame-total">—</span><span class="frame-unit">frames</span></div><label class="speed-label"><span>preview speed</span><select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label></div>
+      <div class="timeline-top"><div class="transport"><button id="step-back" aria-label="Previous frame" title="Previous frame">|‹</button><button id="play" class="play" aria-label="Play" title="Play or pause (space)">▶</button><button id="step-forward" aria-label="Next frame" title="Next frame">›|</button><button id="stop" aria-label="Stop and return to first frame" title="Stop">■</button></div><div class="frame-readout"><strong id="frame-now">1</strong><span>/</span><span id="frame-total">—</span><span class="frame-unit">frames</span></div><div class="playback-settings"><label class="speed-label"><span>preview speed</span><select id="speed" aria-label="Preview speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label><label class="fps-label" title="Maximum preview frame rate, limited by your display and graphics hardware. Animation speed stays the same."><span>preview fps</span><select id="preview-fps" aria-label="Preview frame rate limit"><option value="0" selected>Display</option><option value="60">60</option><option value="120">120</option><option value="144">144</option><option value="240">240</option></select></label></div></div>
       <label class="timeline-track"><span class="sr-only">Current animation frame</span><input id="seek" type="range" min="1" max="1" value="1" step="1" disabled></label>
       <div class="timeline-bottom"><span id="time-readout">00:00.00 / 00:00.00</span><span id="fps-readout">Select an emote to begin</span></div>
     </section>
   </section>
-  <aside class="inspector panel" aria-label="Emote and export settings">
+  <aside id="inspector" class="inspector panel" aria-label="Emote and export settings">
     <div class="inspector-content">
-    <section><div class="section-head"><h2>the move</h2><span class="step">02</span></div><h3 id="selected-name">No emote selected</h3><p id="selected-note" class="quiet-note">Choose an emote from your library. Its animation will be applied to your model.</p><label class="field" id="clip-field" hidden><span>animation clip</span><select id="clip-select"></select></label><dl class="clip-facts" id="clip-facts" hidden><div><dt>duration</dt><dd id="clip-duration"></dd></div><div><dt>playback</dt><dd id="clip-loop"></dd></div></dl></section>
+    <section id="move-section"><div class="section-head"><h2>the move</h2><span class="step">02</span></div><h3 id="selected-name">No emote selected</h3><p id="selected-note" class="quiet-note">Choose an emote from your library. Its animation will be applied to your model.</p><label class="field" id="clip-field" hidden><span>animation clip</span><select id="clip-select"></select></label><dl class="clip-facts" id="clip-facts" hidden><div><dt>duration</dt><dd id="clip-duration"></dd></div><div><dt>playback</dt><dd id="clip-loop"></dd></div></dl></section>
+    <section class="wheel-posing" id="wheel-posing" hidden aria-labelledby="wheel-posing-title">
+      <div class="section-head"><h2 id="wheel-posing-title">wheel controls</h2></div>
+      <p class="quiet-note">Drag the ring to turn this wheel. Reset returns to the imported pose.</p>
+      <div class="wheel-selectors"><label class="field"><span>wheel</span><select id="wheel-corner" aria-label="Wheel corner"></select></label><label class="field"><span>rotation</span><select id="wheel-mode" aria-label="Wheel rotation mode"><option value="steer">Steer</option><option value="roll">Roll</option></select></label></div>
+      <label class="wheel-angle-label" for="wheel-angle"><span>angle</span><output id="wheel-angle-value" for="wheel-angle">0°</output></label>
+      <input id="wheel-angle" class="wheel-angle" type="range" min="-90" max="90" value="0" step="0.1" aria-label="Wheel angle in degrees">
+      <div class="wheel-reset"><button id="reset-wheel" class="secondary" type="button">Reset wheel</button><button id="reset-wheels" class="text-button" type="button">Reset all</button></div>
+    </section>
     <section class="mapping-section" id="mapping-section" hidden><h2>match the bones</h2><p class="quiet-note">Match the animation’s bones to your model. Matching porter rigs are handled automatically.</p><div id="bone-mapping" class="bone-mapping"></div><button id="apply-mapping" class="secondary wide">Apply bone mapping</button></section>
     <section class="warnings-section" id="warnings-section" hidden><details id="warning-details"><summary>worth a look <span id="warning-count"></span></summary><ul id="warnings" aria-label="Import and animation notes"></ul></details></section>
     </div>

@@ -124,16 +124,24 @@ for mat in list(bpy.data.materials):
  def tex(name,noncolor=False):
   p=images.get(name.casefold())
   if not p:return None
-  n=nodes.new('ShaderNodeTexImage');n.image=bpy.data.images.load(str(p),check_existing=True);n.label=name
-  if noncolor:n.image.colorspace_settings.name='Non-Color'
+  n=nodes.new('ShaderNodeTexImage');image=bpy.data.images.load(str(p),check_existing=True);space='Non-Color' if noncolor else 'sRGB'
+  if image.users and image.colorspace_settings.name!=space:image=image.copy()
+  image.colorspace_settings.name=space;n.image=image;n.label=name
   return n
  diffuse=tex(values.get('Diffuse',''))
- if diffuse:links.new(diffuse.outputs['Color'],shader.inputs['Base Color'])
+ if diffuse and not re.search(r'(?:^|_)blank_n$',values.get('Diffuse',''),re.I):links.new(diffuse.outputs['Color'],shader.inputs['Base Color'])
+ elif diffuse and re.search('glass|lens|window',mat.name,re.I):
+  for link in list(shader.inputs['Base Color'].links):links.remove(link)
+  shader.inputs['Base Color'].default_value=(.055,.065,.075,1)
+  if 'vertcolor' in mat.name.casefold():
+   vertex=nodes.new('ShaderNodeVertexColor');vertex.label='Authored lens colours';links.new(vertex.outputs['Color'],shader.inputs['Base Color'])
+  shader.inputs['Transmission Weight'].default_value=.45;shader.inputs['IOR'].default_value=1.5
+  mat['RocketLensSurface']=True
  normalname=values.get('Normal','')
  normal=tex(normalname,True) if not re.search('carbonfiber|detail|fur_|brushed|sparkle',normalname,re.I) else None
  if normal:
   nm=nodes.new('ShaderNodeNormalMap');links.new(normal.outputs['Color'],nm.inputs['Color']);links.new(nm.outputs[0],shader.inputs['Normal'])
- shader.inputs['Roughness'].default_value=.42
+ shader.inputs['Roughness'].default_value=.16 if mat.get('RocketLensSurface') else .42
  isbody=asset['Category']=='Cars' and re.search('body|paint',mat.name,re.I) and not re.search('chassis',mat.name,re.I)
  if isbody:
   from rocketleague_paint import apply as apply_paint
