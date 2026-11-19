@@ -1,0 +1,9 @@
+# beta 0.13.0 validation
+
+All six current style combinations were extracted from local Fortnite files and rebuilt/rendered: Sabrina Carpenter, Babydoll Sabrina, Tour-Ready pink/reactivity on/off, Baby Blue/reactivity on/off. Source gradients match yellow, pink and blue choices. Source effect masks isolate outfit and trim colour changes from skin pixels. The sequin translation bakes portable static colour/roughness and retains authored source images; dynamic Unreal thin-film and audio-reactivity are approximations.
+
+Midnight Sun’s montage sound notify resolves through MetaSound assets to intro and music-loop SoundWaves. The raw RADA payloads decode to stereo 48kHz PCM WAV: 0.3666667 seconds and 50.8 seconds. The local RADADecoder is configured separately and checked against its supported SHA256.
+
+A real WPF/WebView2 Studio check loaded Sabrina and the newly exported emote, applied the dance, exported BLEND/GLB/FBX, saved/reopened the project and decoded/played two audio tracks. Native audio state: tracks=2, loaded=true, playing=true, context=running, no error. The project ZIP contains both WAVs.
+
+Audio clock tests cover source offsets, continuous music over shorter dance loops, speed, seeking, FPS independence, pause and mute. Independent UI evaluation passed both normal and minimum-size screenshots.

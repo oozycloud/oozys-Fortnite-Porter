@@ -8,15 +8,15 @@ Export game assets and add emotes to rigged Blender models in one desktop app. S
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current tested build: beta 0.12.1.** This build fixes Dune Racer painted accents and isolates decal colours, while retaining dark Zomba tyres and labelled vehicle texture-template PNGs. It includes real-time wheel playback, FPS selection and wheel posing. Local installer, portable package and source backup are available; published older versions remain in [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.12.1.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
+> **Current tested build: beta 0.13.0.** This build adds source-driven Sabrina outfit materials and emote music export with Studio audio playback. Local installer, portable package and source backup are available; published older versions remain in [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.13.0.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
 ## Two tools, one window
 
 **Porter** browses supported game files and exports models, textures and animations. **Emote Studio** imports a rigged `.blend`, keeps a library of exported emotes, and previews the selected move with a timeline. Save `.blend`, `.glb`, `.fbx` or a portable Studio project. Each tab retains its state while you switch. In Porter, click a model card to open its export overlay; Ctrl-click selects a batch. The old combined skin + emote mode has been removed. Apply emotes through the Emote Studio tab.
 
-Install **oozys-Porter-Studio-Installer (beta 0.12.1).exe**, then run **oozys-Porter-Studio (beta 0.12.1).exe**. Supporting files live in `app`. The installer recognizes earlier Porter installations for Update and preserves existing settings. Blender runs in the background for Studio processing; WebView2 powers the preview. .NET is included.
+Install **oozys-Porter-Studio-Installer (beta 0.13.0).exe**, then run **oozys-Porter-Studio (beta 0.13.0).exe**. Supporting files live in `app`. The installer recognizes earlier Porter installations for Update and preserves existing settings. Blender runs in the background for Studio processing; WebView2 powers the preview. .NET is included.
 
-[Studio workflow and rig compatibility](work/EmoteStudio/README.md) · [Merged release notes](docs/releases/beta-0.12.1.md)
+[Studio workflow and rig compatibility](work/EmoteStudio/README.md) · [Merged release notes](docs/releases/beta-0.13.0.md)
 
 ## What it does
 
@@ -146,7 +146,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.12.1.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.13.0.md) for tested examples and outstanding work.
 
 ## Update checks
 
@@ -194,3 +194,11 @@ Exchange controls let you include animation, triangulate meshes and limit textur
 ## Credits
 
 PC Building Simulator 2 asset reading uses [UnityPy](https://github.com/K0lb3/UnityPy) 1.25.2 with a bundled Python 3.12.10 runtime. Their license files and dependency notices are included under `app/unity-runtime`.
+
+## Emote music
+
+Re-export an emote to include its WAV audio and embedded Porter emote data. Add the new emote `.blend` in Emote Studio, then press Play. The emote audio checkbox mutes it; the adjacent slider controls volume. Pause, seek and playback speed follow the model timeline. Music continues across shorter dance loops, and portable Studio projects retain the audio.
+
+Newer RADA-cooked audio, including Midnight Sun, uses a separately installed local [RADADecoder v1.0](https://github.com/GhostScissors/RadA-Decoder/releases/tag/1.0). Select it through Settings → Choose RAD audio decoder. Studio playback of already decoded/exported audio needs no game-audio decoder. The app checks the supported decoder’s integrity; it is configured on the test computer and is not bundled with the installer. Bundled vgmstream handles other supported cooked formats; its included notices and [upstream source](https://github.com/vgmstream/vgmstream) apply.
+
+Sabrina’s six current style combinations were exported and rendered. Authored sequin palettes, effect masks, trim and detail textures are retained; view-dependent Unreal thin-film and reactive effects remain approximations.

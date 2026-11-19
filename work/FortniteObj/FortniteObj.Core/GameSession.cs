@@ -234,6 +234,7 @@ public sealed partial class GameSession : IDisposable
 			Style = style,
 			Bones = array,
 			Clips = list2,
+            Audio = ExportEmoteAudio(asset,folder,list,ct),
 			Warnings = list
 		}));
 		progress.Report($"Decoded {list2.Count} animation clips with bone keyframes.");
@@ -661,7 +662,7 @@ public sealed partial class GameSession : IDisposable
 		}
 		foreach (string item2 in Directory.EnumerateDirectories(folder))
 		{
-			Directory.Delete(item2, recursive: true);
+			if(!Path.GetFileName(item2).Equals("audio",StringComparison.OrdinalIgnoreCase))Directory.Delete(item2, recursive: true);
 		}
 	}
 

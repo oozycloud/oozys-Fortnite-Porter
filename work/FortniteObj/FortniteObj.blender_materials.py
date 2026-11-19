@@ -1,5 +1,5 @@
 """Run using blender --background --python blender_materials.py -- materials.json."""
-import bpy, json, os, sys
+import bpy, json, os, sys, base64
 from mathutils import Vector
 
 def configure_sky(node, directional=False):
@@ -183,7 +183,7 @@ for spec in data['Materials']:
             continue
         tex = tree.nodes.new('ShaderNodeTexImage'); tex.label = role; tex.location = (-700, 400 - index * 290)
         image = bpy.data.images.load(os.path.join(folder, relative), check_existing=True)
-        colour_space = 'sRGB' if role.startswith('BaseColor') or role in ('ShadedColor', 'LineColor', 'Galaxy', 'PlanetColor') else 'Non-Color'
+        colour_space = 'sRGB' if role.startswith(('BaseColor','SequinColour')) or role in ('ShadedColor', 'LineColor', 'Galaxy', 'PlanetColor') else 'Non-Color'
         # One file may be used for both colour and packed data. Colour space is
         # an image setting, so changing a shared image corrupts its other uses.
         if image.users and image.colorspace_settings.name != colour_space:
@@ -375,6 +375,11 @@ if rig and os.path.exists(os.path.join(folder, 'animation.json')):
     from blender_animation import apply_animation
     with open(os.path.join(folder,'animation.json'),encoding='utf-8') as f:
         animation_data=json.load(f)
+    for track in animation_data.get('Audio',[]):
+        audio_path=os.path.realpath(os.path.join(folder,track['File']))
+        if os.path.commonpath([os.path.realpath(folder),audio_path])!=os.path.realpath(folder):raise ValueError('Invalid audio path')
+        with open(audio_path,'rb') as stream:track['Data']=base64.b64encode(stream.read()).decode('ascii')
+        track['Mime']='audio/wav'
     payload=bpy.data.texts.get('Porter Emote.json') or bpy.data.texts.new('Porter Emote.json')
     payload.from_string(json.dumps(animation_data,indent=1))
     animation_report=apply_animation(rig,animation_data)

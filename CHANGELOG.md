@@ -2,6 +2,17 @@
 
 Changes to **oozy's porter studio**, formerly **oozy's Fortnite Porter** and **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
 
+## beta 0.13.0 — 19 November 2026
+
+- Reconstruct Sabrina outfits using authored main/trim/secondary sequin gradients, masks and detail textures, with portable baked colour/roughness maps.
+- Verified all six current combinations across Sabrina/Babydoll and Tour-Ready pink/Baby Blue/reactivity options.
+- Export emote WAV audio through sound notifies, cues and MetaSound references; embed the audio in Blender emote metadata.
+- Add Studio audio enablement, volume and timeline synchronization. Songs continue across shorter dance loops; saved projects retain WAV files.
+- Verify Midnight Sun’s stereo 48kHz intro and 50.8-second loop in native WebView2 playback and project save/reopen.
+- Pause cloth/soft-body simulation during Studio processing and restore its original switches in Blender exports.
+
+[Release notes](docs/releases/beta-0.13.0.md).
+
 ## beta 0.12.1 — 19 November 2026
 
 - Apply Dune Racer’s actual alpha mask for painted decal accents, independently of car trim and secondary colour.

@@ -11,6 +11,21 @@ from porter_emote_tools.blender_animation import apply_animation,local_matrix
 
 def progress(message,value):print('STUDIO_PROGRESS '+json.dumps({'message':message,'progress':value}),flush=True)
 def load(path):bpy.ops.wm.open_mainfile(filepath=str(Path(path).resolve()),use_scripts=False)
+def pause_physics():
+ for obj in bpy.context.scene.objects:
+  saved=json.loads(obj.get('StudioSimulationState','{}'))
+  for modifier in obj.modifiers:
+   if modifier.type not in {'CLOTH','SOFT_BODY'}:continue
+   saved.setdefault(modifier.name,[bool(modifier.show_viewport),bool(modifier.show_render)])
+   modifier.show_viewport=False;modifier.show_render=False
+  if saved:obj['StudioSimulationState']=json.dumps(saved)
+
+def restore_physics():
+ for obj in bpy.context.scene.objects:
+  for name,flags in json.loads(obj.get('StudioSimulationState','{}')).items():
+   modifier=obj.modifiers.get(name)
+   if modifier:modifier.show_viewport=flags[0];modifier.show_render=flags[1]
+
 def object_mode():
  if bpy.context.object and bpy.context.object.mode!='OBJECT':bpy.ops.object.mode_set(mode='OBJECT')
 def pack():
@@ -223,7 +238,7 @@ def export_preview(output,rig,item):
 def run(cfg):
  action=cfg['action'];warnings=[]
  if action=='inspectModel':
-  progress('Reading model and rig…',.1);load(cfg['source']);object_mode();rig=target_rig(cfg.get('rig')) if rigs() else None
+  progress('Reading model and rig…',.1);load(cfg['source']);object_mode();pause_physics();rig=target_rig(cfg.get('rig')) if rigs() else None
   if rig is None and not wheel_materials():raise ValueError('Import a rigged .blend model, or a wheel with supported material animation.')
   info=model_info(cfg['source'],rig)
   for r in [o for o in bpy.context.scene.objects if o.type=='ARMATURE']:
@@ -237,8 +252,20 @@ def run(cfg):
  if action=='inspectEmote':
   progress('Reading emote clips…',.2);data=read_emote(cfg['source'])
   clips=[{'name':c['Name'],'frames':c.get('LoopFrames') or (round(c.get('Duration',(c['Frames']-1)/c['Fps'])*c['Fps']) if c.get('Loop') else c['Frames']),'fps':c['Fps'],'duration':c.get('Duration',(c['Frames']-1)/c['Fps']),'loop':bool(c.get('Loop'))} for c in data['Clips']]
+  audio=[]
+  for index,track in enumerate(data.get('Audio',[])):
+   if index>=32:raise ValueError('Too many emote audio tracks.')
+   if track.get('Data'):raw=base64.b64decode(track['Data'],validate=True)
+   else:
+    source=Path(cfg['source']).resolve().parent;path=(source/track.get('File','')).resolve()
+    if not path.is_relative_to(source) or not path.is_file():raise ValueError('Missing emote audio sidecar.')
+    raw=path.read_bytes()
+   if len(raw)>200*1024*1024 or raw[:4]!=b'RIFF' or raw[8:12]!=b'WAVE':raise ValueError('Invalid or oversized emote WAV audio.')
+   target=Path(cfg['payloadOutput']).with_name(Path(cfg['payloadOutput']).stem+'-audio-'+str(index)+'.wav');target.write_bytes(raw)
+   audio.append({'file':target.name,'start':float(track.get('Start',0)),'gain':float(track.get('Gain',1)),'loop':bool(track.get('Loop',False))})
+  for info,clip in zip(clips,data['Clips']):info['audioOffset']=float(clip.get('LoopSourceStart',0))
   Path(cfg['payloadOutput']).write_text(json.dumps(data),encoding='utf-8')
-  return {'name':data.get('Name',Path(cfg['source']).stem),'clips':clips,'sourceBones':[b['Name'] for b in data['Bones']]}
+  return {'audio':audio,'name':data.get('Name',Path(cfg['source']).stem),'clips':clips,'sourceBones':[b['Name'] for b in data['Bones']]}
  if action=='compose':
   load(cfg['base']);object_mode();rig=target_rig(cfg.get('rig'));base_actions=set(bpy.data.actions);actions=[];mapping_needed=False;source_bones=[];map_result={};source_payloads={}
   original_names={b.name:b.get('SourceName') for b in rig.data.bones}
@@ -276,7 +303,7 @@ def run(cfg):
   load(cfg['blend']);manifest=json.loads(bpy.data.texts['Emote Studio.json'].as_string()) if bpy.data.texts.get('Emote Studio.json') else {'rig':cfg.get('rig'),'actions':[]};rig,item=selected_action(cfg,manifest)
   if action=='preview':export_preview(cfg['output'],rig,item);return {'action':item,'warnings':manifest.get('warnings',[]),'targetBones':[b.name for b in rig.data.bones] if rig else []}
   progress('Saving '+cfg['format']+'…',.6);apply_wheel_pose(rig,cfg.get('wheelPose',{}));object_mode();kind=cfg['format'];output=cfg['output'];warnings+=pack()
-  if kind=='BLEND':bpy.ops.wm.save_as_mainfile(filepath=output)
+  if kind=='BLEND':restore_physics();bpy.ops.wm.save_as_mainfile(filepath=output)
   else:
    from rocketleague_wheel_materials import separate
    separate(bpy)

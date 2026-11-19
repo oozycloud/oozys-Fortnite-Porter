@@ -10,7 +10,7 @@
 <body>
 <header class="titlebar" id="titlebar">
   <div class="brand" data-native-drag><span class="brand-mark" aria-hidden="true">o</span><div><h1>oozy's porter studio</h1><p>assets &amp; animation.</p></div></div>
-  <div class="title-actions"><span class="version" id="version">beta 0.12.1</span><button class="caption" data-command="minimize" aria-label="Minimize">−</button><button class="caption" data-command="maximize" aria-label="Maximize or restore">□</button><button class="caption close" data-command="close" aria-label="Close">×</button></div>
+  <div class="title-actions"><span class="version" id="version">beta 0.13.0</span><button class="caption" data-command="minimize" aria-label="Minimize">−</button><button class="caption" data-command="maximize" aria-label="Maximize or restore">□</button><button class="caption close" data-command="close" aria-label="Close">×</button></div>
 </header>
 <div id="browser-note" class="browser-note" hidden>Open oozy's porter studio on your desktop to import files.</div>
 <div class="error-banner" id="error-banner" role="alert" hidden><span id="error-text"></span><button id="dismiss-error" aria-label="Dismiss error">×</button></div>
@@ -50,6 +50,7 @@
     </div>
     <section class="timeline panel" aria-label="Playback timeline">
       <div class="timeline-top"><div class="transport"><button id="step-back" aria-label="Previous frame" title="Previous frame">|‹</button><button id="play" class="play" aria-label="Play" title="Play or pause (space)">▶</button><button id="step-forward" aria-label="Next frame" title="Next frame">›|</button><button id="stop" aria-label="Stop and return to first frame" title="Stop">■</button></div><div class="frame-readout"><strong id="frame-now">1</strong><span>/</span><span id="frame-total">—</span><span class="frame-unit">frames</span></div><div class="playback-settings"><label class="speed-label"><span>preview speed</span><select id="speed" aria-label="Preview speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label><label class="fps-label" title="Maximum preview frame rate, limited by your display and graphics hardware. Animation speed stays the same."><span>preview fps</span><select id="preview-fps" aria-label="Preview frame rate limit"><option value="0" selected>Display</option><option value="60">60</option><option value="120">120</option><option value="144">144</option><option value="240">240</option></select></label></div></div>
+      <div id="audio-controls" class="audio-controls" hidden><label><input id="audio-enabled" type="checkbox" checked> emote audio</label><input id="audio-volume" type="range" min="0" max="100" value="70" aria-label="Emote volume"></div>
       <label class="timeline-track"><span class="sr-only">Current animation frame</span><input id="seek" type="range" min="1" max="1" value="1" step="1" disabled></label>
       <div class="timeline-bottom"><span id="time-readout">00:00.00 / 00:00.00</span><span id="fps-readout">Select an emote to begin</span></div>
     </section>

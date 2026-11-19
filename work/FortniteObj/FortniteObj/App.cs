@@ -93,8 +93,15 @@ public class App : Application
                     if(auditArg>=0 && auditArg+1<e.Args.Length){
                         foreach(string auditName in e.Args[auditArg+1].Split('|')){
                             Cosmetic candidate=list.First(x=>x.Category=="Skins" && x.Name.Equals(auditName,StringComparison.OrdinalIgnoreCase));
-                            var result=await Task.Run(()=>session.Export(candidate,folder2,progress,CancellationToken.None,"Default",false,false,0,false));
-                            progress.Report(JsonSerializer.Serialize(result));
+                            var selections=new List<Dictionary<string,string>>{new()};
+                            var channels=session.GetStyleChannels(candidate);
+                            if(e.Args.Contains("--audit-styles"))foreach(var channel in channels)selections=selections.SelectMany(selection=>channel.Options.Select(option=>{var next=new Dictionary<string,string>(selection);next[channel.Id]=option.Id;return next;})).ToList();
+                            foreach(var selection in selections){
+                                string selected=selection.Count>0?StyleSelection.Encode(selection):"Default";
+                                var result=await Task.Run(()=>session.Export(candidate,folder2,progress,CancellationToken.None,selected,false,false,0,false));
+                                File.WriteAllText(Path.Combine(result.Folder,"style-check.json"),JsonSerializer.Serialize(selection.ToDictionary(x=>channels.First(c=>c.Id==x.Key).Name,x=>channels.First(c=>c.Id==x.Key).Options.First(o=>o.Id==x.Value).Name)));
+                                progress.Report(JsonSerializer.Serialize(result));
+                            }
                         }
                     }
 					int itemArg = Array.IndexOf(e.Args, "--item");

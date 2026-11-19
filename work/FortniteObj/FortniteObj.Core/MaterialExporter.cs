@@ -19,7 +19,9 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 
 	public sealed record MaterialInfo(string Name, string Source)
 	{
-		public Dictionary<string, string> Maps { get; } = new Dictionary<string, string>();
+		public Dictionary<string,string> TextureParameters {get;} = new();
+
+        public Dictionary<string, string> Maps { get; } = new Dictionary<string, string>();
 
 		public float[] Color { get; set; } = new float[4] { 1f, 1f, 1f, 1f };
 
@@ -77,6 +79,17 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 		material.GetParams(cMaterialParams);
 		MaterialInfo info = new MaterialInfo(name, material.GetPathName());
 		Materials.Add(info);
+        // Diagnostic metadata must never turn a usable material into a fallback.
+        try {
+            var parameterSeen=new HashSet<string>();
+            for(var instance=material as UMaterialInstanceConstant;instance!=null && parameterSeen.Add(instance.GetPathName());instance=instance.Parent?.Load<UMaterialInstanceConstant>())
+                foreach(var parameter in instance.TextureParameterValues){
+                    string key=parameter.Name;
+                    try {if(!info.TextureParameters.ContainsKey(key) && parameter.ParameterValue?.Load<UTexture>() is UTexture texture)info.TextureParameters[key]=texture.GetPathName();}
+                    catch(Exception ex) when(ex is not OperationCanceledException) { }
+                }
+        }catch(Exception ex) when(ex is not OperationCanceledException) { }
+
 		bool flag = material.GetPathName().Contains("InvHullOutline", StringComparison.OrdinalIgnoreCase) || name.EndsWith("_outer", StringComparison.OrdinalIgnoreCase);
 		info.RoughMin = Math.Clamp(Scalar(0f, new string[2] { "RoughnessMin", "rough min" }), 0f, 1f);
 		info.RoughMax = Math.Clamp(Scalar(1f, new string[2] { "RoughnessMax", "rough max" }), info.RoughMin, 1f);
@@ -159,6 +172,10 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 		info.CartoonColor = flag2 || uUnrealMaterial != null;
 		UUnrealMaterial uUnrealMaterial2 = uUnrealMaterial ?? Texture(new string[] { "PM_Diffuse", "Diffuse", "BaseColor", "Base Colour", "Albedo", "DiffuseTexture", "Diffuse_Texture", "Diffuse_Texture_1", "BaseColor_Texture", "Diffuse Map", "Base Color Texture", "Trunk_BaseColor", "LitDiffuse" }) ?? cMaterialParams.Diffuse?.Load<UUnrealMaterial>();
 		Map("BaseColor", "map_Kd", uUnrealMaterial2);
+        if(p.Switches.Any(x=>x.Value && Normalize(x.Key)=="USESEQUINS")){
+            foreach(var entry in new[]{("SequinMask","Mask"),("SequinFXMask","TechArtMask"),("SequinColourMain","Thin Film Texture"),("SequinColourSecondary","SequinThinFilm_Secondary"),("SequinColourTrim","SequinThinFilm_Trim"),("SequinDetailMain","SequinOffest_Main"),("SequinDetailSecondary","SequinOffest_Secondary"),("SequinRoughMain","SequinRoughness_Main"),("SequinRoughSecondary","SequinRoughness_Secondary")})Map(entry.Item1,"# sequin_source",Texture(entry.Item2));
+        }
+
 		if (p.Colors.ContainsKey("Primary Color") && p.Colors.ContainsKey("Secondary Color") && p.Colors.ContainsKey("Accent Color"))
 		{
 			Map("CustomizationPattern", "# customization_pattern", Texture(new string[1] { "SkinFX_Mask" }));

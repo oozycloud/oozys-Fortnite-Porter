@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window x:Class="FortniteObj.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:FortniteObj" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework" WindowStyle="None" Title="oozy's porter studio beta 0.12.1" Icon="Assets/porter.ico" Width="1500" Height="960" MinWidth="1220" MinHeight="760" Background="#121212" Foreground="#DEDBD5" FontFamily="pack://application:,,,/assets/#Manrope" FontSize="14" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+<Window x:Class="FortniteObj.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:FortniteObj" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework" WindowStyle="None" Title="oozy's porter studio beta 0.13.0" Icon="Assets/porter.ico" Width="1500" Height="960" MinWidth="1220" MinHeight="760" Background="#121212" Foreground="#DEDBD5" FontFamily="pack://application:,,,/assets/#Manrope" FontSize="14" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
   <shell:WindowChrome.WindowChrome>
     <shell:WindowChrome CaptionHeight="78" ResizeBorderThickness="6" CornerRadius="12" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
   </shell:WindowChrome.WindowChrome>
@@ -500,7 +500,7 @@
         </StackPanel>
         <Button shell:WindowChrome.IsHitTestVisibleInChrome="True" Name="UpdateNotice" Grid.ColumnSpan="4" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Bottom" MaxWidth="290" Height="23" FontSize="10" Padding="10,2" Margin="0,0,0,4" Click="OpenRelease_Click" />
         <Border Grid.Column="2" Background="#29261F" BorderBrush="#62563C" BorderThickness="1" CornerRadius="10" Padding="12,7" VerticalAlignment="Center">
-          <TextBlock Text="beta 0.12.1" FontSize="11" FontWeight="SemiBold" Foreground="#CDBB92" />
+          <TextBlock Text="beta 0.13.0" FontSize="11" FontWeight="SemiBold" Foreground="#CDBB92" />
         </Border>
         <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
           <Button Name="MinimizeButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" ToolTip="Minimize" AutomationProperties.Name="Minimize window" Click="Minimize_Click" />
@@ -610,6 +610,7 @@
                   </ComboBox>
                   <TextBlock Text="The packed Blender file is always retained. Exchange options leave it unchanged." Foreground="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,7,0,0" />
                   <Button Content="Install Blender emote tools" Margin="0,14,0,0" ToolTip="Adds Apply exported emote to Blender's Porter sidebar. Select an existing skin, then choose a standalone emote .blend. Restart Blender after installation." Click="InstallBlenderTools_Click" />
+                  <Button Content="Choose RAD audio decoder…" FontSize="12" Margin="0,8,0,0" Click="ChooseRadaDecoder_Click" ToolTip="Select the local RAD audio decoder v1.0 for newer emote music such as Midnight Sun. See README for its official release link." />
                   <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Margin="0,22,0,18" />
                   <TextBlock Text="MATERIALS" Style="{StaticResource Eyebrow}" />
                   <CheckBox Name="MatteMaterials" ToolTip="Optional flat finish. Leave off to keep source metallic and roughness maps; toon shading is detected separately." Margin="0,5,0,0" Checked="Appearance_Changed" Unchecked="Appearance_Changed">

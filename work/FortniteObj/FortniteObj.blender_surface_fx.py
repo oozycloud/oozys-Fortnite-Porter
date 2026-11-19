@@ -4,6 +4,8 @@ import bpy
 
 def apply_surface_fx(mat, spec, textures, bsdf, out):
     tree = mat.node_tree
+    if 'SequinColourMain' in textures and 'SequinFXMask' in textures and spec.get('Switches',{}).get('IsDimeBlanketGraceBody',False):
+        apply_sequin_surface(mat,spec,textures,bsdf)
     scalars, colors = spec.get('Scalars', {}), spec.get('Colors', {})
     def node(kind, label):
         value = tree.nodes.new(kind); value.label = label
@@ -166,3 +168,41 @@ def apply_surface_fx(mat, spec, textures, bsdf, out):
     tree.links.new(camera_mask.outputs[0],surface.inputs[0]);tree.links.new(bsdf.outputs[0],surface.inputs[1]);tree.links.new(flat.outputs[0],surface.inputs[2])
     tree.links.new(surface.outputs[0],out.inputs['Surface'])
     mat['Surface animation']='Authored texture masks and time-based UV movement'
+
+
+def apply_sequin_surface(mat,spec,textures,bsdf):
+    """Portable static colour/detail from the authored sequin masks and gradients."""
+    import numpy as np
+    from pathlib import Path
+    base=textures.get('BaseColor')
+    if base is None:return
+    source=base.image;width,height=source.size
+    def pixels(image):
+        copied=None
+        if tuple(image.size)!=(width,height):copied=image.copy();copied.scale(width,height);image=copied
+        values=np.empty(width*height*4,dtype=np.float32);image.pixels.foreach_get(values)
+        if copied:bpy.data.images.remove(copied)
+        return values.reshape(height,width,4)
+    def linear(value):return np.where(value<=.04045,value/12.92,((value+.055)/1.055)**2.4)
+    original=pixels(source);fx=pixels(textures['SequinFXMask'].image);result=original.copy();colour=linear(original[:,:,:3]);coverage=np.clip(fx[:,:,:3],0,1)
+    # TechArtMask assigns the authored main surface, trim and secondary surface.
+    total=np.maximum(1,coverage.sum(axis=2,keepdims=True));coverage/=total
+    output=colour*(1-coverage.sum(axis=2,keepdims=True));rough=np.full((height,width),.5,dtype=np.float32)
+    for channel,role in [(0,'SequinColourMain'),(1,'SequinColourTrim'),(2,'SequinColourSecondary')]:
+        texture=textures.get(role) or textures['SequinColourMain'];image=texture.image
+        values=np.array(image.pixels[:],dtype=np.float32).reshape(image.size[1],image.size[0],4)
+        swatch=linear(values[image.size[1]//2,image.size[0]//2,:3]);mask=coverage[:,:,channel:channel+1]
+        detail=textures.get('SequinDetailSecondary' if channel==2 else 'SequinDetailMain')
+        modulation=1
+        if detail:
+            tile=detail.image;pattern=np.array(tile.pixels[:],dtype=np.float32).reshape(tile.size[1],tile.size[0],4)
+            scale=float(spec.get('Scalars',{}).get('SequinTile',5));xs=(np.arange(width)/width*scale*tile.size[0]).astype(int)%tile.size[0];ys=(np.arange(height)/height*scale*tile.size[1]).astype(int)%tile.size[1]
+            modulation=(.7+.3*pattern[ys[:,None],xs[None,:],0])[:,:,None]
+        output+=swatch*modulation*mask
+        rough=rough*(1-mask[:,:,0])+.28*mask[:,:,0]
+    result[:,:,:3]=np.where(output<=.0031308,output*12.92,1.055*np.maximum(output,0)**(1/2.4)-.055)
+    def baked(label,data,space):
+        image=bpy.data.images.new(mat.name+' '+label,width=width,height=height,alpha=True);image.colorspace_settings.name=space;image.pixels.foreach_set(data.ravel());image.pack();node=mat.node_tree.nodes.new('ShaderNodeTexImage');node.image=image;node.label=label;return node
+    colour_node=baked('Authored sequin colour',result,'sRGB');mat.node_tree.links.new(colour_node.outputs['Color'],bsdf.inputs['Base Color'])
+    surface=np.ones_like(result);surface[:,:,:3]=rough[:,:,None];rough_node=baked('Sequin roughness',surface,'Non-Color');mat.node_tree.links.new(rough_node.outputs['Color'],bsdf.inputs['Roughness']);bsdf.inputs['Coat Weight'].default_value=.2;bsdf.inputs['Coat Roughness'].default_value=.18
+    mat['Sequin surface']='Static authored main/trim/secondary gradient colours; Unreal view-dependent thin-film effects are approximated.'

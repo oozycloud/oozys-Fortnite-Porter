@@ -9,11 +9,12 @@ using System.Windows.Interop;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 namespace EmoteStudio;
-public sealed class ClipInfo {public string name {get;set;}="";public int frames{get;set;}public double fps{get;set;}public double duration{get;set;}public bool loop{get;set;}}
-public sealed class EmoteInfo {public string id{get;set;}=Guid.NewGuid().ToString("N");public string name{get;set;}="";public string path{get;set;}="";public string payload{get;set;}="";public List<ClipInfo> clips{get;set;}=[];public string[] warnings{get;set;}=[];}
+public sealed class ClipInfo {public string name {get;set;}="";public int frames{get;set;}public double fps{get;set;}public double duration{get;set;}public bool loop{get;set;}public double audioOffset{get;set;}}
+public sealed class AudioTrack {public string file{get;set;}="";public double start{get;set;}public double gain{get;set;}=1;public bool loop{get;set;}}
+public sealed class EmoteInfo {public List<AudioTrack> audio{get;set;}=[];public string id{get;set;}=Guid.NewGuid().ToString("N");public string name{get;set;}="";public string path{get;set;}="";public string payload{get;set;}="";public List<ClipInfo> clips{get;set;}=[];public string[] warnings{get;set;}=[];}
 public sealed class StudioProject {public int schema{get;set;}=1;public string projectName{get;set;}="Untitled project";public string id{get;set;}=Guid.NewGuid().ToString("N");public JsonObject? model{get;set;}public string rig{get;set;}="";public List<EmoteInfo> emotes{get;set;}=[];public string? selectedEmote{get;set;}public int selectedClip{get;set;}public Dictionary<string,string> boneMap{get;set;}=[];public Dictionary<string,double> wheelPose{get;set;}=[];}
 public partial class MainWindow:Window {
- const string Version="beta 0.12.1";
+ const string Version="beta 0.13.0";
  readonly string root=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"oozycloud","EmoteStudio");
  string Projects=>Path.Combine(root,"projects");string Folder=>Path.Combine(Projects,project.id);string BaseBlend=>Path.Combine(Folder,"base.blend");string SessionBlend=>Path.Combine(Folder,"session.blend");
  readonly string[] args;StudioProject project=new();JsonObject manifest=new();bool initialized,busy;string message="Import a .blend model to begin.",error="",previewUrl="",exportPath="";double progress;long revision;List<string>warnings=[];string blender="";CancellationTokenSource? operation;Process? worker;
@@ -33,7 +34,7 @@ public partial class MainWindow:Window {
  async void Initialize(object sender,RoutedEventArgs e){
   try {
    Directory.CreateDirectory(Projects);blender=FindBlender();
-   var environment=await CoreWebView2Environment.CreateAsync(null,Path.Combine(root,"browser"),new CoreWebView2EnvironmentOptions("--disable-features=msWebOOUI"));
+   var environment=await CoreWebView2Environment.CreateAsync(null,Path.Combine(root,"browser"),new CoreWebView2EnvironmentOptions("--disable-features=msWebOOUI"+(args.FirstOrDefault()=="--smoke-test"?" --autoplay-policy=no-user-gesture-required":"")));
    await Web.EnsureCoreWebView2Async(environment);
    Web.CoreWebView2.Settings.AreDefaultContextMenusEnabled=false;Web.CoreWebView2.Settings.IsStatusBarEnabled=false;
    Web.CoreWebView2.SetVirtualHostNameToFolderMapping("studio.local",Path.Combine(AppContext.BaseDirectory,"ui"),CoreWebView2HostResourceAccessKind.Allow);
@@ -49,7 +50,7 @@ public partial class MainWindow:Window {
   string settings=Path.Combine(root,"settings.json");if(File.Exists(settings)){try{var saved=JsonNode.Parse(File.ReadAllText(settings))?["blender"]?.GetValue<string>();if(File.Exists(saved))return saved!;}catch(JsonException){}}
   string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"Blender Foundation");return Directory.Exists(folder)?Directory.EnumerateFiles(folder,"blender.exe",SearchOption.AllDirectories).OrderDescending().FirstOrDefault()??"":"";
  }
- void SendState(){if(!initialized)return;var state=new {version=Version,busy,progress,message,error,blender,project.projectName,model=project.model,project.emotes,project.selectedEmote,project.selectedClip,project.wheelPose,previewUrl,previewRevision=revision,warnings,mappingNeeded=manifest["mappingNeeded"]?.GetValue<bool>()??false,boneMap=manifest["boneMap"],sourceBones=manifest["sourceBones"],exportPath};Web.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new{type="state",state}));}
+ void SendState(){if(!initialized)return;var state=new {version=Version,busy,progress,message,error,blender,project.projectName,audioBaseUrl="https://project.studio.local/"+project.id+"/",model=project.model,project.emotes,project.selectedEmote,project.selectedClip,project.wheelPose,previewUrl,previewRevision=revision,warnings,mappingNeeded=manifest["mappingNeeded"]?.GetValue<bool>()??false,boneMap=manifest["boneMap"],sourceBones=manifest["sourceBones"],exportPath};Web.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new{type="state",state}));}
  async void Receive(object? sender,CoreWebView2WebMessageReceivedEventArgs e){
   if(!e.Source.StartsWith("https://studio.local/",StringComparison.Ordinal))return;
   try {
@@ -90,7 +91,7 @@ public partial class MainWindow:Window {
   try{string preview=Path.Combine(Folder,"model.glb");var result=await Run(new(){["action"]="inspectModel",["source"]=path,["baseOutput"]=BaseBlend,["previewOutput"]=preview});project.model=result["model"]!.AsObject();project.rig=project.model["rig"]!.GetValue<string>();warnings=result["warnings"]?.Deserialize<List<string>>()??[];File.Copy(BaseBlend,SessionBlend,true);SetPreview(preview);Persist();}catch{project=previous;manifest=previousManifest;warnings=previousWarnings;previewUrl=previousPreview;throw;}
  }
  async Task AddEmotes(string[] paths){
-  foreach(var path in paths){operation!.Token.ThrowIfCancellationRequested();if(project.emotes.Any(x=>Path.GetFullPath(x.path).Equals(Path.GetFullPath(path),StringComparison.OrdinalIgnoreCase)))continue;var item=new EmoteInfo{path=path};string payload=Path.Combine(Folder,item.id+".json");try{var result=await Run(new(){["action"]="inspectEmote",["source"]=path,["payloadOutput"]=payload});item.name=result["name"]!.GetValue<string>();item.clips=result["clips"]!.Deserialize<List<ClipInfo>>()!;item.payload=Path.GetFileName(payload);project.emotes.Add(item);}catch(IOException ex){warnings.Add(Path.GetFileName(path)+": "+ex.Message);}}
+  foreach(var path in paths){operation!.Token.ThrowIfCancellationRequested();if(project.emotes.Any(x=>Path.GetFullPath(x.path).Equals(Path.GetFullPath(path),StringComparison.OrdinalIgnoreCase)))continue;var item=new EmoteInfo{path=path};string payload=Path.Combine(Folder,item.id+".json");try{var result=await Run(new(){["action"]="inspectEmote",["source"]=path,["payloadOutput"]=payload});item.name=result["name"]!.GetValue<string>();item.clips=result["clips"]!.Deserialize<List<ClipInfo>>()!;item.audio=result["audio"]?.Deserialize<List<AudioTrack>>()??[];item.payload=Path.GetFileName(payload);project.emotes.Add(item);}catch(IOException ex){warnings.Add(Path.GetFileName(path)+": "+ex.Message);}}
   if(project.selectedEmote==null)project.selectedEmote=project.emotes.FirstOrDefault()?.id;await Compose();
  }
  async Task Compose(){
@@ -120,13 +121,13 @@ public partial class MainWindow:Window {
  }
  void Persist(){Directory.CreateDirectory(Folder);File.WriteAllText(Path.Combine(Folder,"project.json"),JsonSerializer.Serialize(project,json));File.WriteAllText(Path.Combine(Folder,"manifest.json"),manifest.ToJsonString());}
  async Task SaveProject(string path){
-  Persist();string folder=Folder;var files=new[]{"base.blend","session.blend","model.glb","project.json","manifest.json"}.Concat(project.emotes.Select(e=>e.payload)).Distinct().ToArray();string temp=path+"."+Guid.NewGuid().ToString("N")+".tmp";
+  Persist();string folder=Folder;var files=new[]{"base.blend","session.blend","model.glb","project.json","manifest.json"}.Concat(project.emotes.Select(e=>e.payload)).Concat(project.emotes.SelectMany(e=>e.audio.Select(a=>a.file))).Distinct().ToArray();string temp=path+"."+Guid.NewGuid().ToString("N")+".tmp";
   try{await Task.Run(()=>{using(var zip=ZipFile.Open(temp,ZipArchiveMode.Create)){foreach(var file in files){operation?.Token.ThrowIfCancellationRequested();zip.CreateEntryFromFile(Path.Combine(folder,file),file,CompressionLevel.Fastest);}}operation?.Token.ThrowIfCancellationRequested();File.Move(temp,path,true);});exportPath=path;}finally{if(File.Exists(temp))File.Delete(temp);}
  }
 
  async Task OpenProject(string path){
   var previous=project;var previousManifest=manifest;var previousWarnings=warnings;var previousPreview=previewUrl;project=new();Directory.CreateDirectory(Folder);try{using(var zip=ZipFile.OpenRead(path)){long total=0;if(zip.Entries.Count>2000)throw new IOException("This project contains too many files.");foreach(var e in zip.Entries){total+=e.Length;if(total>4L*1024*1024*1024)throw new IOException("This project is too large.");if(e.FullName!=Path.GetFileName(e.FullName)||e.FullName.Contains(':'))throw new IOException("Invalid project entry.");e.ExtractToFile(Path.Combine(Folder,e.FullName),true);}}
-   string id=project.id;var loaded=JsonSerializer.Deserialize<StudioProject>(File.ReadAllText(Path.Combine(Folder,"project.json")))??throw new IOException("Invalid project.");if(loaded.schema!=1)throw new IOException("Unsupported project version.");loaded.id=id;project=loaded;if(project.emotes.Any(e=>!Guid.TryParseExact(e.id,"N",out _)||string.IsNullOrWhiteSpace(e.payload)||e.payload!=Path.GetFileName(e.payload)||e.payload.Contains(':')))throw new IOException("Invalid emote payload path.");manifest=JsonNode.Parse(File.ReadAllText(Path.Combine(Folder,"manifest.json")))!.AsObject();warnings=manifest["warnings"]?.Deserialize<List<string>>()??[];await Preview();Persist();}catch{project=previous;manifest=previousManifest;warnings=previousWarnings;previewUrl=previousPreview;throw;}
+   string id=project.id;var loaded=JsonSerializer.Deserialize<StudioProject>(File.ReadAllText(Path.Combine(Folder,"project.json")))??throw new IOException("Invalid project.");if(loaded.schema!=1)throw new IOException("Unsupported project version.");loaded.id=id;project=loaded;if(project.emotes.Any(e=>!Guid.TryParseExact(e.id,"N",out _)||string.IsNullOrWhiteSpace(e.payload)||e.payload!=Path.GetFileName(e.payload)||e.payload.Contains(':')))throw new IOException("Invalid emote payload path.");if(project.emotes.SelectMany(e=>e.audio).Any(a=>a.file!=Path.GetFileName(a.file)||a.file.Contains(':')||!a.file.EndsWith(".wav",StringComparison.OrdinalIgnoreCase)))throw new IOException("Invalid audio payload path.");manifest=JsonNode.Parse(File.ReadAllText(Path.Combine(Folder,"manifest.json")))!.AsObject();warnings=manifest["warnings"]?.Deserialize<List<string>>()??[];await Preview();Persist();}catch{project=previous;manifest=previousManifest;warnings=previousWarnings;previewUrl=previousPreview;throw;}
  }
  async Task SmokeTest(){
   string output=args[1];Directory.CreateDirectory(output);foreach(string stale in new[]{"error.txt","result.json","studio.png"}){string file=Path.Combine(output,stale);if(File.Exists(file))File.Delete(file);}try{
@@ -156,6 +157,13 @@ public partial class MainWindow:Window {
     if(!project.wheelPose.TryGetValue("wheel_FL_steer",out angle)||Math.Abs(angle-Math.PI/6)>.001)throw new Exception("Wheel pose did not reopen.");
    }
    await Web.CoreWebView2.ExecuteScriptAsync("document.getElementById('play').click();");await Task.Delay(400);
+   if(project.emotes.Any(e=>e.audio.Count>0)){
+    for(int i=0;i<50;i++){await Task.Delay(100);string a=JsonSerializer.Deserialize<string>(await Web.CoreWebView2.ExecuteScriptAsync("JSON.stringify(window.EmoteStudioAudio)"))??"{}";if(JsonNode.Parse(a)?["loaded"]?.GetValue<bool>()==true)break;}
+    string audioState=JsonSerializer.Deserialize<string>(await Web.CoreWebView2.ExecuteScriptAsync("JSON.stringify(window.EmoteStudioAudio)"))??"{}";
+    File.WriteAllText(Path.Combine(output,"audio-state.json"),audioState);
+    if(JsonNode.Parse(audioState)?["loaded"]?.GetValue<bool>()!=true || JsonNode.Parse(audioState)?["playing"]?.GetValue<bool>()!=true)throw new Exception("Emote audio did not decode and play in Studio.");
+    using var saved=ZipFile.OpenRead(Path.Combine(output,"studio-project.oozy-emotes"));if(!saved.Entries.Any(e=>e.FullName.EndsWith(".wav")))throw new Exception("Project archive omitted emote audio.");
+   }
    using(var shot=File.Create(Path.Combine(output,"studio.png")))await Web.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png,shot);
    File.WriteAllText(Path.Combine(output,"result.json"),JsonSerializer.Serialize(new{Success=true,Project=project,Manifest=manifest,Preview=previewUrl}));Environment.ExitCode=0;
   }catch(Exception ex){File.WriteAllText(Path.Combine(output,"error.txt"),ex.ToString());Environment.ExitCode=1;}finally{DiagnosticCompletion.TrySetResult(Environment.ExitCode);if(HostWindow==null)Close();}
