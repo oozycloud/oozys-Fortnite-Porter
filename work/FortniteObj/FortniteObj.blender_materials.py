@@ -399,6 +399,28 @@ if data.get('Emoticon') or any(s.get('CartoonColor') for s in data.get('Material
     bpy.context.scene.view_settings.view_transform = 'Standard'
     bpy.context.scene.view_settings.look = 'None'
 bpy.ops.file.pack_all()
+# Keep the effective material manifest inside the portable file. This also lets
+# Studio validate images after the sidecar export folder has been cleaned up.
+material_manifest=bpy.data.texts.get('Porter Materials.json') or bpy.data.texts.new('Porter Materials.json')
+material_manifest.from_string(json.dumps(data,indent=1))
+texture_report=[]
+for spec in data.get('Materials',[]):
+    material=bpy.data.materials.get(spec['Name'])
+    if not material or not material.node_tree:
+        if spec.get('Maps'):raise ValueError('Textured material was not attached: '+spec['Name'])
+        continue
+    nodes=[n for n in material.node_tree.nodes if n.type=='TEX_IMAGE' and n.image and n.image.users]
+    for node in nodes:
+        image=node.image
+        # Packing/colour-space changes may release Blender's decoded buffer.
+        # Force an actual read before judging a lazily loaded packed image.
+        if not image.has_data:
+            try:_=image.pixels[0]
+            except Exception:pass
+        if not image.has_data or not all(image.size) or not (image.packed_file or image.packed_files):
+            raise ValueError('Texture was not embedded: '+spec['Name']+' / '+image.name)
+    texture_report.append({'Material':material.name,'Source':spec.get('Source'),'Images':len(nodes),'MissingMaps':spec.get('MissingMaps',[]),'BaseColorDesaturation':spec.get('BaseColorDesaturation',0)})
+with open(os.path.join(folder,'texture-report.json'),'w',encoding='utf-8') as stream:json.dump(texture_report,stream,indent=2)
 if rig:
     bpy.context.view_layer.objects.active = rig
     rig.select_set(True)

@@ -35,7 +35,7 @@ public class App : Application
         if(e.Args.FirstOrDefault()=="--studio-check"){
             ShutdownMode=ShutdownMode.OnExplicitShutdown;
             string folder=Path.GetFullPath(e.Args.ElementAtOrDefault(1)??"studio-check");Directory.CreateDirectory(folder);
-            var window=new MainWindow(checkUpdates:false){ShowInTaskbar=false};window.Show();
+            var window=new MainWindow(checkUpdates:false){ShowInTaskbar=false,ShowActivated=false,WindowStartupLocation=WindowStartupLocation.Manual,Left=-20000,Top=0};window.Show();
             try{await window.RunMergedDiagnostics(folder,e.Args.ElementAtOrDefault(2),e.Args.Skip(3).ToArray());window.Close();if(Windows.Count!=0)throw new IOException("A hidden editor window remained after closing the shell.");Shutdown(0);}
             catch(Exception ex){File.WriteAllText(Path.Combine(folder,"merged-error.txt"),ex.ToString());window.Close();Shutdown(1);}return;
         }

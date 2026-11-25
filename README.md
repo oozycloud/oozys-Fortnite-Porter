@@ -8,15 +8,15 @@ Export game assets and add emotes to rigged Blender models in one desktop app. S
 
 · [Release history](CHANGELOG.md) · [Report a problem](https://github.com/oozycloud/oozys-Fortnite-Porter/issues)
 
-> **Current tested build: beta 0.13.1.** Skin customization changes now automatically update a rendered preview of the complete appearance. Local installer, portable package and source backup are available; published older versions remain in [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.13.1.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
+> **Current tested build: beta 0.13.2.** Fixes Fortnite material resolution and streamed texture retries, with corrected Black Panther colour processing and packed-image checks. Local installer, portable package and source backup are available; published older versions remain in [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases). See [release notes](docs/releases/beta-0.13.2.md) for changes and [available builds](docs/releases/AVAILABLE-BUILDS.md) for preserved older versions.
 
 ## Two tools, one window
 
 **Porter** browses supported game files and exports models, textures and animations. **Emote Studio** imports a rigged `.blend`, keeps a library of exported emotes, and previews the selected move with a timeline. Save `.blend`, `.glb`, `.fbx` or a portable Studio project. Each tab retains its state while you switch. In Porter, click a model card to open its export overlay; Ctrl-click selects a batch. The old combined skin + emote mode has been removed. Apply emotes through the Emote Studio tab.
 
-Install **oozys-Porter-Studio-Installer (beta 0.13.1).exe**, then run **oozys-Porter-Studio (beta 0.13.1).exe**. Supporting files live in `app`. The installer recognizes earlier Porter installations for Update and preserves existing settings. Blender runs in the background for Studio processing; WebView2 powers the preview. .NET is included.
+Install **oozys-Porter-Studio-Installer (beta 0.13.2).exe**, then run **oozys-Porter-Studio (beta 0.13.2).exe**. Supporting files live in `app`. The installer recognizes earlier Porter installations for Update and preserves existing settings. Blender runs in the background for Studio processing; WebView2 powers the preview. .NET is included.
 
-[Studio workflow and rig compatibility](work/EmoteStudio/README.md) · [Merged release notes](docs/releases/beta-0.13.1.md)
+[Studio workflow and rig compatibility](work/EmoteStudio/README.md) · [Merged release notes](docs/releases/beta-0.13.2.md)
 
 ## What it does
 
@@ -55,15 +55,15 @@ Rocket League keys refresh in the background at launch and before scans/exports,
 ## Install or update
 
 1. Download the installer from [GitHub Releases](https://github.com/oozycloud/oozys-Fortnite-Porter/releases).
-2. Run `oozys-Porter-Studio-Installer (beta 0.13.1).exe`.
+2. Run `oozys-Porter-Studio-Installer (beta 0.13.2).exe`.
 3. Choose an installation folder. If the installer detects an existing installation there, it offers **Update**.
 4. Close the running porter before updating, then install.
-5. Open `oozys-Porter-Studio (beta 0.13.1).exe` from that folder.
+5. Open `oozys-Porter-Studio (beta 0.13.2).exe` from that folder.
 
 The installed layout is:
 
 ```text
-oozys-Porter-Studio (beta 0.13.1).exe
+oozys-Porter-Studio (beta 0.13.2).exe
 app/
     Porter.exe
     Porter.dll
@@ -146,7 +146,7 @@ Use **Material Preview** or **Rendered** mode to inspect textures. Play the time
 
 Toon materials use authored colour maps and an outer outline where supported. Garment physics use inferred pins and body collisions. Play sequentially from frame 1, adjust **Physics Pins** if necessary and bake before rendering. The garment's **Enable Cloth** property can disable simulation while editing.
 
-Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.13.1.md) for tested examples and outstanding work.
+Terrain has been removed. Skyboxes now offers **Daylight, Sunrise, Sunset, Overcast and Night**, with procedural Blender materials and no external image dependencies. Kicks, sprays and loading screens are included. Experimental exports also cover wraps, pets/carriers, toys and battle buses. See [release notes](docs/releases/beta-0.13.2.md) for tested examples and outstanding work.
 
 ## Update checks
 

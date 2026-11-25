@@ -2,6 +2,24 @@ using FortniteObj.Core;
 using CUE4Parse.FileProvider;
 using Newtonsoft.Json;
 using System.Reflection;
+if(args.Contains("--texture-checks")) {
+ using var source=new SkiaSharp.SKBitmap(3,1);
+ source.Pixels=new[]{new SkiaSharp.SKColor(210,120,35,255),new SkiaSharp.SKColor(30,30,30,255),new SkiaSharp.SKColor(100,180,70,91)};
+ using var original=source.Encode(SkiaSharp.SKEncodedImageFormat.Png,100);
+ using var grey=SkiaSharp.SKBitmap.Decode(MaterialTextureProcessing.Desaturate(original.ToArray(),1));
+ for(int i=0;i<3;i++){var p=grey.Pixels[i];if(p.Red!=p.Green || p.Red!=p.Blue || p.Alpha!=source.Pixels[i].Alpha)throw new Exception("Desaturation lost colour neutrality/alpha");}
+ using var unchanged=SkiaSharp.SKBitmap.Decode(MaterialTextureProcessing.Desaturate(original.ToArray(),0));
+ if(!unchanged.Pixels.SequenceEqual(source.Pixels))throw new Exception("Zero desaturation changed source pixels");
+ string empty=Path.Combine(Path.GetTempPath(),"porter-payload-check-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(empty);
+ try{
+  using var q=new QualityFileProvider(empty,new CUE4Parse.UE4.Versions.VersionContainer(CUE4Parse.UE4.Versions.EGame.GAME_UE5_9));
+  var chunks=(System.Collections.IDictionary)typeof(QualityFileProvider).GetField("_chunks",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(q)!;
+  var miss=new CUE4Parse.UE4.IO.Objects.FIoChunkId(11,0,CUE4Parse.UE4.IO.Objects.EIoChunkType5.BulkData);var hit=new CUE4Parse.UE4.IO.Objects.FIoChunkId(12,0,CUE4Parse.UE4.IO.Objects.EIoChunkType5.BulkData);
+  chunks[miss]=null;chunks[hit]=new byte[]{1,2,3};q.BeginExport(CancellationToken.None);
+  if(chunks.Contains(miss)||!chunks.Contains(hit))throw new Exception("Retry reused a stale missing payload or discarded valid data");
+ }finally{Directory.Delete(empty);}
+ Console.WriteLine("PASS linear desaturation, zero-strength preservation, alpha preservation, and payload retry invalidation with successful-cache retention");return;
+}
 if(args.Contains("--loop-checks")) {
  var intro=EmoteLoop.FindCycle(new[]{new EmoteLoop.Section("Intro","Loop",0),new EmoteLoop.Section("Loop","Loop",1),new EmoteLoop.Section("Outro","None",4)},5);
  if(intro!=new EmoteLoop.Window(1,4))throw new Exception("Intro/outro were included in loop");
@@ -67,17 +85,27 @@ using var session=new GameSession();
 var progress=new LogProgress();
 List<Cosmetic> list;
 AbstractFileProvider provider;
-if(args.Contains("--meshdiag") || args.Contains("--cached-export")) {
+if(args.Contains("--meshdiag") || args.Contains("--cached-export") || args.Contains("--texture-audit")) {
  var settings=AppSettings.Load();var compatibility=await Compatibility.Prepare(settings,progress,CancellationToken.None);
- var q=new QualityFileProvider(Installation.Paks(settings.GameFolder),new CUE4Parse.UE4.Versions.VersionContainer(Enum.Parse<CUE4Parse.UE4.Versions.EGame>(settings.EngineVersion), optionOverrides: args.Contains("--mobile-min") || args.Contains("--cached-export") ? new Dictionary<string,bool>{{"SkeletalMesh.KeepMobileMinLODSettingOnDesktop",true}} : null)) {MappingsContainer=new CurrentUsmapProvider(compatibility.MappingPath),EnablePackageStreaming=true,Progress=progress};
+ var q=new QualityFileProvider(Installation.Paks(settings.GameFolder),new CUE4Parse.UE4.Versions.VersionContainer(Enum.Parse<CUE4Parse.UE4.Versions.EGame>(settings.EngineVersion), optionOverrides: args.Contains("--mobile-min") || args.Contains("--cached-export") || args.Contains("--texture-audit") ? new Dictionary<string,bool>{{"SkeletalMesh.KeepMobileMinLODSettingOnDesktop",true}} : null)) {MappingsContainer=new CurrentUsmapProvider(compatibility.MappingPath),EnablePackageStreaming=true,Progress=progress};
  q.Initialize();q.SubmitKeys(compatibility.Keys);q.PostMount();q.LoadVirtualPaths();File.WriteAllText(Path.Combine(output,"engine-config.json"),JsonConvert.SerializeObject(q.DefaultEngine,Formatting.Indented));Console.WriteLine("PROVIDER MOBILE MIN "+q.Versions["SkeletalMesh.KeepMobileMinLODSettingOnDesktop"]);provider=q;list=new();
- if(args.Contains("--cached-export")) {
+ if(args.Contains("--cached-export") || args.Contains("--texture-audit")) {
   typeof(GameSession).GetField("_provider",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(session,q);
   list=System.Text.Json.JsonSerializer.Deserialize<List<Cosmetic>>(File.ReadAllText("recovery/site-ghoul/catalog.json"))!;
  }
 } else {
  list=await session.Scan(AppSettings.Load(),progress,CancellationToken.None);
  provider=(AbstractFileProvider)typeof(GameSession).GetField("_provider",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(session)!;
+}
+if(args.Contains("--texture-audit")) {
+ var names=args[Array.IndexOf(args,"--texture-audit")+1].Split('|');var results=new List<object>();
+ foreach(var name in names){
+  var asset=list.First(x=>x.Name.Equals(name,StringComparison.OrdinalIgnoreCase) && new[]{"Skins","Back blings","Pickaxes","Gliders"}.Contains(x.Category));
+  try{var result=session.Export(asset,output,progress,CancellationToken.None,matteMaterials:false,createBlend:false);results.Add(new{asset.Name,asset.Category,Result=result});Console.WriteLine("AUDITED "+asset.Name);}
+  catch(Exception ex){results.Add(new{asset.Name,Error=ex.ToString()});Console.WriteLine("AUDIT FAILED "+asset.Name+": "+ex.Message);}
+  File.WriteAllText(Path.Combine(output,"audit-results.json"),System.Text.Json.JsonSerializer.Serialize(results,new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+ }
+ return;
 }
 if(args.Contains("--animation-probe")) {
  foreach(var path in args.Skip(Array.IndexOf(args,"--animation-probe")+1)) {

@@ -2,6 +2,16 @@
 
 Changes to **oozy's porter studio**, formerly **oozy's Fortnite Porter** and **Fortnite Porter Studio**. Entries distinguish verified packaged changes from current development. The beta sequence intentionally resets after 2.2.0.
 
+## beta 0.13.2 — 25 November 2026
+
+- Apply enabled thin-film diffuse desaturation, correcting Black Panther’s gold source colours to neutral trim in Blender and Studio.
+- Preserve usable material maps when an inherited/optional parameter or texture reference fails; expand base-colour and normal aliases.
+- Retry previously missing bulk texture payloads after archive mounts and on each export, retaining successful cached data.
+- Embed material manifests, validate packed images and save a texture report with each Blender export.
+- Check used embedded images during Studio imports.
+
+[Release notes](docs/releases/beta-0.13.2.md).
+
 ## beta 0.13.1 — 19 November 2026
 
 - Automatically render the full selected skin customization combination in the export overlay.

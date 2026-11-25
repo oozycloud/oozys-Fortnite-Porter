@@ -50,7 +50,15 @@ public sealed class QualityFileProvider : DefaultFileProvider
 	{
 		ExportCancellation = ct;
 		_indexFailures.Clear();
+        InvalidateMissingPayloads();
 	}
+
+    private void InvalidateMissingPayloads()
+    {
+        // A miss recorded during catalog loading or an earlier export is not
+        // permanent: newly mounted streamed archives may now contain the data.
+        foreach(var id in _chunks.Where(pair=>pair.Value==null).Select(pair=>pair.Key).ToArray())_chunks.Remove(id);
+    }
 
 	public QualityFileProvider(string paks, VersionContainer versions)
 		: base(paks, SearchOption.TopDirectoryOnly, versions, StringComparer.OrdinalIgnoreCase)
@@ -192,6 +200,7 @@ public sealed class QualityFileProvider : DefaultFileProvider
 			{
 				throw new IOException("Could not open streamed cosmetic archive " + containerName + ". Its AES key may be unavailable.");
 			}
+            InvalidateMissingPayloads();
 		}
 	}
 

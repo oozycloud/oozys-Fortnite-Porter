@@ -45,6 +45,8 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 
 		public bool CartoonColor { get; set; }
 
+        public float BaseColorDesaturation { get; set; }
+
 		public bool UseBaseAlpha { get; set; }
 
 		public bool HiddenSurface { get; set; }
@@ -73,10 +75,12 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 	public void Write(StreamWriter mtl, string name, UMaterialInterface material, StyleMaterialParameters? parameters = null)
 	{
 		CMaterialParams2 p = new CMaterialParams2();
-		material.GetParams(p, EMaterialDepth.AllLayers);
+        try { material.GetParams(p, EMaterialDepth.AllLayers); }
+        catch(Exception ex) when(ex is not OperationCanceledException) { warnings.Add(material.Name+": inherited material parameters were incomplete; retaining resolved instance textures: "+ex.Message); }
 		parameters?.Apply(p);
 		CMaterialParams cMaterialParams = new CMaterialParams();
-		material.GetParams(cMaterialParams);
+        try { material.GetParams(cMaterialParams); }
+        catch(Exception ex) when(ex is not OperationCanceledException) { warnings.Add(material.Name+": legacy material fallback unavailable: "+ex.Message); }
 		MaterialInfo info = new MaterialInfo(name, material.GetPathName());
 		Materials.Add(info);
         // Diagnostic metadata must never turn a usable material into a fallback.
@@ -170,7 +174,11 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 		});
 		UUnrealMaterial uUnrealMaterial = (flag2 ? Texture(new string[3] { "Color_Lit_Map", "LitDiffuse", "Lit_Diffuse" }) : null);
 		info.CartoonColor = flag2 || uUnrealMaterial != null;
-		UUnrealMaterial uUnrealMaterial2 = uUnrealMaterial ?? Texture(new string[] { "PM_Diffuse", "Diffuse", "BaseColor", "Base Colour", "Albedo", "DiffuseTexture", "Diffuse_Texture", "Diffuse_Texture_1", "BaseColor_Texture", "Diffuse Map", "Base Color Texture", "Trunk_BaseColor", "LitDiffuse" }) ?? cMaterialParams.Diffuse?.Load<UUnrealMaterial>();
+        // This parameter belongs to the thin-film branch, not every material
+        // inheriting the character master (whose inactive default is also 1).
+        if(p.Switches.Any(x=>x.Value && Normalize(x.Key)=="USETHINFILM"))
+            info.BaseColorDesaturation=Math.Clamp(Scalar(0,"Desat Diffuse"),0,1);
+		UUnrealMaterial uUnrealMaterial2 = uUnrealMaterial ?? Texture(new string[] { "PM_Diffuse", "Diffuse", "BaseColor", "Base Colour", "Albedo", "DiffuseTexture", "Diffuse_Texture", "Diffuse_Texture_1", "BaseColor_Texture", "Diffuse Map", "Base Color Texture", "Trunk_BaseColor", "LitDiffuse", "Base_Color", "AlbedoMap", "BaseColorMap", "DiffuseMap", "Base_Color_Texture" }) ?? LegacyTexture(()=>cMaterialParams.Diffuse?.Load<UUnrealMaterial>());
 		Map("BaseColor", "map_Kd", uUnrealMaterial2);
         if(p.Switches.Any(x=>x.Value && Normalize(x.Key)=="USESEQUINS")){
             foreach(var entry in new[]{("SequinMask","Mask"),("SequinFXMask","TechArtMask"),("SequinColourMain","Thin Film Texture"),("SequinColourSecondary","SequinThinFilm_Secondary"),("SequinColourTrim","SequinThinFilm_Trim"),("SequinDetailMain","SequinOffest_Main"),("SequinDetailSecondary","SequinOffest_Secondary"),("SequinRoughMain","SequinRoughness_Main"),("SequinRoughSecondary","SequinRoughness_Secondary")})Map(entry.Item1,"# sequin_source",Texture(entry.Item2));
@@ -212,7 +220,7 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 			Map("LineMask", "# line_mask", Texture(new string[3] { "DFL_Map", "DistanceField_InkLines", "DistanceFieldInkLines" }));
 			Map("LineColor", "# line_color", Texture(new string[2] { "DFL_Color_Map", "DistanceField_InkLines_Color" }));
 		}
-		Map("Normal", "map_Bump", Texture(new string[] { "PM_Normals", "Normals", "Normal", "NormalMap", "NormalTexture", "Normals_Texture", "Normals_Texture_1" }) ?? cMaterialParams.Normal?.Load<UUnrealMaterial>());
+		Map("Normal", "map_Bump", Texture(new string[] { "PM_Normals", "Normals", "Normal", "NormalMap", "NormalTexture", "Normals_Texture", "Normals_Texture_1", "Normal_Texture", "Normal_Map" }) ?? LegacyTexture(()=>cMaterialParams.Normal?.Load<UUnrealMaterial>()));
 		KeyValuePair<string, FLinearColor>? keyValuePair = parameters?.Colors.FirstOrDefault((KeyValuePair<string, FLinearColor> x) => Normalize(x.Key) == "EMISSIVECOLOR");
 		if (keyValuePair.HasValue)
 		{
@@ -338,25 +346,40 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 				foreach (string name in names)
 					foreach (var pair in parameters.Textures)
 						if (Normalize(pair.Key) == Normalize(name)) return pair.Value;
-			var seen = new HashSet<string>(StringComparer.Ordinal);
-			for (var current = material as UMaterialInstanceConstant; current != null && seen.Add(current.GetPathName()); current = current.Parent?.Load<UMaterialInstanceConstant>())
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+			for (var current = material as UMaterialInstanceConstant; current != null && seen.Add(current.GetPathName()); current = Parent(current))
 				foreach (string name in names)
 					foreach (var parameter in current.TextureParameterValues)
-						if (Normalize(parameter.Name) == Normalize(name)) return parameter.ParameterValue?.Load<UTexture>();
+						if (Normalize(parameter.Name) == Normalize(name)) {
+                            try { if(parameter.ParameterValue?.Load<UTexture>() is UTexture loaded)return loaded; }
+                            catch(Exception ex) when(ex is not OperationCanceledException) { warnings.Add(material.Name+": texture parameter "+parameter.Name+" could not be loaded: "+ex.Message); }
+                        }
 			foreach (string key in names)
 			{
-				if (p.Textures.TryGetValue(key, out var reference) && reference.Load() is UTexture value3)
+				if (p.Textures.TryGetValue(key, out var reference) && Load(reference) is UTexture value3)
 				{
 					return value3;
 				}
 				var keyValuePair2 = p.Textures.FirstOrDefault(x => Normalize(x.Key) == Normalize(key));
-				if (keyValuePair2.Value?.Load() is UTexture matchedTexture)
+				if (Load(keyValuePair2.Value) is UTexture matchedTexture)
 				{
 					return matchedTexture;
 				}
 			}
 			return null;
 		}
+        UMaterialInstanceConstant? Parent(UMaterialInstanceConstant instance) {
+            try{return instance.Parent?.Load<UMaterialInstanceConstant>();}
+            catch(Exception ex) when(ex is not OperationCanceledException){warnings.Add(material.Name+": parent material unavailable: "+ex.Message);return null;}
+        }
+        CUE4Parse.UE4.Assets.Exports.UObject? Load(ILoadableObject? reference) {
+            try{return reference?.Load();}
+            catch(Exception ex) when(ex is not OperationCanceledException){warnings.Add(material.Name+": optional texture reference unavailable: "+ex.Message);return null;}
+        }
+        UUnrealMaterial? LegacyTexture(Func<UUnrealMaterial?> resolve) {
+            try{return resolve();}
+            catch(Exception ex) when(ex is not OperationCanceledException){warnings.Add(material.Name+": fallback texture unavailable: "+ex.Message);return null;}
+        }
 		void WriteMap(string role, string field, UUnrealMaterial? uUnrealMaterial4)
 		{
 			if (uUnrealMaterial4 is UTexture uTexture)
@@ -373,11 +396,12 @@ public sealed class MaterialExporter(string folder, List<string> warnings, Cance
 				{
 					text2 = ((role == "Metallic") ? $"|{info.Metallic}|{info.MetallicOverride}" : "");
 				}
-				string key = pathName + "|" + text + text2 + "|" + info.SurfaceMaskPacking;
+				string key = pathName + "|" + text + text2 + "|" + info.SurfaceMaskPacking + "|desat=" + (role.StartsWith("BaseColor")?info.BaseColorDesaturation:0);
 				if (!_textures.TryGetValue(key, out TextureInfo value3))
 				{
 					CTexture cTexture = uTexture.Decode() ?? throw new IOException("Cannot decode " + uTexture.Name);
 					byte[] array = cTexture.Encode(ETextureFormat.Png, saveHdrAsHdr: false, out string _) ?? throw new IOException("Empty texture " + uTexture.Name);
+                    if(role.StartsWith("BaseColor") && info.BaseColorDesaturation>0)array=MaterialTextureProcessing.Desaturate(array,info.BaseColorDesaturation);
 					bool flag3 = role.StartsWith("Normal") || role.StartsWith("Roughness");
 					if (!flag3)
 					{

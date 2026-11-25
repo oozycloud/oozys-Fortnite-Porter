@@ -32,7 +32,13 @@ def object_mode():
 def pack():
  warnings=[]
  for image in bpy.data.images:
-  if image.packed_file or image.packed_files:continue
+  if not image.users:continue
+  if image.packed_file or image.packed_files:
+   if not image.has_data:
+    try:_=image.pixels[0]
+    except Exception:pass
+   if not image.has_data or not all(image.size):warnings.append('Embedded texture could not be decoded: '+image.name)
+   continue
   if image.source=='FILE' and not image.has_data:
    try:image.reload()
    except Exception:pass
